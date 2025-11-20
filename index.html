@@ -330,6 +330,7 @@
         .vraag { background-color: #007aff; }
         .antwoord { background-color: #34c759; }
         .random { background-color: #8e8e93; }
+        .github { background-color: #ff9500; }
 
         @media (max-width: 600px) {
             .container {
@@ -356,7 +357,7 @@
         <div class="header">
             <div class="bot-icon">🤖</div>
             <h1>Combot</h1>
-            <p>Je leuke gesprekspartner die van je leert en je woorden terug gebruikt!</p>
+            <p>Je slimme gesprekspartner met GitHub kennis!</p>
         </div>
         
         <div class="chat-container" id="chat-container">
@@ -378,8 +379,8 @@
                 <div>Woorden geleerd</div>
             </div>
             <div class="stat-item">
-                <div class="stat-value" id="category-count">8</div>
-                <div>Categorieën</div>
+                <div class="stat-value" id="github-count">0</div>
+                <div>GitHub reacties</div>
             </div>
         </div>
         
@@ -399,8 +400,8 @@
                 <span>Begroeting</span>
             </div>
             <div class="color-item">
-                <div class="color-box boos"></div>
-                <span>Boze opmerking</span>
+                <div class="color-box github"></div>
+                <span>GitHub reactie</span>
             </div>
             <div class="color-item">
                 <div class="color-box compliment"></div>
@@ -413,18 +414,6 @@
             <div class="color-item">
                 <div class="color-box grap"></div>
                 <span>Grap/humor</span>
-            </div>
-            <div class="color-item">
-                <div class="color-box verdrietig"></div>
-                <span>Verdrietig</span>
-            </div>
-            <div class="color-item">
-                <div class="color-box vraag"></div>
-                <span>Vraag</span>
-            </div>
-            <div class="color-item">
-                <div class="color-box antwoord"></div>
-                <span>Antwoord</span>
             </div>
         </div>
     </div>
@@ -490,8 +479,8 @@
                 ]
             };
             
-            // Probeer reacties van GitHub te laden
-            let githubResponses = {};
+            // Laad GitHub reacties
+            let githubQA = [];
             try {
                 const response = await fetch('https://raw.githubusercontent.com/jimisdebest/ai/main/reacties.txt');
                 const text = await response.text();
@@ -502,35 +491,17 @@
                     if (line.includes('=')) {
                         const [question, answer] = line.split('=').map(part => part.trim());
                         if (question && answer) {
-                            // Categoriseer op basis van het type vraag
-                            let category = 'antwoord';
-                            if (question.toLowerCase().includes('hoe') || 
-                                question.toLowerCase().includes('wat') || 
-                                question.toLowerCase().includes('waarom') || 
-                                question.toLowerCase().includes('wanneer')) {
-                                category = 'vraag';
-                            }
-                            
-                            if (!githubResponses[category]) {
-                                githubResponses[category] = [];
-                            }
-                            githubResponses[category].push(answer);
+                            githubQA.push({
+                                question: question.toLowerCase(),
+                                answer: answer
+                            });
                         }
                     }
                 }
                 
-                console.log('GitHub reacties geladen:', githubResponses);
+                console.log('GitHub QA paren geladen:', githubQA.length);
             } catch (error) {
                 console.error('Fout bij het laden van GitHub reacties:', error);
-            }
-            
-            // Combineer standaard kennis met GitHub reacties
-            const combinedKnowledgeBase = { ...defaultKnowledgeBase };
-            for (const category in githubResponses) {
-                if (!combinedKnowledgeBase[category]) {
-                    combinedKnowledgeBase[category] = [];
-                }
-                combinedKnowledgeBase[category] = [...combinedKnowledgeBase[category], ...githubResponses[category]];
             }
             
             // Standaard leerpatronen
@@ -557,15 +528,17 @@
             // Standaard statistieken
             const defaultStats = {
                 totalMessages: 0,
-                totalLearned: 0
+                totalLearned: 0,
+                githubResponsesUsed: 0
             };
             
             // Gebruik opgeslagen data of standaard waarden
             return {
-                knowledgeBase: storedKnowledgeBase ? JSON.parse(storedKnowledgeBase) : combinedKnowledgeBase,
+                knowledgeBase: storedKnowledgeBase ? JSON.parse(storedKnowledgeBase) : defaultKnowledgeBase,
                 learnedPatterns: storedLearnedPatterns ? JSON.parse(storedLearnedPatterns) : defaultLearnedPatterns,
                 botPersonality: storedBotPersonality ? JSON.parse(storedBotPersonality) : defaultBotPersonality,
-                stats: storedStats ? JSON.parse(storedStats) : defaultStats
+                stats: storedStats ? JSON.parse(storedStats) : defaultStats,
+                githubQA: githubQA
             };
         }
         
@@ -576,7 +549,8 @@
             localStorage.setItem('combotPersonality', JSON.stringify(botPersonality));
             localStorage.setItem('combotStats', JSON.stringify({
                 totalMessages: totalMessages,
-                totalLearned: totalLearned
+                totalLearned: totalLearned,
+                githubResponsesUsed: githubResponsesUsed
             }));
         }
         
@@ -594,6 +568,8 @@
                 botPersonality = botData.botPersonality;
                 totalMessages = botData.stats.totalMessages;
                 totalLearned = botData.stats.totalLearned;
+                githubResponsesUsed = botData.stats.githubResponsesUsed;
+                githubQA = botData.githubQA;
                 
                 // Update de UI
                 updateStats();
@@ -605,8 +581,8 @@
         }
         
         // Initialiseer de bot
-        let knowledgeBase, learnedPatterns, botPersonality, stats;
-        let totalMessages, totalLearned;
+        let knowledgeBase, learnedPatterns, botPersonality, stats, githubQA;
+        let totalMessages, totalLearned, githubResponsesUsed;
 
         // Elementen
         const chatContainer = document.getElementById('chat-container');
@@ -614,7 +590,7 @@
         const sendBtn = document.getElementById('send-btn');
         const messageCount = document.getElementById('message-count');
         const learnedCount = document.getElementById('learned-count');
-        const categoryCount = document.getElementById('category-count');
+        const githubCount = document.getElementById('github-count');
         const memoryList = document.getElementById('memory-list');
         const clearMemoryBtn = document.getElementById('clear-memory');
 
@@ -627,8 +603,10 @@
             botPersonality = botData.botPersonality;
             totalMessages = botData.stats.totalMessages;
             totalLearned = botData.stats.totalLearned;
+            githubResponsesUsed = botData.stats.githubResponsesUsed;
+            githubQA = botData.githubQA;
             
-            addBotMessage("Hallo! Ik ben Combot, je leuke gesprekspartner. Ik leer van wat je zegt en gebruik je woorden later gewoon terug in gesprekken! Ik heb ook veel reacties geladen van GitHub.", "begroeting");
+            addBotMessage(`Hallo! Ik ben Combot. Ik heb ${githubQA.length} vraag-antwoord paren geladen van GitHub. Stel me een vraag!`, "begroeting");
             
             // Als we al woorden hebben geleerd, toon dat
             if (botPersonality.learnedWords.length > 0) {
@@ -764,9 +742,47 @@
             return commonWords.includes(word.toLowerCase());
         }
 
+        // Zoek naar een passend antwoord in GitHub QA
+        function findGitHubResponse(userMessage) {
+            const lowerMessage = userMessage.toLowerCase();
+            
+            for (const qa of githubQA) {
+                // Controleer of de vraag overeenkomt met het gebruikersbericht
+                if (lowerMessage.includes(qa.question) || 
+                    qa.question.includes(lowerMessage) ||
+                    calculateSimilarity(lowerMessage, qa.question) > 0.7) {
+                    return qa.answer;
+                }
+            }
+            
+            return null;
+        }
+
+        // Bereken gelijkenis tussen twee strings (eenvoudige implementatie)
+        function calculateSimilarity(str1, str2) {
+            const words1 = str1.split(' ');
+            const words2 = str2.split(' ');
+            let matches = 0;
+            
+            for (const word1 of words1) {
+                if (words2.includes(word1) && word1.length > 2) {
+                    matches++;
+                }
+            }
+            
+            return matches / Math.max(words1.length, words2.length);
+        }
+
         // Functie om een antwoord van de bot te genereren
         function generateBotResponse(userMessage, userCategory) {
-            // Diep nadenken - complexe logica voor het genereren van antwoorden
+            // Eerst zoeken in GitHub QA - dit heeft voorrang
+            const githubResponse = findGitHubResponse(userMessage);
+            if (githubResponse) {
+                githubResponsesUsed++;
+                return { response: githubResponse, category: "github" };
+            }
+            
+            // Als geen GitHub antwoord gevonden, gebruik de normale logica
             let response = "";
             let responseCategory = "antwoord";
             
@@ -881,15 +897,7 @@
         function updateStats() {
             messageCount.textContent = totalMessages;
             learnedCount.textContent = totalLearned;
-            
-            // Tel categorieën
-            let categories = 0;
-            for (const category in knowledgeBase) {
-                if (knowledgeBase[category].length > 0) {
-                    categories++;
-                }
-            }
-            categoryCount.textContent = categories;
+            githubCount.textContent = githubResponsesUsed;
         }
 
         // Functie om de geheugenlijst bij te werken
