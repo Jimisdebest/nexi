@@ -171,6 +171,53 @@
             background: rgba(255, 255, 255, 0.5);
         }
 
+        /* Woord animatie styles */
+        .word-animation {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .learned-word {
+            position: absolute;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: rgba(255, 255, 255, 0.8);
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+            white-space: nowrap;
+            animation: floatAcross 15s linear infinite;
+            opacity: 0;
+        }
+
+        @keyframes floatAcross {
+            0% {
+                transform: translateX(-100px);
+                opacity: 0;
+            }
+            5% {
+                opacity: 1;
+            }
+            95% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateX(calc(100vw + 100px));
+                opacity: 0;
+            }
+        }
+
+        .word-bubble {
+            background: rgba(255, 255, 255, 0.15);
+            padding: 8px 16px;
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
         .sensitivity-control {
             width: 100%;
             margin: 15px 0;
@@ -202,53 +249,6 @@
             border-radius: 50%;
             background: white;
             cursor: pointer;
-        }
-
-        /* Woord animatie styles */
-        .word-animation {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: 1;
-        }
-
-        .learned-word {
-            position: absolute;
-            font-size: 1.2rem;
-            font-weight: bold;
-            color: rgba(255, 255, 255, 0.7);
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
-            white-space: nowrap;
-            animation: floatAcross 15s linear infinite;
-            opacity: 0;
-        }
-
-        @keyframes floatAcross {
-            0% {
-                transform: translateX(-100px);
-                opacity: 0;
-            }
-            5% {
-                opacity: 1;
-            }
-            95% {
-                opacity: 1;
-            }
-            100% {
-                transform: translateX(calc(100vw + 100px));
-                opacity: 0;
-            }
-        }
-
-        .word-bubble {
-            background: rgba(255, 255, 255, 0.1);
-            padding: 8px 16px;
-            border-radius: 20px;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
         }
     </style>
 </head>
@@ -294,32 +294,62 @@
         let analyser = null;
         let microphoneSource = null;
         let javascriptNode = null;
-        let noiseFilterActive = true;
         let sensitivity = 6;
-        let noiseThreshold = 0.3;
         let silenceCounter = 0;
         let speechBuffer = [];
         let lastSpeechTime = 0;
         
         // Geleerde woorden opslag
         let learnedWords = [];
+        let recentlyLearnedWords = [];
         let wordAnimationInterval = null;
 
         // Woord animatie initialiseren
         function initializeWordAnimation() {
-            // Laad geleerde woorden uit localStorage
             loadLearnedWords();
-            
-            // Start animatie interval
-            wordAnimationInterval = setInterval(createFloatingWord, 2000);
+            wordAnimationInterval = setInterval(createFloatingWord, 3000);
         }
 
         // Laad geleerde woorden
         function loadLearnedWords() {
             try {
-                const storedWords = localStorage.getItem('combotLearnedWords');
-                if (storedWords) {
-                    learnedWords = JSON.parse(storedWords);
+                // Laad woorden uit verschillende bronnen
+                const storedPatterns = localStorage.getItem('combotLearnedPatterns');
+                const storedPersonality = localStorage.getItem('combotPersonality');
+                const storedWebsiteWords = localStorage.getItem('combotWebsiteWords');
+                
+                learnedWords = [];
+                
+                // Woorden uit patronen
+                if (storedPatterns) {
+                    const patterns = JSON.parse(storedPatterns);
+                    for (const category in patterns) {
+                        patterns[category].forEach(word => {
+                            if (!learnedWords.includes(word)) {
+                                learnedWords.push(word);
+                            }
+                        });
+                    }
+                }
+                
+                // Persoonlijke woorden
+                if (storedPersonality) {
+                    const personality = JSON.parse(storedPersonality);
+                    personality.learnedWords.forEach(word => {
+                        if (!learnedWords.includes(word)) {
+                            learnedWords.push(word);
+                        }
+                    });
+                }
+                
+                // Website woorden
+                if (storedWebsiteWords) {
+                    const websiteWords = JSON.parse(storedWebsiteWords);
+                    websiteWords.forEach(word => {
+                        if (!learnedWords.includes(word)) {
+                            learnedWords.push(word);
+                        }
+                    });
                 }
                 
                 // Voeg standaard woorden toe als er geen zijn
@@ -340,20 +370,27 @@
         function createFloatingWord() {
             if (learnedWords.length === 0) return;
             
-            const randomWord = learnedWords[Math.floor(Math.random() * learnedWords.length)];
+            // Gebruik recent geleerde woorden eerst, anders willekeurig woord
+            let randomWord;
+            if (recentlyLearnedWords.length > 0) {
+                randomWord = recentlyLearnedWords.shift();
+            } else {
+                randomWord = learnedWords[Math.floor(Math.random() * learnedWords.length)];
+            }
+            
             const wordElement = document.createElement('div');
             wordElement.className = 'learned-word';
             
-            // Willekeurige verticale positie (20% - 80% van schermhoogte)
-            const topPosition = 20 + Math.random() * 60;
+            // Willekeurige verticale positie
+            const topPosition = 10 + Math.random() * 80;
             wordElement.style.top = topPosition + '%';
             
             // Willekeurige vertraging voor animatie
-            const animationDelay = Math.random() * 5;
+            const animationDelay = Math.random() * 3;
             wordElement.style.animationDelay = animationDelay + 's';
             
             // Willekeurige animatie duur
-            const animationDuration = 10 + Math.random() * 10;
+            const animationDuration = 12 + Math.random() * 8;
             wordElement.style.animationDuration = animationDuration + 's';
             
             // Woord in bubbel
@@ -369,8 +406,8 @@
             }, (animationDuration + animationDelay) * 1000);
         }
 
-        // Voeg nieuw woord toe aan geleerde woorden
-        function addLearnedWord(word) {
+        // Voeg nieuw woord toe aan recent geleerde woorden
+        function addRecentlyLearnedWord(word) {
             const cleanWord = word.toLowerCase().trim();
             
             // Filter korte woorden en veelvoorkomende woorden
@@ -379,23 +416,17 @@
                 return;
             }
             
-            // Voeg toe als het woord nog niet bestaat
-            if (!learnedWords.includes(cleanWord)) {
+            // Voeg toe aan recente woorden voor animatie
+            if (!recentlyLearnedWords.includes(cleanWord) && !learnedWords.includes(cleanWord)) {
+                recentlyLearnedWords.push(cleanWord);
                 learnedWords.push(cleanWord);
-                
-                // Bewaar in localStorage
-                try {
-                    localStorage.setItem('combotLearnedWords', JSON.stringify(learnedWords));
-                } catch (error) {
-                    console.error('Fout bij opslaan woorden:', error);
-                }
                 
                 // Toon direct het nieuwe woord
                 createFloatingWord();
             }
         }
 
-        // Spraakherkenning initialiseren met ruisonderdrukking
+        // Spraakherkenning initialiseren
         function initializeSpeechRecognition() {
             if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
                 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -403,10 +434,6 @@
                 recognition.continuous = true;
                 recognition.interimResults = true;
                 recognition.lang = 'nl-NL';
-                
-                if (recognition.hasOwnProperty('maxAlternatives')) {
-                    recognition.maxAlternatives = 1;
-                }
                 
                 recognition.onstart = function() {
                     isListening = true;
@@ -427,9 +454,9 @@
                             finalTranscript += transcript;
                             hasValidSpeech = true;
                             
-                            // Voeg woorden toe aan geleerde woorden
+                            // Voeg woorden toe aan recent geleerde woorden
                             const words = transcript.split(/\s+/);
-                            words.forEach(word => addLearnedWord(word));
+                            words.forEach(word => addRecentlyLearnedWord(word));
                         }
                     }
                     
@@ -476,7 +503,7 @@
             }
         }
         
-        // Geavanceerde audio analyse met ruisonderdrukking
+        // Audio analyse initialiseren
         function initializeAudioAnalysis() {
             if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
                 const constraints = {
@@ -629,7 +656,7 @@
             });
         }
         
-        // Verwerk gesproken invoer met extra filtering
+        // Verwerk gesproken invoer
         async function processSpeechInput(transcript) {
             if (!transcript.trim() || isProcessing || isSpeaking) return;
             
@@ -643,8 +670,6 @@
             
             isProcessing = true;
             updateMicrophoneUI();
-            
-            console.log("Verwerken: " + cleanTranscript);
             
             const response = await generateAIResponse(cleanTranscript);
             
@@ -733,6 +758,13 @@
             initializeWordAnimation();
             initializeSpeechRecognition();
             initializeAudioAnalysis();
+            
+            // Welkomstbericht
+            setTimeout(() => {
+                if (!isProcessing && !isSpeaking) {
+                    speakText("Welkom bij Combot spraakmodus. Ik luister constant naar je. Praat gewoon tegen me!");
+                }
+            }, 1000);
         };
         
         // Opruimen bij verlaten pagina
