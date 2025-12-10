@@ -220,6 +220,16 @@
             box-shadow: 0 4px 8px rgba(0,0,0,0.1);
         }
 
+        .bot-message a {
+            color: #4a6cf7;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .bot-message a:hover {
+            text-decoration: underline;
+        }
+
         .analysis-message {
             align-self: flex-start;
             background-color: #fff8e1;
@@ -753,10 +763,12 @@
                     if (line.includes('=')) {
                         const [question, answer] = line.split('=').map(part => part.trim());
                         if (question && answer) {
-                            // Controleer of het antwoord HTML bevat (img tag)
+                            // Controleer of het antwoord HTML bevat
                             const containsHTML = answer.includes('<img') || answer.includes('<div') || 
                                                 answer.includes('<span') || answer.includes('<p>') ||
-                                                answer.includes('<h') || answer.includes('<a href');
+                                                answer.includes('<h') || answer.includes('<a href') ||
+                                                answer.includes('<br>') || answer.includes('<br/>') ||
+                                                answer.includes('<br />');
                             
                             githubQA.push({
                                 question: question.toLowerCase(),
@@ -1292,7 +1304,9 @@
                         // Controleer of het antwoord HTML bevat
                         const containsHTML = answer.includes('<img') || answer.includes('<div') || 
                                             answer.includes('<span') || answer.includes('<p>') ||
-                                            answer.includes('<h') || answer.includes('<a href');
+                                            answer.includes('<h') || answer.includes('<a href') ||
+                                            answer.includes('<br>') || answer.includes('<br/>') ||
+                                            answer.includes('<br />');
                         
                         // Voeg toe aan geleerde QA
                         learnedQA.push({
@@ -1317,7 +1331,7 @@
             return null;
         }
 
-        // Analyseer en vind het beste antwoord
+        // Analyseer en vind het beste antwoord - VERSIMPELDE VERSIE
         function findResponseWithAnalysis(userMessage) {
             const lowerMessage = userMessage.toLowerCase();
             const analysisSteps = [];
@@ -1339,77 +1353,9 @@
             }
             
             analysisSteps.push("✗ Geen exacte overeenkomst gevonden.");
-            analysisSteps.push("Zoeken in GitHub naar vraag met minimaal 65% overeenkomst...");
-            
-            // Stap 2: Overeenkomst van 65% of meer in GitHub
-            let bestMatch = null;
-            let bestSimilarity = 0;
-            
-            for (const qa of githubQA) {
-                const similarity = calculateSimilarity(lowerMessage, qa.question);
-                if (similarity > bestSimilarity) {
-                    bestSimilarity = similarity;
-                    bestMatch = qa;
-                }
-            }
-            
-            if (bestMatch && bestSimilarity >= 0.65) {
-                analysisSteps.push(`✓ Vraag gevonden met ${Math.round(bestSimilarity * 100)}% overeenkomst: "${bestMatch.question}"`);
-                analysisSteps.push("Antwoord geven aan gebruiker.");
-                githubResponsesUsed++;
-                return { 
-                    response: bestMatch.answer, 
-                    category: "github", 
-                    source: 'github',
-                    containsHTML: bestMatch.containsHTML,
-                    analysis: analysisSteps
-                };
-            }
-            
-            analysisSteps.push("✗ Geen vraag gevonden met minimaal 65% overeenkomst.");
-            analysisSteps.push("Zoeken in zelf geleerde QA...");
-            
-            // Stap 3: Zoek in zelf geleerde QA
-            for (const qa of learnedQA) {
-                if (lowerMessage === qa.question) {
-                    analysisSteps.push("✓ Exacte overeenkomst gevonden in geleerde QA.");
-                    learnedResponsesUsed++;
-                    return { 
-                        response: qa.answer, 
-                        category: "geleerd", 
-                        source: 'geleerd',
-                        containsHTML: qa.containsHTML,
-                        analysis: analysisSteps
-                    };
-                }
-            }
-            
-            // Stap 4: Overeenkomst in geleerde QA
-            for (const qa of learnedQA) {
-                const similarity = calculateSimilarity(lowerMessage, qa.question);
-                if (similarity > bestSimilarity) {
-                    bestSimilarity = similarity;
-                    bestMatch = qa;
-                }
-            }
-            
-            if (bestMatch && bestSimilarity >= 0.65) {
-                analysisSteps.push(`✓ Vraag gevonden met ${Math.round(bestSimilarity * 100)}% overeenkomst in geleerde QA.`);
-                analysisSteps.push("Antwoord geven aan gebruiker.");
-                learnedResponsesUsed++;
-                return { 
-                    response: bestMatch.answer, 
-                    category: "geleerd", 
-                    source: 'geleerd',
-                    containsHTML: bestMatch.containsHTML,
-                    analysis: analysisSteps
-                };
-            }
-            
-            analysisSteps.push("✗ Geen overeenkomst gevonden in geleerde QA.");
             analysisSteps.push("Werk overlaten aan SmartBot...");
             
-            // Stap 5: Fallback naar standaard kennis
+            // Stap 2: Fallback naar standaard kennis
             const category = categorizeMessage(userMessage);
             if (knowledgeBase[category] && knowledgeBase[category].length > 0) {
                 const response = knowledgeBase[category][Math.floor(Math.random() * knowledgeBase[category].length)];
@@ -1474,23 +1420,46 @@
             saveBotData();
         }
 
-        // Functie om een bericht van de bot toe te voegen
-        function addBotMessage(message, category) {
+        // Functie om een bericht van de bot toe te voegen - VERBETERDE VERSIE
+        function addBotMessage(messageData, category) {
             const messageElement = document.createElement('div');
             messageElement.className = 'message bot-message';
             
-            // Controleer of het bericht HTML bevat (bijv. img tag)
-            if (typeof message === 'object' && message.containsHTML) {
-                // Als het een object is met HTML flag, gebruik dan de response
-                messageElement.innerHTML = message.response;
-            } else if (typeof message === 'string' && (message.includes('<img') || message.includes('<div') || 
-                      message.includes('<span') || message.includes('<p>') || 
-                      message.includes('<h') || message.includes('<a href'))) {
-                // Als het een string is die HTML bevat
-                messageElement.innerHTML = message;
-            } else {
-                // Anders gewone tekst
-                messageElement.textContent = message;
+            // Als messageData een object is (van findResponseWithAnalysis)
+            if (typeof messageData === 'object' && messageData.response !== undefined) {
+                // Debug log
+                console.log("Bot antwoord object:", messageData);
+                
+                // Controleer of er HTML in het antwoord zit
+                if (messageData.containsHTML === true) {
+                    console.log("Antwoord bevat HTML, gebruik innerHTML");
+                    messageElement.innerHTML = messageData.response;
+                } else {
+                    console.log("Antwoord bevat geen HTML, gebruik textContent");
+                    messageElement.textContent = messageData.response;
+                }
+            } 
+            // Als messageData een string is (vanaf begin of leer commando)
+            else if (typeof messageData === 'string') {
+                // Controleer of de string HTML bevat
+                const hasHTML = messageData.includes('<img') || messageData.includes('<div') || 
+                               messageData.includes('<span') || messageData.includes('<p>') || 
+                               messageData.includes('<h') || messageData.includes('<a href') ||
+                               messageData.includes('<br>') || messageData.includes('<br/>') ||
+                               messageData.includes('<br />');
+                
+                console.log("String antwoord, bevat HTML?", hasHTML);
+                
+                if (hasHTML) {
+                    messageElement.innerHTML = messageData;
+                } else {
+                    messageElement.textContent = messageData;
+                }
+            }
+            // Standaard geval
+            else {
+                console.log("Onbekend type antwoord:", typeof messageData, messageData);
+                messageElement.textContent = String(messageData);
             }
             
             chatContainer.appendChild(messageElement);
@@ -1499,8 +1468,18 @@
             totalMessages++;
             
             // Spreek alleen tekst als er geen HTML is
-            if (typeof message === 'string' && !message.includes('<img')) {
-                speakText(message);
+            let textToSpeak = '';
+            if (typeof messageData === 'object' && messageData.response && !messageData.containsHTML) {
+                textToSpeak = messageData.response;
+            } else if (typeof messageData === 'string') {
+                // Verwijder HTML tags voor spraak
+                textToSpeak = messageData.replace(/<[^>]*>/g, ' ');
+                // Verwijder meerdere spaties
+                textToSpeak = textToSpeak.replace(/\s+/g, ' ').trim();
+            }
+            
+            if (textToSpeak && textToSpeak.length > 0) {
+                speakText(textToSpeak);
             }
             
             saveBotData();
@@ -1707,6 +1686,7 @@
                 thinkingElement.remove();
                 
                 const responseData = findResponseWithAnalysis(message);
+                console.log("Response data gevonden:", responseData);
                 
                 if (analysisMode) {
                     addAnalysisMessage(responseData.analysis);
