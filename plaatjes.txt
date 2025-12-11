@@ -3,3 +3,4 @@ maak een kat = https://copilot.microsoft.com/th/id/BCO.7c7a2938-dbf7-4846-b37d-3
 maak een hond = https://copilot.microsoft.com/th/id/BCO.a70b2226-daab-4522-816e-750b89ec4490.png
 maak een mens in bed = https://copilot.microsoft.com/th/id/BCO.a598389a-e534-41b7-b1db-5fe91bf04282.png
 maak een telefoon = https://copilot.microsoft.com/th/id/BCO.de4c8ee8-870c-413d-b9d0-016d87f77298.png
+maak een fiets = https://copilot.microsoft.com/th/id/BCO.5c3acac7-4125-46b2-8d78-59407f33bf7d.png
