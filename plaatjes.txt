@@ -5,5 +5,5 @@ maak een man in bed = https://copilot.microsoft.com/th/id/BCO.a598389a-e534-41b7
 maak een vrouw in bed = https://copilot.microsoft.com/th/id/BCO.f1cd65f4-4d6d-4b10-bfde-6fda7b8bb056.png
 maak een telefoon = https://copilot.microsoft.com/th/id/BCO.de4c8ee8-870c-413d-b9d0-016d87f77298.png
 maak een fiets = https://copilot.microsoft.com/th/id/BCO.5c3acac7-4125-46b2-8d78-59407f33bf7d.png
-maak een kampeerplaats = https://prod-exerciseimages-handler.snappet.org/eyJidWNrZXQiOiJleGVyY2lzZWltYWdlcy5zbmFwcGV0Lm9yZyIsImtleSI6IjIwMjAwNDE1MDcwMDE0XzI2Njg1OS5QTkciLCJlZGl0cyI6eyJyZXNpemUiOnsid2lkdGgiOjIzLCJoZWlnaHQiOjY1LCJmaXQiOiJmaWxsIn19fQ==
 maak een meester die een aap is = https://copilot.microsoft.com/th/id/BCO.9a1bb341-4419-43c7-85d0-c685e3fc9bc8.png
+maak een domme rivier = https://copilot.microsoft.com/th/id/BCO.3a7d5532-d6e8-4534-8a06-e5ee2f953d2b.png
