@@ -11,6 +11,7 @@
             --danger-color: #ff6b6b;
             --success-color: #28a745;
             --warning-color: #ffc107;
+            --learning-color: #9c27b0;
             --text-color: #333;
             --bg-color: #fff;
             --message-bg: #f0f0f0;
@@ -26,6 +27,7 @@
                 --danger-color: #ff5252;
                 --success-color: #34c759;
                 --warning-color: #ffb300;
+                --learning-color: #ba68c8;
                 --text-color: #f0f0f0;
                 --bg-color: #1a1a1a;
                 --message-bg: #2d2d2d;
@@ -156,6 +158,28 @@
             background: var(--danger-color);
         }
 
+        .auto-learn-btn {
+            background: linear-gradient(135deg, var(--learning-color), #9c27b0);
+            width: 100%;
+            padding: 12px 15px;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .auto-learn-btn:hover {
+            background: linear-gradient(135deg, #9c27b0, #7b1fa2);
+            transform: translateX(5px);
+        }
+
+        .auto-learn-btn.active {
+            background: linear-gradient(135deg, #7b1fa2, #6a1b9a);
+        }
+
         .speech-mode-btn {
             background: linear-gradient(135deg, var(--danger-color), #ff5252);
             width: 100%;
@@ -212,6 +236,10 @@
             border-bottom-left-radius: 5px;
         }
 
+        .bot-message.learned {
+            border-left: 4px solid var(--learning-color);
+        }
+
         .bot-message img {
             max-width: 100%;
             border-radius: 10px;
@@ -242,6 +270,35 @@
                 background-color: #333300;
                 border-color: #666633;
                 color: #ffcc00;
+            }
+        }
+
+        .learning-message {
+            align-self: flex-start;
+            background-color: #f3e5f5;
+            border: 1px solid #ce93d8;
+            border-bottom-left-radius: 5px;
+            font-size: 0.85rem;
+            color: #6a1b9a;
+            padding: 10px 15px;
+            margin-top: 5px;
+            border-radius: 10px;
+            animation: learningSlide 0.5s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        @keyframes learningSlide {
+            0% { opacity: 0; transform: translateX(-20px); }
+            100% { opacity: 1; transform: translateX(0); }
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .learning-message {
+                background-color: #2d0036;
+                border-color: #6a1b9a;
+                color: #e1bee7;
             }
         }
 
@@ -417,6 +474,12 @@
             animation: checkmarkPop 0.5s ease;
         }
 
+        .checkmark.learning {
+            background-color: var(--learning-color);
+            color: white;
+            animation: checkmarkPop 0.5s ease;
+        }
+
         @keyframes checkmarkPop {
             0% { transform: scale(0); }
             70% { transform: scale(1.2); }
@@ -572,7 +635,7 @@
             font-size: 0.8rem;
         }
 
-        .words-list, .phrases-list {
+        .words-list, .phrases-list, .conversations-list {
             display: flex;
             flex-wrap: wrap;
             gap: 8px;
@@ -584,7 +647,7 @@
             border: 1px solid var(--border-color);
         }
 
-        .word-item, .phrase-item {
+        .word-item, .phrase-item, .conversation-item {
             display: flex;
             align-items: center;
             gap: 5px;
@@ -594,6 +657,19 @@
             font-size: 0.8rem;
             color: var(--primary-color);
             animation: memoryItemPop 0.3s ease;
+        }
+
+        .conversation-item {
+            background: linear-gradient(135deg, #f3e5f5, #e1bee7);
+            color: #6a1b9a;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 2px;
+            max-width: 100%;
+        }
+
+        .conversation-item:hover {
+            background: linear-gradient(135deg, #e1bee7, #ce93d8);
         }
 
         @keyframes memoryItemPop {
@@ -606,7 +682,7 @@
             color: white;
         }
 
-        .delete-word, .delete-phrase {
+        .delete-word, .delete-phrase, .delete-conversation {
             background: var(--danger-color);
             color: white;
             border: none;
@@ -619,9 +695,11 @@
             align-items: center;
             justify-content: center;
             transition: all 0.3s ease;
+            align-self: flex-end;
+            margin-top: -5px;
         }
 
-        .delete-word:hover, .delete-phrase:hover {
+        .delete-word:hover, .delete-phrase:hover, .delete-conversation:hover {
             background: #ff5252;
             transform: scale(1.2);
         }
@@ -746,6 +824,7 @@
                 <h3>Modus</h3>
                 <button class="menu-btn" id="analysis-btn">Analyse Aan</button>
                 <button class="menu-btn" id="memory-management-btn">Geheugen beheren</button>
+                <button class="auto-learn-btn" id="auto-learn-btn">Auto-leren Aan</button>
                 <button class="speech-mode-btn" id="speech-mode-btn">Spraakmodus</button>
             </div>
         </div>
@@ -780,6 +859,13 @@
             </div>
             
             <div class="memory-section">
+                <h3>Geleerde conversaties <span class="section-count" id="conversations-count">0</span></h3>
+                <div class="conversations-list" id="conversations-list">
+                    <!-- Geleerde vraag-antwoord paren komen hier -->
+                </div>
+            </div>
+            
+            <div class="memory-section">
                 <h3>Geleerde woorden <span class="section-count" id="words-count">0</span></h3>
                 <div class="words-list" id="words-list">
                     <!-- Geleerde woorden komen hier -->
@@ -805,16 +891,20 @@
         let githubQA = [];
         let imagesQA = [];
         let learnedQA = [];
+        let conversationHistory = [];
         let knowledgeBase = {};
         let learnedPatterns = {};
         let botPersonality = {};
         let analysisMode = false;
+        let autoLearnMode = true;
         let totalMessages = 0;
         let totalLearned = 0;
         let isRecording = false;
         let speechRecognition = null;
         let silenceTimer = null;
         let lastSpeechResult = '';
+        let lastBotMessage = '';
+        let lastUserMessage = '';
 
         // ELEMENTEN
         const chatContainer = document.getElementById('chat-container');
@@ -825,14 +915,17 @@
         const overlay = document.getElementById('overlay');
         const analysisBtn = document.getElementById('analysis-btn');
         const memoryManagementBtn = document.getElementById('memory-management-btn');
+        const autoLearnBtn = document.getElementById('auto-learn-btn');
         const speechModeBtn = document.getElementById('speech-mode-btn');
         const memoryManagement = document.getElementById('memory-management');
         const closeMemory = document.getElementById('close-memory');
         const memorySearch = document.getElementById('memory-search');
         const wordsList = document.getElementById('words-list');
         const phrasesList = document.getElementById('phrases-list');
+        const conversationsList = document.getElementById('conversations-list');
         const wordsCount = document.getElementById('words-count');
         const phrasesCount = document.getElementById('phrases-count');
+        const conversationsCount = document.getElementById('conversations-count');
         const exportMemoryBtn = document.getElementById('export-memory');
         const clearAllMemoryBtn = document.getElementById('clear-all-memory');
         const speechStatus = document.getElementById('speech-status');
@@ -859,7 +952,8 @@
                             githubQA.push({
                                 question: question.toLowerCase(),
                                 answer: answer,
-                                containsHTML: answer.includes('<img') || answer.includes('<br') || answer.includes('<a href')
+                                containsHTML: answer.includes('<img') || answer.includes('<br') || answer.includes('<a href'),
+                                source: 'github'
                             });
                         }
                     }
@@ -876,7 +970,8 @@
                                 question: question.toLowerCase(),
                                 imageUrl: imageUrl,
                                 answer: `<img src="${imageUrl}" alt="${question}" style="max-width: 100%; border-radius: 10px;">`,
-                                containsHTML: true
+                                containsHTML: true,
+                                source: 'plaatjes'
                             });
                         }
                     }
@@ -888,12 +983,12 @@
                 console.error('Fout bij laden van GitHub data:', error);
                 // Fallback test data
                 githubQA = [
-                    { question: "hallo", answer: "Hallo! Hoe gaat het?", containsHTML: false },
-                    { question: "hoe gaat het", answer: "Goed, dank je! En met jou?", containsHTML: false }
+                    { question: "hallo", answer: "Hallo! Hoe gaat het?", containsHTML: false, source: 'github' },
+                    { question: "hoe gaat het", answer: "Goed, dank je! En met jou?", containsHTML: false, source: 'github' }
                 ];
                 imagesQA = [
-                    { question: "maak een aap", imageUrl: "https://images.unsplash.com/photo-1557318041-1ce374d55ebf?w=400&fit=crop", answer: `<img src="https://images.unsplash.com/photo-1557318041-1ce374d55ebf?w=400&fit=crop" alt="Aap" style="max-width: 100%; border-radius: 10px;">`, containsHTML: true },
-                    { question: "toon een hond", imageUrl: "https://images.unsplash.com/photo-1552053831-71594a27632d?w=400&fit=crop", answer: `<img src="https://images.unsplash.com/photo-1552053831-71594a27632d?w=400&fit=crop" alt="Hond" style="max-width: 100%; border-radius: 10px;">`, containsHTML: true }
+                    { question: "maak een aap", imageUrl: "https://images.unsplash.com/photo-1557318041-1ce374d55ebf?w=400&fit=crop", answer: `<img src="https://images.unsplash.com/photo-1557318041-1ce374d55ebf?w=400&fit=crop" alt="Aap" style="max-width: 100%; border-radius: 10px;">`, containsHTML: true, source: 'plaatjes' },
+                    { question: "toon een hond", imageUrl: "https://images.unsplash.com/photo-1552053831-71594a27632d?w=400&fit=crop", answer: `<img src="https://images.unsplash.com/photo-1552053831-71594a27632d?w=400&fit=crop" alt="Hond" style="max-width: 100%; border-radius: 10px;">`, containsHTML: true, source: 'plaatjes' }
                 ];
             }
         }
@@ -909,6 +1004,8 @@
             const storedBotPersonality = localStorage.getItem('combotPersonality');
             const storedLearnedQA = localStorage.getItem('combotLearnedQA');
             const storedAnalysisMode = localStorage.getItem('combotAnalysisMode');
+            const storedAutoLearnMode = localStorage.getItem('combotAutoLearnMode');
+            const storedConversationHistory = localStorage.getItem('combotConversationHistory');
             
             // Standaard kennisbasis
             const defaultKnowledgeBase = {
@@ -945,12 +1042,23 @@
             botPersonality = storedBotPersonality ? JSON.parse(storedBotPersonality) : defaultBotPersonality;
             learnedQA = storedLearnedQA ? JSON.parse(storedLearnedQA) : [];
             analysisMode = storedAnalysisMode ? JSON.parse(storedAnalysisMode) : false;
+            autoLearnMode = storedAutoLearnMode ? JSON.parse(storedAutoLearnMode) : true;
+            conversationHistory = storedConversationHistory ? JSON.parse(storedConversationHistory) : [];
             
-            // Update knop tekst
+            // Update knoppen tekst
             updateSendButton();
+            analysisBtn.textContent = analysisMode ? "Analyse Uit" : "Analyse Aan";
+            analysisBtn.classList.toggle('active', analysisMode);
+            autoLearnBtn.textContent = autoLearnMode ? "Auto-leren Uit" : "Auto-leren Aan";
+            autoLearnBtn.classList.toggle('active', autoLearnMode);
             
             // Toon welkomstbericht
             addBotMessage(`Hallo! Ik ben Combot. Typ iets zoals 'maak een aap' of stel een vraag!`, false);
+            
+            // Laad gespreksgeschiedenis
+            if (conversationHistory.length > 0) {
+                console.log(`Geladen: ${conversationHistory.length} gesprekken uit geschiedenis`);
+            }
         }
 
         // UPDATE VERSTUUR/SPRAAK KNOOP
@@ -1099,6 +1207,89 @@
             clearTimeout(silenceTimer);
         }
 
+        // LEER VAN CONVERSATIE
+        function learnFromConversation(botMessage, userResponse) {
+            if (!autoLearnMode || !userResponse || !lastBotMessage) return false;
+            
+            const botText = extractTextFromMessage(lastBotMessage);
+            const userText = userResponse.toLowerCase().trim();
+            
+            if (!botText || botText.length < 3 || userText.length < 1) return false;
+            
+            // Check of dit een vraag-antwoord patroon is
+            const isQuestion = botText.includes('?') || 
+                              botText.toLowerCase().includes('wie') ||
+                              botText.toLowerCase().includes('wat') ||
+                              botText.toLowerCase().includes('waar') ||
+                              botText.toLowerCase().includes('wanneer') ||
+                              botText.toLowerCase().includes('waarom') ||
+                              botText.toLowerCase().includes('hoe');
+            
+            if (!isQuestion) return false;
+            
+            // Verwijder eventuele leestekens aan het einde
+            const cleanBotText = botText.replace(/[?.!]$/, '').trim();
+            
+            // Check of we dit al hebben geleerd
+            const alreadyLearned = learnedQA.some(qa => 
+                qa.question === cleanBotText.toLowerCase() || 
+                qa.answer === userResponse
+            );
+            
+            if (alreadyLearned) return false;
+            
+            // Voeg toe aan geleerde QA
+            learnedQA.push({
+                question: cleanBotText.toLowerCase(),
+                answer: userResponse,
+                containsHTML: false,
+                source: 'conversation',
+                timestamp: new Date().toISOString()
+            });
+            
+            // Voeg toe aan gespreksgeschiedenis
+            conversationHistory.push({
+                bot: cleanBotText,
+                user: userResponse,
+                timestamp: new Date().toISOString()
+            });
+            
+            // Beperk geschiedenis tot 100 items
+            if (conversationHistory.length > 100) {
+                conversationHistory = conversationHistory.slice(-100);
+            }
+            
+            totalLearned++;
+            saveData();
+            
+            // Toon leerbericht
+            if (analysisMode) {
+                setTimeout(() => {
+                    const learningDiv = document.createElement('div');
+                    learningDiv.className = 'learning-message';
+                    learningDiv.innerHTML = `
+                        <div class="checkmark learning">✓</div>
+                        <span>Nieuwe conversatie geleerd: "${cleanBotText}" = "${userResponse}"</span>
+                    `;
+                    chatContainer.appendChild(learningDiv);
+                    scrollToBottom();
+                }, 500);
+            }
+            
+            updateMemoryManagement();
+            return true;
+        }
+
+        // EXTRAHEER TEKST UIT BERICHT
+        function extractTextFromMessage(message) {
+            if (!message) return '';
+            
+            // Als het HTML is, extraheer alleen de tekst
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = message;
+            return tempDiv.textContent || tempDiv.innerText || '';
+        }
+
         // CONTROLEER OF ER EEN AFBEELDING GEVRAAGD WORDT
         function isImageRequest(message) {
             const lowerMessage = message.toLowerCase();
@@ -1152,12 +1343,65 @@
             return matches / Math.max(words1.length, words2.length);
         }
 
-        // ZOEK BESTE ANTWOORD MET ANALYSE
+        // ZOEK BESTE ANTWOORD MET ANALYSE EN VOORKEUR AAN GELEERDE QA
         function findBestResponse(message) {
             const lowerMessage = message.toLowerCase();
             const analysisSteps = [];
             
-            // 1. Check of het een afbeelding verzoek is
+            // 1. EERST: Controleer geleerde QA (geeft voorkeur aan geleerde antwoorden)
+            analysisSteps.push({
+                text: "Eerst zoeken in geleerde conversaties...",
+                success: null
+            });
+            
+            for (const qa of learnedQA) {
+                if (lowerMessage === qa.question) {
+                    analysisSteps[analysisSteps.length - 1] = {
+                        text: `Exacte match gevonden in geleerde conversaties (vanuit gesprek).`,
+                        success: true
+                    };
+                    return {
+                        answer: qa.answer,
+                        containsHTML: qa.containsHTML,
+                        source: 'geleerd',
+                        analysisSteps: analysisSteps,
+                        isLearned: true
+                    };
+                }
+            }
+            
+            // 2. Check op gedeeltelijke matches in geleerde QA (hogere tolerantie)
+            let bestLearnedMatch = null;
+            let bestLearnedScore = 0;
+            
+            for (const qa of learnedQA) {
+                const score = calculateSimilarity(lowerMessage, qa.question);
+                if (score > bestLearnedScore && score >= 0.6) { // Lagere drempel voor geleerde QA
+                    bestLearnedScore = score;
+                    bestLearnedMatch = qa;
+                }
+            }
+            
+            if (bestLearnedMatch) {
+                analysisSteps[analysisSteps.length - 1] = {
+                    text: `Gedeeltelijke match gevonden in geleerde conversaties (${Math.round(bestLearnedScore * 100)}% overeenkomst).`,
+                    success: true
+                };
+                return {
+                    answer: bestLearnedMatch.answer,
+                    containsHTML: bestLearnedMatch.containsHTML,
+                    source: 'geleerd',
+                    analysisSteps: analysisSteps,
+                    isLearned: true
+                };
+            }
+            
+            analysisSteps[analysisSteps.length - 1] = {
+                text: "Geen match gevonden in geleerde conversaties.",
+                success: false
+            };
+            
+            // 3. Check of het een afbeelding verzoek is
             const isImageReq = isImageRequest(message);
             if (isImageReq) {
                 analysisSteps.push({
@@ -1165,7 +1409,7 @@
                     success: true
                 });
                 
-                // 2. Zoek in plaatjes.txt
+                // 4. Zoek in plaatjes.txt
                 const bestImage = findBestImage(message);
                 if (bestImage) {
                     analysisSteps.push({
@@ -1176,7 +1420,8 @@
                         answer: bestImage.answer,
                         containsHTML: true,
                         source: 'plaatjes',
-                        analysisSteps: analysisSteps
+                        analysisSteps: analysisSteps,
+                        isLearned: false
                     };
                 } else {
                     analysisSteps.push({
@@ -1191,33 +1436,7 @@
                 });
             }
             
-            // 3. Eerst exacte match in geleerde QA
-            analysisSteps.push({
-                text: "Zoeken naar exacte overeenkomst in geleerde reacties...",
-                success: null
-            });
-            
-            for (const qa of learnedQA) {
-                if (lowerMessage === qa.question) {
-                    analysisSteps[analysisSteps.length - 1] = {
-                        text: "Exacte reactie gevonden in geleerde QA.",
-                        success: true
-                    };
-                    return {
-                        answer: qa.answer,
-                        containsHTML: qa.containsHTML,
-                        source: 'geleerd',
-                        analysisSteps: analysisSteps
-                    };
-                }
-            }
-            
-            analysisSteps[analysisSteps.length - 1] = {
-                text: "Geen exacte overeenkomst gevonden in geleerde QA.",
-                success: false
-            };
-            
-            // 4. Exacte match in GitHub reacties
+            // 5. Exacte match in GitHub reacties
             analysisSteps.push({
                 text: "Zoeken naar exacte overeenkomst in reacties.txt...",
                 success: null
@@ -1233,7 +1452,8 @@
                         answer: qa.answer,
                         containsHTML: qa.containsHTML,
                         source: 'github',
-                        analysisSteps: analysisSteps
+                        analysisSteps: analysisSteps,
+                        isLearned: false
                     };
                 }
             }
@@ -1243,7 +1463,7 @@
                 success: false
             };
             
-            // 5. Zoek naar vraag met minimaal 70% overeenkomst
+            // 6. Zoek naar vraag met minimaal 70% overeenkomst
             analysisSteps.push({
                 text: "Zoeken naar vraag met minimaal 70% overeenkomst...",
                 success: null
@@ -1269,7 +1489,8 @@
                     answer: bestGithubMatch.answer,
                     containsHTML: bestGithubMatch.containsHTML,
                     source: 'github',
-                    analysisSteps: analysisSteps
+                    analysisSteps: analysisSteps,
+                    isLearned: false
                 };
             }
             
@@ -1278,7 +1499,7 @@
                 success: false
             };
             
-            // 6. Fallback naar standaard kennis (SmartBot)
+            // 7. Fallback naar standaard kennis (SmartBot)
             analysisSteps.push({
                 text: "Werk overlaten aan SmartBot (standaard kennis)...",
                 success: true
@@ -1291,16 +1512,18 @@
                     answer: response,
                     containsHTML: false,
                     source: 'standaard',
-                    analysisSteps: analysisSteps
+                    analysisSteps: analysisSteps,
+                    isLearned: false
                 };
             }
             
-            // 7. Laatste fallback
+            // 8. Laatste fallback
             return {
                 answer: "Dat begrijp ik niet. Kun je het anders formuleren?",
                 containsHTML: false,
                 source: 'fallback',
-                analysisSteps: analysisSteps
+                analysisSteps: analysisSteps,
+                isLearned: false
             };
         }
 
@@ -1365,13 +1588,23 @@
             
             // Leer van bericht
             learnFromMessage(message);
+            
+            // Probeer te leren van conversatie (als er een vorig botbericht was)
+            if (lastBotMessage) {
+                learnFromConversation(lastBotMessage, message);
+            }
+            
+            lastUserMessage = message;
             totalMessages++;
             saveData();
         }
 
-        function addBotMessage(message, containsHTML, analysisSteps = null) {
+        function addBotMessage(message, containsHTML, analysisSteps = null, isLearned = false) {
             const div = document.createElement('div');
             div.className = 'message bot-message';
+            if (isLearned) {
+                div.classList.add('learned');
+            }
             
             if (containsHTML) {
                 div.innerHTML = message;
@@ -1381,6 +1614,10 @@
             
             chatContainer.appendChild(div);
             scrollToBottom();
+            
+            // Sla het botbericht op voor toekomstige leerprocessen
+            lastBotMessage = message;
+            
             totalMessages++;
             saveData();
             
@@ -1392,7 +1629,7 @@
             }
         }
 
-        // LEER VAN BERICHT
+        // LEER VAN BERICHT (woorden en zinnen)
         function learnFromMessage(message) {
             const words = message.toLowerCase().split(/\s+/);
             
@@ -1438,7 +1675,7 @@
             }
         }
 
-        // LEER NIEUWE QA
+        // LEER NIEUWE QA (handmatig)
         function learnNewQA(input) {
             if (input.toLowerCase().startsWith('leer ')) {
                 const content = input.substring(5).trim();
@@ -1450,7 +1687,16 @@
                         learnedQA.push({
                             question: question.toLowerCase(),
                             answer: answer,
-                            containsHTML: containsHTML
+                            containsHTML: containsHTML,
+                            source: 'manual',
+                            timestamp: new Date().toISOString()
+                        });
+                        
+                        conversationHistory.push({
+                            bot: question,
+                            user: answer,
+                            timestamp: new Date().toISOString(),
+                            source: 'manual'
                         });
                         
                         totalLearned++;
@@ -1471,11 +1717,35 @@
             localStorage.setItem('combotPersonality', JSON.stringify(botPersonality));
             localStorage.setItem('combotLearnedQA', JSON.stringify(learnedQA));
             localStorage.setItem('combotAnalysisMode', JSON.stringify(analysisMode));
+            localStorage.setItem('combotAutoLearnMode', JSON.stringify(autoLearnMode));
+            localStorage.setItem('combotConversationHistory', JSON.stringify(conversationHistory));
         }
 
         // UPDATE GEHEUGEN BEHEER
         function updateMemoryManagement() {
             const searchTerm = memorySearch.value.toLowerCase();
+            
+            // Update conversatielijst
+            conversationsList.innerHTML = "";
+            let conversationCount = 0;
+            
+            learnedQA.forEach((qa, index) => {
+                if (searchTerm === '' || 
+                    qa.question.toLowerCase().includes(searchTerm) || 
+                    qa.answer.toLowerCase().includes(searchTerm)) {
+                    
+                    const convItem = document.createElement('div');
+                    convItem.className = 'conversation-item';
+                    convItem.innerHTML = `
+                        <strong>Vraag:</strong> ${qa.question}
+                        <strong>Antwoord:</strong> ${qa.answer}
+                        <button class="delete-conversation" onclick="deleteConversation(${index})">×</button>
+                    `;
+                    conversationsList.appendChild(convItem);
+                    conversationCount++;
+                }
+            });
+            conversationsCount.textContent = conversationCount;
             
             // Update woordenlijst
             wordsList.innerHTML = "";
@@ -1548,6 +1818,21 @@
             }
         };
 
+        window.deleteConversation = function(index) {
+            if (index >= 0 && index < learnedQA.length) {
+                const removedQA = learnedQA.splice(index, 1)[0];
+                
+                // Ook uit gespreksgeschiedenis verwijderen
+                conversationHistory = conversationHistory.filter(conv => 
+                    !(conv.bot === removedQA.question && conv.user === removedQA.answer)
+                );
+                
+                saveData();
+                updateMemoryManagement();
+                addBotMessage(`Conversatie verwijderd: "${removedQA.question}"`, false);
+            }
+        };
+
         // SCROLL
         function scrollToBottom() {
             setTimeout(() => {
@@ -1589,7 +1874,7 @@
             setTimeout(() => {
                 thinking.remove();
                 const response = findBestResponse(message);
-                addBotMessage(response.answer, response.containsHTML, response.analysisSteps);
+                addBotMessage(response.answer, response.containsHTML, response.analysisSteps, response.isLearned);
                 userInput.value = '';
                 lastSpeechResult = '';
                 updateSendButton();
@@ -1657,6 +1942,15 @@
                 addBotMessage(`Analyse modus is nu ${analysisMode ? 'ingeschakeld' : 'uitgeschakeld'}.`, false);
             });
             
+            // Auto-leren knop
+            autoLearnBtn.addEventListener('click', () => {
+                autoLearnMode = !autoLearnMode;
+                autoLearnBtn.textContent = autoLearnMode ? "Auto-leren Uit" : "Auto-leren Aan";
+                autoLearnBtn.classList.toggle('active', autoLearnMode);
+                saveData();
+                addBotMessage(`Auto-leren is nu ${autoLearnMode ? 'ingeschakeld' : 'uitgeschakeld'}. ${autoLearnMode ? 'Ik leer nu van onze gesprekken!' : 'Ik leer niet meer automatisch van gesprekken.'}`, false);
+            });
+            
             // Spraakmodus knop
             speechModeBtn.addEventListener('click', () => {
                 addBotMessage("Spraakmodus is al geïntegreerd! Klik op de microfoonknop wanneer er geen tekst is ingetypt.", false);
@@ -1684,7 +1978,10 @@
                     learnedPatterns: learnedPatterns,
                     knowledgeBase: knowledgeBase,
                     botPersonality: botPersonality,
-                    learnedQA: learnedQA
+                    learnedQA: learnedQA,
+                    conversationHistory: conversationHistory,
+                    autoLearnMode: autoLearnMode,
+                    analysisMode: analysisMode
                 };
                 
                 const dataStr = JSON.stringify(memoryData, null, 2);
@@ -1703,7 +2000,7 @@
             
             // Wis alle geheugen
             clearAllMemoryBtn.addEventListener('click', () => {
-                if (confirm("Weet je zeker dat je ALLES uit het geheugen wilt verwijderen?")) {
+                if (confirm("Weet je zeker dat je ALLES uit het geheugen wilt verwijderen? Dit kan niet ongedaan worden gemaakt!")) {
                     localStorage.clear();
                     location.reload();
                 }
