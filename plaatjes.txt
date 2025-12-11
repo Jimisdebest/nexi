@@ -1,6 +1,9 @@
 maak een aap = https://copilot.microsoft.com/th/id/BCO.8e5cfd57-e30c-482f-baf5-b415c083b344.png
 maak een kat = https://copilot.microsoft.com/th/id/BCO.7c7a2938-dbf7-4846-b37d-36fbbd34179d.png
 maak een hond = https://copilot.microsoft.com/th/id/BCO.a70b2226-daab-4522-816e-750b89ec4490.png
-maak een mens in bed = https://copilot.microsoft.com/th/id/BCO.a598389a-e534-41b7-b1db-5fe91bf04282.png
+maak een man in bed = https://copilot.microsoft.com/th/id/BCO.a598389a-e534-41b7-b1db-5fe91bf04282.png
+maak een vrouw in bed = https://copilot.microsoft.com/th/id/BCO.f1cd65f4-4d6d-4b10-bfde-6fda7b8bb056.png
 maak een telefoon = https://copilot.microsoft.com/th/id/BCO.de4c8ee8-870c-413d-b9d0-016d87f77298.png
 maak een fiets = https://copilot.microsoft.com/th/id/BCO.5c3acac7-4125-46b2-8d78-59407f33bf7d.png
+maak een kampeerplaats = https://prod-exerciseimages-handler.snappet.org/eyJidWNrZXQiOiJleGVyY2lzZWltYWdlcy5zbmFwcGV0Lm9yZyIsImtleSI6IjIwMjAwNDE1MDcwMDE0XzI2Njg1OS5QTkciLCJlZGl0cyI6eyJyZXNpemUiOnsid2lkdGgiOjIzLCJoZWlnaHQiOjY1LCJmaXQiOiJmaWxsIn19fQ==
+maak een meester die een aap is = https://copilot.microsoft.com/th/id/BCO.9a1bb341-4419-43c7-85d0-c685e3fc9bc8.png
