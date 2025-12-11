@@ -5,6 +5,34 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Combot</title>
     <style>
+        :root {
+            --primary-color: #4a6cf7;
+            --secondary-color: #7a52d4;
+            --danger-color: #ff6b6b;
+            --success-color: #28a745;
+            --text-color: #333;
+            --bg-color: #fff;
+            --message-bg: #f0f0f0;
+            --user-message-bg: #4a6cf7;
+            --user-message-color: #fff;
+            --border-color: #e0e0e0;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --primary-color: #6e8efb;
+                --secondary-color: #a777e3;
+                --danger-color: #ff5252;
+                --success-color: #34c759;
+                --text-color: #f0f0f0;
+                --bg-color: #1a1a1a;
+                --message-bg: #2d2d2d;
+                --user-message-bg: #4a6cf7;
+                --user-message-color: #fff;
+                --border-color: #404040;
+            }
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -13,20 +41,21 @@
         }
 
         body {
-            background: linear-gradient(135deg, #6e8efb, #a777e3);
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
             min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
             padding: 10px;
             overflow: hidden;
+            color: var(--text-color);
         }
 
         .container {
             width: 100%;
             max-width: 100%;
             height: 100vh;
-            background-color: rgba(255, 255, 255, 0.95);
+            background-color: var(--bg-color);
             box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
             overflow: hidden;
             display: flex;
@@ -34,7 +63,7 @@
         }
 
         .header {
-            background: linear-gradient(90deg, #4a6cf7, #7a52d4);
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
             color: white;
             padding: 15px 20px;
             position: relative;
@@ -76,7 +105,7 @@
             top: 0;
             width: 300px;
             height: 100vh;
-            background: white;
+            background: var(--bg-color);
             box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
             transition: left 0.3s ease;
             z-index: 999;
@@ -94,7 +123,7 @@
         }
 
         .sidebar h3 {
-            color: #333;
+            color: var(--text-color);
             margin-bottom: 15px;
             font-size: 1.2rem;
         }
@@ -106,7 +135,7 @@
         .menu-btn {
             width: 100%;
             padding: 12px 15px;
-            background: #4a6cf7;
+            background: var(--primary-color);
             color: white;
             border: none;
             border-radius: 8px;
@@ -117,16 +146,16 @@
         }
 
         .menu-btn:hover {
-            background: #3a5ce5;
+            background: var(--secondary-color);
             transform: translateX(5px);
         }
 
         .menu-btn.active {
-            background: #ff6b6b;
+            background: var(--danger-color);
         }
 
         .speech-mode-btn {
-            background: linear-gradient(135deg, #ff6b6b, #ff5252);
+            background: linear-gradient(135deg, var(--danger-color), #ff5252);
             width: 100%;
             padding: 12px 15px;
             color: white;
@@ -143,39 +172,6 @@
             transform: translateX(5px);
         }
 
-        .website-learning {
-            margin-top: 20px;
-            padding: 15px;
-            background: #f8f9fa;
-            border-radius: 10px;
-            border: 1px solid #e9ecef;
-        }
-
-        .website-input {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            margin-bottom: 10px;
-            font-size: 0.9rem;
-        }
-
-        .learn-website-btn {
-            width: 100%;
-            padding: 10px;
-            background: #28a745;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .learn-website-btn:hover {
-            background: #218838;
-            transform: translateY(-2px);
-        }
-
         .chat-container {
             flex: 1;
             overflow-y: auto;
@@ -183,7 +179,7 @@
             display: flex;
             flex-direction: column;
             gap: 15px;
-            background-color: #f5f7ff;
+            background-color: var(--bg-color);
         }
 
         .message {
@@ -201,15 +197,15 @@
 
         .user-message {
             align-self: flex-end;
-            background: linear-gradient(135deg, #4a6cf7, #7a52d4);
-            color: white;
+            background: linear-gradient(135deg, var(--user-message-bg), var(--secondary-color));
+            color: var(--user-message-color);
             border-bottom-right-radius: 5px;
         }
 
         .bot-message {
             align-self: flex-start;
-            background-color: white;
-            border: 1px solid #e0e0e0;
+            background-color: var(--message-bg);
+            border: 1px solid var(--border-color);
             border-bottom-left-radius: 5px;
         }
 
@@ -218,16 +214,6 @@
             border-radius: 10px;
             margin-top: 10px;
             box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-        }
-
-        .bot-message a {
-            color: #4a6cf7;
-            text-decoration: none;
-            font-weight: 500;
-        }
-
-        .bot-message a:hover {
-            text-decoration: underline;
         }
 
         .analysis-message {
@@ -239,14 +225,22 @@
             color: #856404;
         }
 
+        @media (prefers-color-scheme: dark) {
+            .analysis-message {
+                background-color: #333300;
+                border-color: #666633;
+                color: #ffcc00;
+            }
+        }
+
         .thinking {
             align-self: flex-start;
-            background-color: #f0f0f0;
+            background-color: var(--message-bg);
             padding: 10px 15px;
             border-radius: 18px;
             border-bottom-left-radius: 5px;
             font-style: italic;
-            color: #666;
+            color: var(--text-color);
             display: flex;
             align-items: center;
             gap: 8px;
@@ -268,7 +262,7 @@
             width: 6px;
             height: 6px;
             border-radius: 50%;
-            background-color: #666;
+            background-color: var(--text-color);
             animation: dotPulse 1.5s infinite;
         }
 
@@ -288,8 +282,8 @@
         .input-container {
             display: flex;
             padding: 15px;
-            background-color: white;
-            border-top: 1px solid #e0e0e0;
+            background-color: var(--bg-color);
+            border-top: 1px solid var(--border-color);
             gap: 10px;
             flex-shrink: 0;
         }
@@ -297,20 +291,22 @@
         #user-input {
             flex: 1;
             padding: 12px 15px;
-            border: 1px solid #ddd;
+            border: 1px solid var(--border-color);
             border-radius: 25px;
             outline: none;
             font-size: 1rem;
             transition: all 0.3s;
+            background-color: var(--bg-color);
+            color: var(--text-color);
         }
 
         #user-input:focus {
-            border-color: #4a6cf7;
+            border-color: var(--primary-color);
             box-shadow: 0 0 0 2px rgba(74, 108, 247, 0.2);
         }
 
         #send-btn {
-            background: linear-gradient(135deg, #4a6cf7, #7a52d4);
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
             color: white;
             border: none;
             border-radius: 50%;
@@ -330,17 +326,6 @@
 
         #send-btn:active {
             transform: scale(0.95);
-        }
-
-        #send-btn.listening {
-            background: linear-gradient(135deg, #ff6b6b, #ff5252);
-            animation: pulse 1.5s infinite;
-        }
-
-        @keyframes pulse {
-            0% { box-shadow: 0 0 0 0 rgba(255, 107, 107, 0.7); }
-            70% { box-shadow: 0 0 0 10px rgba(255, 107, 107, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(255, 107, 107, 0); }
         }
 
         .overlay {
@@ -378,7 +363,7 @@
             width: 90%;
             max-width: 800px;
             max-height: 80vh;
-            background: white;
+            background: var(--bg-color);
             border-radius: 15px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
             z-index: 1001;
@@ -391,7 +376,7 @@
         }
 
         .memory-header {
-            background: linear-gradient(90deg, #4a6cf7, #7a52d4);
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
             color: white;
             padding: 15px 20px;
             display: flex;
@@ -435,27 +420,29 @@
         .search-input {
             width: 100%;
             padding: 12px 15px;
-            border: 1px solid #ddd;
+            border: 1px solid var(--border-color);
             border-radius: 25px;
             outline: none;
             font-size: 1rem;
             transition: all 0.3s;
+            background-color: var(--bg-color);
+            color: var(--text-color);
         }
 
         .search-input:focus {
-            border-color: #4a6cf7;
+            border-color: var(--primary-color);
             box-shadow: 0 0 0 2px rgba(74, 108, 247, 0.2);
         }
 
         .memory-section {
-            border: 1px solid #e0e0e0;
+            border: 1px solid var(--border-color);
             border-radius: 10px;
             padding: 15px;
-            background: #f9f9f9;
+            background: var(--message-bg);
         }
 
         .memory-section h3 {
-            color: #4a6cf7;
+            color: var(--primary-color);
             margin-bottom: 15px;
             font-size: 1.1rem;
             display: flex;
@@ -464,7 +451,7 @@
         }
 
         .section-count {
-            background: #4a6cf7;
+            background: var(--primary-color);
             color: white;
             padding: 3px 8px;
             border-radius: 10px;
@@ -478,9 +465,9 @@
             max-height: 200px;
             overflow-y: auto;
             padding: 10px;
-            background: white;
+            background: var(--bg-color);
             border-radius: 8px;
-            border: 1px solid #e0e0e0;
+            border: 1px solid var(--border-color);
         }
 
         .word-item, .phrase-item {
@@ -488,20 +475,20 @@
             align-items: center;
             gap: 5px;
             padding: 6px 12px;
-            background: #e6eeff;
+            background: var(--message-bg);
             border-radius: 15px;
             font-size: 0.8rem;
-            color: #4a6cf7;
+            color: var(--primary-color);
             animation: memoryItemPop 0.3s ease;
         }
 
         .word-item:hover, .phrase-item:hover {
-            background: #4a6cf7;
+            background: var(--primary-color);
             color: white;
         }
 
         .delete-word, .delete-phrase {
-            background: #ff6b6b;
+            background: var(--danger-color);
             color: white;
             border: none;
             border-radius: 50%;
@@ -530,7 +517,7 @@
         .memory-action-btn {
             flex: 1;
             padding: 12px 15px;
-            background: #4a6cf7;
+            background: var(--primary-color);
             color: white;
             border: none;
             border-radius: 8px;
@@ -540,12 +527,12 @@
         }
 
         .memory-action-btn:hover {
-            background: #3a5ce5;
+            background: var(--secondary-color);
             transform: translateY(-2px);
         }
 
         .memory-action-btn.clear-all {
-            background: #ff6b6b;
+            background: var(--danger-color);
         }
 
         .memory-action-btn.clear-all:hover {
@@ -630,14 +617,6 @@
                 <button class="menu-btn" id="memory-management-btn">Geheugen beheren</button>
                 <button class="speech-mode-btn" id="speech-mode-btn">Spraakmodus</button>
             </div>
-            
-            <div class="sidebar-section">
-                <h3>Website Kennis</h3>
-                <div class="website-learning">
-                    <input type="text" class="website-input" id="website-url" placeholder="https://voorbeeld.nl">
-                    <button class="learn-website-btn" id="learn-website-btn">Website Toevoegen</button>
-                </div>
-            </div>
         </div>
         
         <div class="overlay" id="overlay"></div>
@@ -685,214 +664,18 @@
     </div>
 
     <script>
-        // Initialiseer Combot met standaard kennis en GitHub data
-        async function initializeBot() {
-            // Controleer of er data in Local Storage staat
-            const storedKnowledgeBase = localStorage.getItem('combotKnowledgeBase');
-            const storedLearnedPatterns = localStorage.getItem('combotLearnedPatterns');
-            const storedBotPersonality = localStorage.getItem('combotPersonality');
-            const storedStats = localStorage.getItem('combotStats');
-            const storedLearnedQA = localStorage.getItem('combotLearnedQA');
-            const storedAnalysisMode = localStorage.getItem('combotAnalysisMode');
-            const storedWebsiteWords = localStorage.getItem('combotWebsiteWords');
-            
-            // Standaard kennisbasis als er niets is opgeslagen
-            const defaultKnowledgeBase = {
-                begroeting: [
-                    "Hallo! Leuk je te ontmoeten!",
-                    "Hoi! Hoe gaat het?",
-                    "Goedendag! Klaar voor een leuk gesprek?",
-                    "Hé daar! Wat leuk dat je er bent!"
-                ],
-                boos: [
-                    "Waarom ben je zo boos?",
-                    "Laten we rustig praten.",
-                    "Ik begrijp dat je boos bent, maar schelden helpt niet.",
-                    "Oei, dat klinkt niet vriendelijk."
-                ],
-                compliment: [
-                    "Wat aardig van je! Dankjewel!",
-                    "Dank je wel, dat waardeer ik!",
-                    "Wat een leuk compliment! Jij bent ook geweldig!",
-                    "Dankjewel, dat maakt me blij!"
-                ],
-                tip: [
-                    "Weet je wat leuk is? Lachen is gezond!",
-                    "Een goede tip: geniet van de kleine dingen!",
-                    "Probeer eens iets nieuws vandaag!",
-                    "Een glimlach kost niets, maar is veel waard!"
-                ],
-                grap: [
-                    "Waarom gaan programmeurs altijd met de verkeerde voet uit bed? Omdat ze {alert} gebruiken in plaats van {console.log}!",
-                    "Hoe noem je een koe zonder poten? Grondrund!",
-                    "Waarom kon de computer niet eten? Hij had te veel cookies!",
-                    "Twee nullen staan te praten. Zegt de een tegen de ander: Ben jij ook niets?"
-                ],
-                verdrietig: [
-                    "Het spijt me dat je je zo voelt.",
-                    "Soms hebben we gewoon een slechte dag. Morgen wordt beter!",
-                    "Ik ben hier voor je, ook al ben ik maar een bot.",
-                    "Het is oké om je verdrietig te voelen. Iedereen heeft dat wel eens."
-                ],
-                vraag: [
-                    "Dat is een interessante vraag!",
-                    "Daar zou ik even over moeten nadenken...",
-                    "Goede vraag! Wat denk jij zelf?",
-                    "Daar kan ik lang over praten!"
-                ],
-                antwoord: [
-                    "Dat is een goed antwoord!",
-                    "Interessant perspectief!",
-                    "Daar had ik nog niet aan gedacht!",
-                    "Zo kun je het ook zien!"
-                ],
-                afbeelding: [
-                    "Hier is een afbeelding voor je!"
-                ]
-            };
-            
-            // Laad GitHub reacties
-            let githubQA = [];
-            try {
-                const response = await fetch('https://raw.githubusercontent.com/jimisdebest/ai/main/reacties.txt');
-                const text = await response.text();
-                
-                // Verwerk de tekst: splits op nieuwe regels en verwerk "Vraag = Antwoord" paren
-                const lines = text.split('\n');
-                for (const line of lines) {
-                    if (line.includes('=')) {
-                        const [question, answer] = line.split('=').map(part => part.trim());
-                        if (question && answer) {
-                            // Controleer of het antwoord HTML bevat
-                            const containsHTML = answer.includes('<img') || answer.includes('<div') || 
-                                                answer.includes('<span') || answer.includes('<p>') ||
-                                                answer.includes('<h') || answer.includes('<a href') ||
-                                                answer.includes('<br>') || answer.includes('<br/>') ||
-                                                answer.includes('<br />');
-                            
-                            githubQA.push({
-                                question: question.toLowerCase(),
-                                answer: answer,
-                                source: 'github',
-                                containsHTML: containsHTML
-                            });
-                        }
-                    }
-                }
-                
-                console.log('GitHub QA paren geladen:', githubQA.length);
-            } catch (error) {
-                console.error('Fout bij het laden van GitHub reacties:', error);
-            }
-            
-            // Laad zelf geleerde QA paren
-            const learnedQA = storedLearnedQA ? JSON.parse(storedLearnedQA) : [];
-            
-            // Laad website woorden
-            const websiteWords = storedWebsiteWords ? JSON.parse(storedWebsiteWords) : [];
-            
-            // Standaard leerpatronen
-            const defaultLearnedPatterns = {
-                begroeting: ["hallo", "hoi", "hey", "goedendag", "dag", "goedemorgen", "goedenmiddag", "goedenavond"],
-                boos: ["dommerd", "stommerd", "idioot", "sukkel", "lul", "klootzak", "kut"],
-                compliment: ["mooi", "leuk", "geweldig", "fantastisch", "super", "knap", "slim", "grappig"],
-                tip: ["tip", "advies", "suggestie", "idee", "aanrader"],
-                grap: ["grap", "grappig", "lachen", "mop", "humor", "lach"],
-                verdrietig: ["verdrietig", "triest", "somber", "depri", "huilen", "zielig"],
-                vraag: ["waarom", "hoe", "wat", "wanneer", "wie", "welke"],
-                antwoord: ["omdat", "daarom", "dus", "want", "om"],
-                afbeelding: ["afbeelding", "foto", "plaatje", "beeld", "image", "img", "maak een afbeelding", "toon een afbeelding", "laat een foto zien"]
-            };
-            
-            // Standaard persoonlijkheid
-            const defaultBotPersonality = {
-                name: "Combot",
-                mood: "blij",
-                favoriteWords: ["leuk", "interessant", "geweldig", "grappig"],
-                learnedPhrases: [],
-                learnedWords: []
-            };
-            
-            // Standaard statistieken
-            const defaultStats = {
-                totalMessages: 0,
-                totalLearned: 0,
-                githubResponsesUsed: 0,
-                learnedResponsesUsed: 0,
-                websiteWordsLearned: websiteWords.length
-            };
-            
-            // Analyse modus
-            const defaultAnalysisMode = storedAnalysisMode ? JSON.parse(storedAnalysisMode) : false;
-            
-            // Gebruik opgeslagen data of standaard waarden
-            return {
-                knowledgeBase: storedKnowledgeBase ? JSON.parse(storedKnowledgeBase) : defaultKnowledgeBase,
-                learnedPatterns: storedLearnedPatterns ? JSON.parse(storedLearnedPatterns) : defaultLearnedPatterns,
-                botPersonality: storedBotPersonality ? JSON.parse(storedBotPersonality) : defaultBotPersonality,
-                stats: storedStats ? JSON.parse(storedStats) : defaultStats,
-                githubQA: githubQA,
-                learnedQA: learnedQA,
-                websiteWords: websiteWords,
-                analysisMode: defaultAnalysisMode
-            };
-        }
-        
-        // Sla bot data op in Local Storage
-        function saveBotData() {
-            localStorage.setItem('combotKnowledgeBase', JSON.stringify(knowledgeBase));
-            localStorage.setItem('combotLearnedPatterns', JSON.stringify(learnedPatterns));
-            localStorage.setItem('combotPersonality', JSON.stringify(botPersonality));
-            localStorage.setItem('combotLearnedQA', JSON.stringify(learnedQA));
-            localStorage.setItem('combotWebsiteWords', JSON.stringify(websiteWords));
-            localStorage.setItem('combotAnalysisMode', JSON.stringify(analysisMode));
-            localStorage.setItem('combotStats', JSON.stringify({
-                totalMessages: totalMessages,
-                totalLearned: totalLearned,
-                githubResponsesUsed: githubResponsesUsed,
-                learnedResponsesUsed: learnedResponsesUsed,
-                websiteWordsLearned: websiteWords.length
-            }));
-        }
-        
-        // Wis alle opgeslagen data
-        function clearBotData() {
-            localStorage.removeItem('combotKnowledgeBase');
-            localStorage.removeItem('combotLearnedPatterns');
-            localStorage.removeItem('combotPersonality');
-            localStorage.removeItem('combotStats');
-            localStorage.removeItem('combotLearnedQA');
-            localStorage.removeItem('combotWebsiteWords');
-            localStorage.removeItem('combotAnalysisMode');
-            
-            // Herinitialiseer de bot
-            initializeBot().then(botData => {
-                knowledgeBase = botData.knowledgeBase;
-                learnedPatterns = botData.learnedPatterns;
-                botPersonality = botData.botPersonality;
-                totalMessages = botData.stats.totalMessages;
-                totalLearned = botData.stats.totalLearned;
-                githubResponsesUsed = botData.stats.githubResponsesUsed;
-                learnedResponsesUsed = botData.stats.learnedResponsesUsed;
-                githubQA = botData.githubQA;
-                learnedQA = botData.learnedQA;
-                websiteWords = botData.websiteWords;
-                analysisMode = botData.analysisMode;
-                
-                // Update de UI
-                updateMemoryManagement();
-                updateAnalysisButton();
-                
-                // Toon een bevestiging
-                addBotMessage("Mijn geheugen is gewist! Ik begin opnieuw met leren.", "tip");
-            });
-        }
-        
-        // Initialiseer de bot
-        let knowledgeBase, learnedPatterns, botPersonality, stats, githubQA, learnedQA, websiteWords, analysisMode;
-        let totalMessages, totalLearned, githubResponsesUsed, learnedResponsesUsed;
+        // GLOBALE VARIABELEN
+        let githubQA = [];
+        let imagesQA = [];
+        let learnedQA = [];
+        let knowledgeBase = {};
+        let learnedPatterns = {};
+        let botPersonality = {};
+        let analysisMode = false;
+        let totalMessages = 0;
+        let totalLearned = 0;
 
-        // Elementen
+        // ELEMENTEN
         const chatContainer = document.getElementById('chat-container');
         const userInput = document.getElementById('user-input');
         const sendBtn = document.getElementById('send-btn');
@@ -911,698 +694,159 @@
         const phrasesCount = document.getElementById('phrases-count');
         const exportMemoryBtn = document.getElementById('export-memory');
         const clearAllMemoryBtn = document.getElementById('clear-all-memory');
-        const websiteUrlInput = document.getElementById('website-url');
-        const learnWebsiteBtn = document.getElementById('learn-website-btn');
 
-        // Variabelen
-        let isListening = false;
-        let recognition = null;
-
-        // Functie om sidebar te sluiten met animatie
-        function closeSidebar() {
-            if (sidebar.classList.contains('active')) {
-                sidebar.classList.remove('active');
-                sidebar.classList.add('closing');
-                overlay.classList.remove('active');
-                overlay.classList.add('closing');
-                
-                // Verwijder closing class na animatie
-                setTimeout(() => {
-                    sidebar.classList.remove('closing');
-                    overlay.classList.remove('closing');
-                }, 300);
-            }
-        }
-
-        // Website kennis toevoegen (ZONDER leestekens bij woorden)
-        async function learnFromWebsite(url) {
+        // LAAD ALLE DATA VAN GITHUB
+        async function loadAllData() {
             try {
-                addBotMessage(`Website aan het leren: ${url}`, "tip");
+                // Laad reacties.txt
+                const reactiesResponse = await fetch('https://raw.githubusercontent.com/jimisdebest/ai/main/reacties.txt');
+                const reactiesText = await reactiesResponse.text();
                 
-                // Gebruik CORS proxy voor cross-origin requests
-                const proxyUrl = 'https://cors-anywhere.herokuapp.com/';
-                const response = await fetch(proxyUrl + url);
-                const html = await response.text();
+                // Laad plaatjes.txt
+                const plaatjesResponse = await fetch('https://raw.githubusercontent.com/Jimisdebest/combot/main/plaatjes.txt');
+                const plaatjesText = await plaatjesResponse.text();
                 
-                // Parse HTML en extraheer tekst
-                const parser = new DOMParser();
-                const doc = parser.parseFromString(html, 'text/html');
-                const text = doc.body.textContent || "";
-                
-                // Verwerk tekst en extraheer woorden ZONDER leestekens
-                const words = text.toLowerCase()
-                    .replace(/[^\w\s]/g, ' ') // Verwijder leestekens
-                    .split(/\s+/)
-                    .filter(word => word.length > 3 && word.length < 20)
-                    .filter((word, index, self) => self.indexOf(word) === index)
-                    .slice(0, 100); // Beperk tot 100 woorden
-                
-                // Voeg woorden toe aan website woorden
-                words.forEach(word => {
-                    if (!websiteWords.includes(word) && !isCommonWord(word)) {
-                        websiteWords.push(word);
+                // Parse reacties
+                githubQA = [];
+                const reactiesLines = reactiesText.split('\n');
+                for (const line of reactiesLines) {
+                    if (line.includes('=')) {
+                        const [question, answer] = line.split('=').map(part => part.trim());
+                        if (question && answer) {
+                            githubQA.push({
+                                question: question.toLowerCase(),
+                                answer: answer,
+                                containsHTML: answer.includes('<img') || answer.includes('<br') || answer.includes('<a href')
+                            });
+                        }
                     }
-                });
+                }
                 
-                // Sla op
-                saveBotData();
+                // Parse plaatjes
+                imagesQA = [];
+                const plaatjesLines = plaatjesText.split('\n');
+                for (const line of plaatjesLines) {
+                    if (line.includes('=')) {
+                        const [question, imageUrl] = line.split('=').map(part => part.trim());
+                        if (question && imageUrl) {
+                            imagesQA.push({
+                                question: question.toLowerCase(),
+                                imageUrl: imageUrl,
+                                answer: `<img src="${imageUrl}" alt="${question}" style="max-width: 100%; border-radius: 10px;">`,
+                                containsHTML: true
+                            });
+                        }
+                    }
+                }
                 
-                addBotMessage(`Succes! ${words.length} nieuwe woorden geleerd van de website.`, "tip");
-                updateMemoryManagement();
+                console.log(`Geladen: ${githubQA.length} reacties, ${imagesQA.length} afbeeldingen`);
                 
             } catch (error) {
-                console.error('Fout bij leren van website:', error);
-                addBotMessage("Kon de website niet laden. Controleer de URL en probeer opnieuw.", "tip");
+                console.error('Fout bij laden van GitHub data:', error);
+                // Fallback test data
+                githubQA = [
+                    { question: "hallo", answer: "Hallo! Hoe gaat het?", containsHTML: false },
+                    { question: "hoe gaat het", answer: "Goed, dank je! En met jou?", containsHTML: false }
+                ];
+                imagesQA = [
+                    { question: "maak een aap", imageUrl: "https://images.unsplash.com/photo-1557318041-1ce374d55ebf?w=400&fit=crop", answer: `<img src="https://images.unsplash.com/photo-1557318041-1ce374d55ebf?w=400&fit=crop" alt="Aap" style="max-width: 100%; border-radius: 10px;">`, containsHTML: true },
+                    { question: "toon een hond", imageUrl: "https://images.unsplash.com/photo-1552053831-71594a27632d?w=400&fit=crop", answer: `<img src="https://images.unsplash.com/photo-1552053831-71594a27632d?w=400&fit=crop" alt="Hond" style="max-width: 100%; border-radius: 10px;">`, containsHTML: true }
+                ];
             }
         }
 
-        // Veelvoorkomende woorden filteren
-        function isCommonWord(word) {
-            const commonWords = ["de", "het", "een", "en", "of", "maar", "dan", "om", "naar", "voor", "met", "zonder", "door", "over", "onder", "boven", "tussen", "naast", "achter", "voor", "bij", "sinds", "tot", "van", "aan", "in", "uit", "op", "te", "bij", "naar", "dat", "die", "dit", "die", "deze", "mijn", "jouw", "zijn", "haar", "ons", "hun", "wat", "wie", "hoe", "waar", "waarom"];
-            return commonWords.includes(word.toLowerCase()) || word.length < 3;
-        }
-
-        // Spraakfunctie initialiseren
-        function initializeSpeechRecognition() {
-            if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-                const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-                recognition = new SpeechRecognition();
-                recognition.continuous = false;
-                recognition.interimResults = false;
-                recognition.lang = 'nl-NL';
-                
-                recognition.onstart = function() {
-                    isListening = true;
-                    updateSendButton();
-                };
-                
-                recognition.onresult = function(event) {
-                    const transcript = event.results[0][0].transcript;
-                    userInput.value = transcript;
-                    isListening = false;
-                    updateSendButton();
-                    
-                    // Automatisch verzenden na spraakinvoer
-                    setTimeout(() => {
-                        handleUserInput();
-                    }, 500);
-                };
-                
-                recognition.onerror = function(event) {
-                    console.error('Spraakherkenning fout:', event.error);
-                    isListening = false;
-                    updateSendButton();
-                    
-                    if (event.error === 'not-allowed') {
-                        addBotMessage("Spraakherkenning is niet toegestaan. Controleer je browserinstellingen.", "tip");
-                    }
-                };
-                
-                recognition.onend = function() {
-                    isListening = false;
-                    updateSendButton();
-                };
-            } else {
-                console.warn('Spraakherkenning wordt niet ondersteund in deze browser');
-                addBotMessage("Spraakherkenning wordt niet ondersteund in deze browser.", "tip");
-            }
-        }
-        
-        // Spraakherkenning starten/stoppen
-        function toggleSpeechRecognition() {
-            if (!recognition) {
-                initializeSpeechRecognition();
-            }
+        // INITIALISEER BOT
+        async function initializeBot() {
+            // Laad GitHub data
+            await loadAllData();
             
-            if (isListening) {
-                recognition.stop();
-            } else {
-                recognition.start();
-            }
-        }
-        
-        // Update de send button op basis van de status
-        function updateSendButton() {
-            if (userInput.value.trim() === '') {
-                // Als er geen tekst is, toon microfoon
-                if (isListening) {
-                    sendBtn.innerHTML = '⏹';
-                    sendBtn.classList.add('listening');
-                } else {
-                    sendBtn.innerHTML = '🎤';
-                    sendBtn.classList.remove('listening');
-                }
-            } else {
-                // Als er tekst is, toon pijl
-                sendBtn.innerHTML = '➤';
-                sendBtn.classList.remove('listening');
-            }
-        }
-
-        // Spraak functie
-        function speakText(text) {
-            if ('speechSynthesis' in window) {
-                window.speechSynthesis.cancel();
-                
-                const utterance = new SpeechSynthesisUtterance(text);
-                utterance.lang = 'nl-NL';
-                utterance.rate = 1.0;
-                utterance.pitch = 1.0;
-                utterance.volume = 0.4; // 40% volume
-                
-                window.speechSynthesis.speak(utterance);
-            }
-        }
-
-        // Hamburger menu functionaliteit
-        hamburgerMenu.addEventListener('click', function() {
-            if (sidebar.classList.contains('active')) {
-                closeSidebar();
-            } else {
-                sidebar.classList.add('active');
-                overlay.classList.add('active');
-            }
-        });
-
-        // Overlay klik om sidebar te sluiten
-        overlay.addEventListener('click', function() {
-            closeSidebar();
+            // Laad opgeslagen data
+            const storedKnowledgeBase = localStorage.getItem('combotKnowledgeBase');
+            const storedLearnedPatterns = localStorage.getItem('combotLearnedPatterns');
+            const storedBotPersonality = localStorage.getItem('combotPersonality');
+            const storedLearnedQA = localStorage.getItem('combotLearnedQA');
+            const storedAnalysisMode = localStorage.getItem('combotAnalysisMode');
             
-            // Sluit ook geheugen beheer als het open is
-            if (memoryManagement.classList.contains('active')) {
-                memoryManagement.classList.remove('active');
-            }
-        });
+            // Standaard kennisbasis
+            const defaultKnowledgeBase = {
+                begroeting: ["Hallo! Leuk je te ontmoeten!", "Hoi! Hoe gaat het?", "Goedendag! Klaar voor een leuk gesprek?"],
+                boos: ["Waarom ben je zo boos?", "Laten we rustig praten.", "Ik begrijp dat je boos bent, maar schelden helpt niet."],
+                compliment: ["Wat aardig van je! Dankjewel!", "Dank je wel, dat waardeer ik!", "Wat een leuk compliment!"],
+                tip: ["Weet je wat leuk is? Lachen is gezond!", "Een goede tip: geniet van de kleine dingen!", "Probeer eens iets nieuws vandaag!"],
+                grap: ["Waarom gaan programmeurs altijd met de verkeerde voet uit bed? Omdat ze {alert} gebruiken in plaats van {console.log}!", "Hoe noem je een koe zonder poten? Grondrund!"],
+                vraag: ["Dat is een interessante vraag!", "Daar zou ik even over moeten nadenken...", "Goede vraag! Wat denk jij zelf?"],
+                afbeelding: ["Hier is een afbeelding voor je!", "Kijk eens wat ik voor je heb gevonden!"]
+            };
 
-        // Geheugen beheer functionaliteit
-        memoryManagementBtn.addEventListener('click', function() {
-            memoryManagement.classList.add('active');
-            overlay.classList.add('active');
-            updateMemoryManagement();
-        });
+            const defaultLearnedPatterns = {
+                begroeting: ["hallo", "hoi", "hey", "goedendag", "dag", "goedemorgen"],
+                boos: ["dommerd", "stommerd", "idioot", "sukkel"],
+                compliment: ["mooi", "leuk", "geweldig", "fantastisch", "super"],
+                tip: ["tip", "advies", "suggestie", "idee"],
+                grap: ["grap", "grappig", "lachen", "mop"],
+                vraag: ["waarom", "hoe", "wat", "wanneer", "wie"],
+                afbeelding: ["afbeelding", "foto", "plaatje", "beeld", "image", "img"]
+            };
 
-        closeMemory.addEventListener('click', function() {
-            memoryManagement.classList.remove('active');
-            closeSidebar();
-        });
-
-        // Spraakmodus knop
-        speechModeBtn.addEventListener('click', function() {
-            window.location.href = 'spraak.html';
-        });
-
-        // Website leren knop
-        learnWebsiteBtn.addEventListener('click', function() {
-            const url = websiteUrlInput.value.trim();
-            if (url) {
-                learnFromWebsite(url);
-                websiteUrlInput.value = '';
-            }
-        });
-
-        // Enter toets voor website input
-        websiteUrlInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                learnWebsiteBtn.click();
-            }
-        });
-
-        // Live zoeken in geheugen
-        memorySearch.addEventListener('input', function() {
-            updateMemoryManagement();
-        });
-
-        // Update geheugen beheer interface
-        function updateMemoryManagement() {
-            const searchTerm = memorySearch.value.toLowerCase();
-            
-            // Update woordenlijst
-            updateWordsList(searchTerm);
-            
-            // Update zinnenlijst
-            updatePhrasesList(searchTerm);
-        }
-
-        // Update woordenlijst
-        function updateWordsList(searchTerm) {
-            wordsList.innerHTML = "";
-            let wordCount = 0;
-            
-            // Verzamel alle geleerde woorden
-            const allWords = [];
-            
-            // Woorden uit patronen
-            for (const category in learnedPatterns) {
-                learnedPatterns[category].forEach(word => {
-                    if (!allWords.includes(word)) {
-                        allWords.push(word);
-                    }
-                });
-            }
-            
-            // Persoonlijke geleerde woorden
-            botPersonality.learnedWords.forEach(word => {
-                if (!allWords.includes(word)) {
-                    allWords.push(word);
-                }
-            });
-            
-            // Website woorden
-            websiteWords.forEach(word => {
-                if (!allWords.includes(word)) {
-                    allWords.push(word);
-                }
-            });
-            
-            // Filter en toon woorden
-            allWords.forEach(word => {
-                if (searchTerm === '' || word.toLowerCase().includes(searchTerm)) {
-                    const wordItem = document.createElement('div');
-                    wordItem.className = 'word-item';
-                    wordItem.innerHTML = `
-                        ${word}
-                        <button class="delete-word" onclick="deleteWord('${word.replace(/'/g, "\\'")}')">×</button>
-                    `;
-                    wordsList.appendChild(wordItem);
-                    wordCount++;
-                }
-            });
-            
-            wordsCount.textContent = wordCount;
-        }
-
-        // Update zinnenlijst
-        function updatePhrasesList(searchTerm) {
-            phrasesList.innerHTML = "";
-            let phraseCount = 0;
-            
-            // Verzamel alle geleerde zinnen uit alle categorieën
-            for (const category in knowledgeBase) {
-                knowledgeBase[category].forEach(phrase => {
-                    if (searchTerm === '' || phrase.toLowerCase().includes(searchTerm)) {
-                        const phraseItem = document.createElement('div');
-                        phraseItem.className = 'phrase-item';
-                        phraseItem.innerHTML = `
-                            [${category}] ${phrase}
-                            <button class="delete-phrase" onclick="deletePhrase('${category.replace(/'/g, "\\'")}', '${phrase.replace(/'/g, "\\'")}')">×</button>
-                        `;
-                        phrasesList.appendChild(phraseItem);
-                        phraseCount++;
-                    }
-                });
-            }
-            
-            phrasesCount.textContent = phraseCount;
-        }
-
-        // Verwijder een woord
-        function deleteWord(word) {
-            // Verwijder uit alle categorieën
-            for (const category in learnedPatterns) {
-                const index = learnedPatterns[category].indexOf(word);
-                if (index !== -1) {
-                    learnedPatterns[category].splice(index, 1);
-                }
-            }
-            
-            // Verwijder uit persoonlijke woorden
-            const wordIndex = botPersonality.learnedWords.indexOf(word);
-            if (wordIndex !== -1) {
-                botPersonality.learnedWords.splice(wordIndex, 1);
-            }
-            
-            // Verwijder uit website woorden
-            const websiteIndex = websiteWords.indexOf(word);
-            if (websiteIndex !== -1) {
-                websiteWords.splice(websiteIndex, 1);
-            }
-            
-            saveBotData();
-            updateMemoryManagement();
-            addBotMessage(`Woord "${word}" verwijderd uit geheugen.`, "tip");
-        }
-
-        // Verwijder een zin
-        function deletePhrase(category, phrase) {
-            const index = knowledgeBase[category].indexOf(phrase);
-            if (index !== -1) {
-                knowledgeBase[category].splice(index, 1);
-                
-                // Verwijder ook uit persoonlijke zinnen
-                const phraseIndex = botPersonality.learnedPhrases.indexOf(phrase);
-                if (phraseIndex !== -1) {
-                    botPersonality.learnedPhrases.splice(phraseIndex, 1);
-                }
-                
-                saveBotData();
-                updateMemoryManagement();
-                addBotMessage(`Zin verwijderd uit categorie "${category}".`, "tip");
-            }
-        }
-
-        // Exporteer geheugen
-        exportMemoryBtn.addEventListener('click', function() {
-            const memoryData = {
-                learnedPatterns: learnedPatterns,
-                knowledgeBase: knowledgeBase,
-                botPersonality: botPersonality,
-                learnedQA: learnedQA,
-                websiteWords: websiteWords
+            const defaultBotPersonality = {
+                name: "Combot",
+                mood: "blij",
+                favoriteWords: ["leuk", "interessant", "geweldig", "grappig"],
+                learnedPhrases: [],
+                learnedWords: []
             };
             
-            const dataStr = JSON.stringify(memoryData, null, 2);
-            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+            // Gebruik opgeslagen of standaard data
+            knowledgeBase = storedKnowledgeBase ? JSON.parse(storedKnowledgeBase) : defaultKnowledgeBase;
+            learnedPatterns = storedLearnedPatterns ? JSON.parse(storedLearnedPatterns) : defaultLearnedPatterns;
+            botPersonality = storedBotPersonality ? JSON.parse(storedBotPersonality) : defaultBotPersonality;
+            learnedQA = storedLearnedQA ? JSON.parse(storedLearnedQA) : [];
+            analysisMode = storedAnalysisMode ? JSON.parse(storedAnalysisMode) : false;
             
-            const url = URL.createObjectURL(dataBlob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = 'combot-geheugen.json';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            URL.revokeObjectURL(url);
+            // Toon welkomstbericht
+            addBotMessage(`Hallo! Ik ben Combot. Typ iets zoals 'maak een aap' of stel een vraag!`, false);
+        }
+
+        // CONTROLEER OF ER EEN AFBEELDING GEVRAAGD WORDT
+        function isImageRequest(message) {
+            const lowerMessage = message.toLowerCase();
+            const imageKeywords = ['afbeelding', 'foto', 'plaatje', 'beeld', 'image', 'img', 'maak een', 'toon een', 'laat een zien', 'geef me een'];
             
-            addBotMessage("Geheugen geëxporteerd!", "tip");
-        });
-
-        // Wis alle geheugen
-        clearAllMemoryBtn.addEventListener('click', function() {
-            if (confirm("Weet je zeker dat je ALLES uit het geheugen wilt verwijderen?")) {
-                clearBotData();
-                memoryManagement.classList.remove('active');
-                overlay.classList.remove('active');
-            }
-        });
-
-        // Leer nieuwe vraag-antwoord paren
-        function learnNewQA(input) {
-            if (input.toLowerCase().startsWith('leer ')) {
-                const content = input.substring(5).trim();
-                if (content.includes('=')) {
-                    const [question, answer] = content.split('=').map(part => part.trim());
-                    if (question && answer) {
-                        // Controleer of het antwoord HTML bevat
-                        const containsHTML = answer.includes('<img') || answer.includes('<div') || 
-                                            answer.includes('<span') || answer.includes('<p>') ||
-                                            answer.includes('<h') || answer.includes('<a href') ||
-                                            answer.includes('<br>') || answer.includes('<br/>') ||
-                                            answer.includes('<br />');
-                        
-                        // Voeg toe aan geleerde QA
-                        learnedQA.push({
-                            question: question.toLowerCase(),
-                            answer: answer,
-                            source: 'geleerd',
-                            containsHTML: containsHTML
-                        });
-                        
-                        // Sla op
-                        saveBotData();
-                        
-                        // Update statistieken
-                        totalLearned++;
-                        updateMemoryManagement();
-                        
-                        return `Bedankt! Ik heb geleerd: "${question}" = "${answer}"`;
-                    }
+            for (const keyword of imageKeywords) {
+                if (lowerMessage.includes(keyword)) {
+                    return true;
                 }
-                return "Gebruik: leer [vraag] = [antwoord]";
             }
+            return false;
+        }
+
+        // ZOEK BESTE MATCH IN PLAATJES.TXT
+        function findBestImage(message) {
+            const lowerMessage = message.toLowerCase();
+            let bestMatch = null;
+            let bestScore = 0;
+            
+            // Zoek in imagesQA
+            for (const image of imagesQA) {
+                const score = calculateSimilarity(lowerMessage, image.question);
+                if (score > bestScore) {
+                    bestScore = score;
+                    bestMatch = image;
+                }
+            }
+            
+            // Alleen teruggeven als er een goede match is (minimaal 40% gelijkenis)
+            if (bestMatch && bestScore >= 0.4) {
+                return bestMatch;
+            }
+            
             return null;
         }
 
-        // Analyseer en vind het beste antwoord - VERSIMPELDE VERSIE
-        function findResponseWithAnalysis(userMessage) {
-            const lowerMessage = userMessage.toLowerCase();
-            const analysisSteps = [];
-            
-            analysisSteps.push("Ik kijk in GitHub voor exacte overeenkomst...");
-            
-            // Stap 1: Exacte overeenkomst in GitHub
-            for (const qa of githubQA) {
-                if (lowerMessage === qa.question) {
-                    analysisSteps.push("✓ Exacte overeenkomst gevonden. Antwoord geven aan gebruiker.");
-                    return { 
-                        response: qa.answer, 
-                        category: "github", 
-                        source: 'github',
-                        containsHTML: qa.containsHTML,
-                        analysis: analysisSteps
-                    };
-                }
-            }
-            
-            analysisSteps.push("✗ Geen exacte overeenkomst gevonden.");
-            analysisSteps.push("Werk overlaten aan SmartBot...");
-            
-            // Stap 2: Fallback naar standaard kennis
-            const category = categorizeMessage(userMessage);
-            if (knowledgeBase[category] && knowledgeBase[category].length > 0) {
-                const response = knowledgeBase[category][Math.floor(Math.random() * knowledgeBase[category].length)];
-                analysisSteps.push(`✓ Standaard antwoord gebruikt uit categorie: ${category}`);
-                return { 
-                    response: response, 
-                    category: category, 
-                    source: 'knowledge',
-                    containsHTML: false,
-                    analysis: analysisSteps
-                };
-            }
-            
-            analysisSteps.push("✗ Geen geschikt antwoord gevonden.");
-            analysisSteps.push("✓ Fallback antwoord gebruikt.");
-            return { 
-                response: "Dat is een interessante vraag! Kun je wat meer uitleg geven?", 
-                category: "vraag", 
-                source: 'fallback',
-                containsHTML: false,
-                analysis: analysisSteps
-            };
-        }
-
-        // Initialiseer de chat
-        window.onload = async function() {
-            const botData = await initializeBot();
-            knowledgeBase = botData.knowledgeBase;
-            learnedPatterns = botData.learnedPatterns;
-            botPersonality = botData.botPersonality;
-            totalMessages = botData.stats.totalMessages;
-            totalLearned = botData.stats.totalLearned;
-            githubResponsesUsed = botData.stats.githubResponsesUsed;
-            learnedResponsesUsed = botData.stats.learnedResponsesUsed;
-            githubQA = botData.githubQA;
-            learnedQA = botData.learnedQA;
-            websiteWords = botData.websiteWords;
-            analysisMode = botData.analysisMode;
-            
-            addBotMessage(`Hallo! Ik ben Combot. Ik heb ${githubQA.length} GitHub reacties, ${learnedQA.length} zelf geleerde reacties en ${websiteWords.length} woorden van websites geleerd.`, "begroeting");
-            
-            updateAnalysisButton();
-            
-            // Initialiseer spraakherkenning
-            initializeSpeechRecognition();
-            
-            // Update de send button bij het laden
-            updateSendButton();
-        };
-
-        // Functie om een bericht van de gebruiker toe te voegen
-        function addUserMessage(message) {
-            const messageElement = document.createElement('div');
-            messageElement.className = 'message user-message';
-            messageElement.textContent = message;
-            
-            chatContainer.appendChild(messageElement);
-            scrollToBottom();
-            
-            learnFromMessage(message);
-            totalMessages++;
-            saveBotData();
-        }
-
-        // Functie om een bericht van de bot toe te voegen - VERBETERDE VERSIE
-        function addBotMessage(messageData, category) {
-            const messageElement = document.createElement('div');
-            messageElement.className = 'message bot-message';
-            
-            // Als messageData een object is (van findResponseWithAnalysis)
-            if (typeof messageData === 'object' && messageData.response !== undefined) {
-                // Debug log
-                console.log("Bot antwoord object:", messageData);
-                
-                // Controleer of er HTML in het antwoord zit
-                if (messageData.containsHTML === true) {
-                    console.log("Antwoord bevat HTML, gebruik innerHTML");
-                    messageElement.innerHTML = messageData.response;
-                } else {
-                    console.log("Antwoord bevat geen HTML, gebruik textContent");
-                    messageElement.textContent = messageData.response;
-                }
-            } 
-            // Als messageData een string is (vanaf begin of leer commando)
-            else if (typeof messageData === 'string') {
-                // Controleer of de string HTML bevat
-                const hasHTML = messageData.includes('<img') || messageData.includes('<div') || 
-                               messageData.includes('<span') || messageData.includes('<p>') || 
-                               messageData.includes('<h') || messageData.includes('<a href') ||
-                               messageData.includes('<br>') || messageData.includes('<br/>') ||
-                               messageData.includes('<br />');
-                
-                console.log("String antwoord, bevat HTML?", hasHTML);
-                
-                if (hasHTML) {
-                    messageElement.innerHTML = messageData;
-                } else {
-                    messageElement.textContent = messageData;
-                }
-            }
-            // Standaard geval
-            else {
-                console.log("Onbekend type antwoord:", typeof messageData, messageData);
-                messageElement.textContent = String(messageData);
-            }
-            
-            chatContainer.appendChild(messageElement);
-            scrollToBottom();
-            
-            totalMessages++;
-            
-            // Spreek alleen tekst als er geen HTML is
-            let textToSpeak = '';
-            if (typeof messageData === 'object' && messageData.response && !messageData.containsHTML) {
-                textToSpeak = messageData.response;
-            } else if (typeof messageData === 'string') {
-                // Verwijder HTML tags voor spraak
-                textToSpeak = messageData.replace(/<[^>]*>/g, ' ');
-                // Verwijder meerdere spaties
-                textToSpeak = textToSpeak.replace(/\s+/g, ' ').trim();
-            }
-            
-            if (textToSpeak && textToSpeak.length > 0) {
-                speakText(textToSpeak);
-            }
-            
-            saveBotData();
-        }
-
-        // Functie om een analysebericht toe te voegen
-        function addAnalysisMessage(steps) {
-            const analysisElement = document.createElement('div');
-            analysisElement.className = 'message analysis-message';
-            
-            let analysisHTML = '<strong>Analyse:</strong><br>';
-            steps.forEach(step => {
-                analysisHTML += `• ${step}<br>`;
-            });
-            
-            analysisElement.innerHTML = analysisHTML;
-            chatContainer.appendChild(analysisElement);
-            scrollToBottom();
-        }
-
-        // Scroll naar beneden
-        function scrollToBottom() {
-            setTimeout(() => {
-                chatContainer.scrollTop = chatContainer.scrollHeight;
-            }, 100);
-        }
-
-        // Denkproces tonen
-        function showThinking() {
-            const thinkingElement = document.createElement('div');
-            thinkingElement.className = 'thinking';
-            thinkingElement.id = 'thinking';
-            thinkingElement.innerHTML = `
-                Combot denkt na
-                <div class="thinking-dots">
-                    <span></span>
-                    <span></span>
-                    <span></span>
-                </div>
-            `;
-            
-            chatContainer.appendChild(thinkingElement);
-            scrollToBottom();
-            
-            return thinkingElement;
-        }
-
-        // Categoriseer bericht
-        function categorizeMessage(message) {
-            const lowerMessage = message.toLowerCase();
-            
-            // Controleer website woorden eerst
-            for (const word of websiteWords) {
-                if (lowerMessage.includes(word)) {
-                    return "website";
-                }
-            }
-            
-            for (const category in learnedPatterns) {
-                for (const word of learnedPatterns[category]) {
-                    if (lowerMessage.includes(word)) {
-                        return category;
-                    }
-                }
-            }
-            return "random";
-        }
-
-        // Leer van bericht (ZONDER leestekens bij woorden, MET leestekens bij zinnen)
-        function learnFromMessage(message) {
-            const words = message.toLowerCase().split(/\s+/);
-            
-            // Controleer of het een kort bericht is (waarschijnlijk een woord)
-            if (words.length <= 3) {
-                // Voor korte berichten: verwijder leestekens
-                for (const word of words) {
-                    const cleanWord = word.replace(/[^\w]/g, '');
-                    if (cleanWord.length <= 2 || isCommonWord(cleanWord)) continue;
-                    
-                    let wordExists = false;
-                    for (const cat in learnedPatterns) {
-                        if (learnedPatterns[cat].includes(cleanWord)) {
-                            wordExists = true;
-                            break;
-                        }
-                    }
-                    
-                    if (!wordExists) {
-                        const category = categorizeMessage(cleanWord);
-                        if (!learnedPatterns[category]) {
-                            learnedPatterns[category] = [];
-                        }
-                        learnedPatterns[category].push(cleanWord);
-                        botPersonality.learnedWords.push(cleanWord);
-                        totalLearned++;
-                    }
-                }
-            } else {
-                // Voor langere berichten (zinnen): behoud leestekens
-                let phraseExists = false;
-                for (const cat in knowledgeBase) {
-                    if (knowledgeBase[cat].includes(message)) {
-                        phraseExists = true;
-                        break;
-                    }
-                }
-                
-                if (!phraseExists) {
-                    const category = categorizeMessage(message);
-                    if (!knowledgeBase[category]) {
-                        knowledgeBase[category] = [];
-                    }
-                    knowledgeBase[category].push(message);
-                    botPersonality.learnedPhrases.push(message);
-                    totalLearned++;
-                }
-            }
-        }
-
-        // Bereken gelijkenis
+        // BEREKEN GELIJKENIS
         function calculateSimilarity(str1, str2) {
-            const words1 = str1.split(' ').filter(word => word.length > 2);
-            const words2 = str2.split(' ').filter(word => word.length > 2);
+            const words1 = str1.toLowerCase().split(' ').filter(w => w.length > 2);
+            const words2 = str2.toLowerCase().split(' ').filter(w => w.length > 2);
             
             if (words1.length === 0 || words2.length === 0) return 0;
             
@@ -1616,91 +860,423 @@
             return matches / Math.max(words1.length, words2.length);
         }
 
-        // Verwerk leerinvoer
-        function handleLearnInput(input) {
-            const learnResult = learnNewQA(input);
-            if (learnResult) {
-                addBotMessage(learnResult, "geleerd");
-            } else {
-                addBotMessage("Gebruik: leer [vraag] = [antwoord] om me iets nieuws te leren!", "tip");
-            }
-            userInput.value = "";
-            updateSendButton();
-        }
-
-        // Update analyse knop
-        function updateAnalysisButton() {
-            analysisBtn.textContent = analysisMode ? "Analyse Uit" : "Analyse Aan";
-            analysisBtn.classList.toggle('active', analysisMode);
-        }
-
-        // Event listeners
-        sendBtn.addEventListener('click', function() {
-            if (userInput.value.trim() === '' && !isListening) {
-                // Start spraakherkenning als er geen tekst is
-                toggleSpeechRecognition();
-            } else if (userInput.value.toLowerCase().startsWith('leer ')) {
-                handleLearnInput(userInput.value);
-            } else {
-                handleUserInput();
-            }
-        });
-
-        userInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                if (userInput.value.toLowerCase().startsWith('leer ')) {
-                    handleLearnInput(userInput.value);
-                } else {
-                    handleUserInput();
+        // ZOEK BESTE ANTWOORD
+        function findBestResponse(message) {
+            const lowerMessage = message.toLowerCase();
+            
+            // 1. Eerst exacte match in geleerde QA
+            for (const qa of learnedQA) {
+                if (lowerMessage === qa.question) {
+                    return {
+                        answer: qa.answer,
+                        containsHTML: qa.containsHTML,
+                        source: 'geleerd'
+                    };
                 }
             }
-        });
-        
-        // Update de send button wanneer de invoer verandert
-        userInput.addEventListener('input', function() {
-            updateSendButton();
-        });
-        
-        analysisBtn.addEventListener('click', function() {
-            analysisMode = !analysisMode;
-            updateAnalysisButton();
-            saveBotData();
-            addBotMessage(`Analyse modus is nu ${analysisMode ? 'ingeschakeld' : 'uitgeschakeld'}.`, "tip");
-        });
-
-        // Verwerk gebruikersinvoer
-        function handleUserInput() {
-            let message = userInput.value.trim();
-            if (message === "") return;
             
+            // 2. Exacte match in GitHub reacties
+            for (const qa of githubQA) {
+                if (lowerMessage === qa.question) {
+                    return {
+                        answer: qa.answer,
+                        containsHTML: qa.containsHTML,
+                        source: 'github'
+                    };
+                }
+            }
+            
+            // 3. Als het een afbeelding verzoek is, zoek in plaatjes.txt
+            if (isImageRequest(message)) {
+                const bestImage = findBestImage(message);
+                if (bestImage) {
+                    return {
+                        answer: bestImage.answer,
+                        containsHTML: true,
+                        source: 'plaatjes'
+                    };
+                }
+            }
+            
+            // 4. Zoek naar beste match in GitHub reacties (minimaal 70%)
+            let bestGithubMatch = null;
+            let bestGithubScore = 0;
+            
+            for (const qa of githubQA) {
+                const score = calculateSimilarity(lowerMessage, qa.question);
+                if (score > bestGithubScore) {
+                    bestGithubScore = score;
+                    bestGithubMatch = qa;
+                }
+            }
+            
+            if (bestGithubMatch && bestGithubScore >= 0.7) {
+                return {
+                    answer: bestGithubMatch.answer,
+                    containsHTML: bestGithubMatch.containsHTML,
+                    source: 'github'
+                };
+            }
+            
+            // 5. Fallback naar standaard kennis (SmartBot)
+            const category = categorizeMessage(message);
+            if (knowledgeBase[category] && knowledgeBase[category].length > 0) {
+                const response = knowledgeBase[category][Math.floor(Math.random() * knowledgeBase[category].length)];
+                return {
+                    answer: response,
+                    containsHTML: false,
+                    source: 'standaard'
+                };
+            }
+            
+            // 6. Laatste fallback
+            return {
+                answer: "Dat begrijp ik niet. Kun je het anders formuleren?",
+                containsHTML: false,
+                source: 'fallback'
+            };
+        }
+
+        // CATEGORISEER BERICHT
+        function categorizeMessage(message) {
+            const lowerMessage = message.toLowerCase();
+            
+            for (const category in learnedPatterns) {
+                for (const word of learnedPatterns[category]) {
+                    if (lowerMessage.includes(word)) {
+                        return category;
+                    }
+                }
+            }
+            
+            return "vraag";
+        }
+
+        // VOEG BERICHTEN TOE
+        function addUserMessage(message) {
+            const div = document.createElement('div');
+            div.className = 'message user-message';
+            div.textContent = message;
+            chatContainer.appendChild(div);
+            scrollToBottom();
+            
+            // Leer van bericht
+            learnFromMessage(message);
+            totalMessages++;
+            saveData();
+        }
+
+        function addBotMessage(message, containsHTML) {
+            const div = document.createElement('div');
+            div.className = 'message bot-message';
+            
+            if (containsHTML) {
+                div.innerHTML = message;
+            } else {
+                div.textContent = message;
+            }
+            
+            chatContainer.appendChild(div);
+            scrollToBottom();
+            totalMessages++;
+            saveData();
+            
+            // Voeg analyse bericht toe als analyse modus aan staat
+            if (analysisMode) {
+                setTimeout(() => {
+                    const analysisDiv = document.createElement('div');
+                    analysisDiv.className = 'analysis-message';
+                    analysisDiv.textContent = "✓ Antwoord gegenereerd via het gevonden pad.";
+                    chatContainer.appendChild(analysisDiv);
+                    scrollToBottom();
+                }, 100);
+            }
+        }
+
+        // LEER VAN BERICHT
+        function learnFromMessage(message) {
+            const words = message.toLowerCase().split(/\s+/);
+            
+            if (words.length <= 3) {
+                // Korte berichten = woorden
+                for (const word of words) {
+                    const cleanWord = word.replace(/[^\w]/g, '');
+                    if (cleanWord.length < 3) continue;
+                    
+                    let exists = false;
+                    for (const cat in learnedPatterns) {
+                        if (learnedPatterns[cat].includes(cleanWord)) {
+                            exists = true;
+                            break;
+                        }
+                    }
+                    
+                    if (!exists) {
+                        const category = categorizeMessage(cleanWord);
+                        if (!learnedPatterns[category]) learnedPatterns[category] = [];
+                        learnedPatterns[category].push(cleanWord);
+                        botPersonality.learnedWords.push(cleanWord);
+                        totalLearned++;
+                    }
+                }
+            } else {
+                // Lange berichten = zinnen
+                let exists = false;
+                for (const cat in knowledgeBase) {
+                    if (knowledgeBase[cat].includes(message)) {
+                        exists = true;
+                        break;
+                    }
+                }
+                
+                if (!exists) {
+                    const category = categorizeMessage(message);
+                    if (!knowledgeBase[category]) knowledgeBase[category] = [];
+                    knowledgeBase[category].push(message);
+                    botPersonality.learnedPhrases.push(message);
+                    totalLearned++;
+                }
+            }
+        }
+
+        // LEER NIEUWE QA
+        function learnNewQA(input) {
+            if (input.toLowerCase().startsWith('leer ')) {
+                const content = input.substring(5).trim();
+                if (content.includes('=')) {
+                    const [question, answer] = content.split('=').map(part => part.trim());
+                    if (question && answer) {
+                        const containsHTML = answer.includes('<img') || answer.includes('<br') || answer.includes('<a href');
+                        
+                        learnedQA.push({
+                            question: question.toLowerCase(),
+                            answer: answer,
+                            containsHTML: containsHTML
+                        });
+                        
+                        totalLearned++;
+                        saveData();
+                        updateMemoryManagement();
+                        return `Bedankt! Ik heb geleerd: "${question}" = "${answer}"`;
+                    }
+                }
+                return "Gebruik: leer [vraag] = [antwoord]";
+            }
+            return null;
+        }
+
+        // SAVE DATA
+        function saveData() {
+            localStorage.setItem('combotKnowledgeBase', JSON.stringify(knowledgeBase));
+            localStorage.setItem('combotLearnedPatterns', JSON.stringify(learnedPatterns));
+            localStorage.setItem('combotPersonality', JSON.stringify(botPersonality));
+            localStorage.setItem('combotLearnedQA', JSON.stringify(learnedQA));
+            localStorage.setItem('combotAnalysisMode', JSON.stringify(analysisMode));
+        }
+
+        // UPDATE GEHEUGEN BEHEER
+        function updateMemoryManagement() {
+            const searchTerm = memorySearch.value.toLowerCase();
+            
+            // Update woordenlijst
+            wordsList.innerHTML = "";
+            let wordCount = 0;
+            const allWords = [];
+            
+            for (const category in learnedPatterns) {
+                learnedPatterns[category].forEach(word => {
+                    if (!allWords.includes(word)) allWords.push(word);
+                });
+            }
+            
+            botPersonality.learnedWords.forEach(word => {
+                if (!allWords.includes(word)) allWords.push(word);
+            });
+            
+            allWords.forEach(word => {
+                if (searchTerm === '' || word.toLowerCase().includes(searchTerm)) {
+                    const wordItem = document.createElement('div');
+                    wordItem.className = 'word-item';
+                    wordItem.innerHTML = `${word}<button class="delete-word" onclick="deleteWord('${word.replace(/'/g, "\\'")}')">×</button>`;
+                    wordsList.appendChild(wordItem);
+                    wordCount++;
+                }
+            });
+            wordsCount.textContent = wordCount;
+            
+            // Update zinnenlijst
+            phrasesList.innerHTML = "";
+            let phraseCount = 0;
+            
+            for (const category in knowledgeBase) {
+                knowledgeBase[category].forEach(phrase => {
+                    if (searchTerm === '' || phrase.toLowerCase().includes(searchTerm)) {
+                        const phraseItem = document.createElement('div');
+                        phraseItem.className = 'phrase-item';
+                        phraseItem.innerHTML = `${phrase}<button class="delete-phrase" onclick="deletePhrase('${category.replace(/'/g, "\\'")}', '${phrase.replace(/'/g, "\\'")}')">×</button>`;
+                        phrasesList.appendChild(phraseItem);
+                        phraseCount++;
+                    }
+                });
+            }
+            phrasesCount.textContent = phraseCount;
+        }
+
+        // DELETE FUNCTIES
+        function deleteWord(word) {
+            for (const category in learnedPatterns) {
+                const index = learnedPatterns[category].indexOf(word);
+                if (index !== -1) learnedPatterns[category].splice(index, 1);
+            }
+            
+            const wordIndex = botPersonality.learnedWords.indexOf(word);
+            if (wordIndex !== -1) botPersonality.learnedWords.splice(wordIndex, 1);
+            
+            saveData();
+            updateMemoryManagement();
+            addBotMessage(`Woord "${word}" verwijderd uit geheugen.`, false);
+        }
+
+        function deletePhrase(category, phrase) {
+            const index = knowledgeBase[category].indexOf(phrase);
+            if (index !== -1) {
+                knowledgeBase[category].splice(index, 1);
+                const phraseIndex = botPersonality.learnedPhrases.indexOf(phrase);
+                if (phraseIndex !== -1) botPersonality.learnedPhrases.splice(phraseIndex, 1);
+                saveData();
+                updateMemoryManagement();
+                addBotMessage(`Zin verwijderd uit categorie "${category}".`, false);
+            }
+        }
+
+        // SCROLL
+        function scrollToBottom() {
+            setTimeout(() => {
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+            }, 100);
+        }
+
+        // VERWERK INPUT
+        function handleUserInput() {
+            const message = userInput.value.trim();
+            if (!message) return;
+            
+            // Leer commando
             if (message.toLowerCase().startsWith('leer ')) {
-                handleLearnInput(message);
+                const result = learnNewQA(message);
+                addUserMessage(message);
+                addBotMessage(result || "Gebruik: leer [vraag] = [antwoord]", false);
+                userInput.value = '';
                 return;
             }
             
+            // Normaal bericht
             addUserMessage(message);
             
-            const thinkingElement = showThinking();
+            // Denkproces tonen
+            const thinking = document.createElement('div');
+            thinking.className = 'thinking';
+            thinking.innerHTML = 'Combot denkt na<span class="thinking-dots"><span></span><span></span><span></span></span>';
+            chatContainer.appendChild(thinking);
+            scrollToBottom();
             
+            // Antwoord na korte vertraging
             setTimeout(() => {
-                thinkingElement.remove();
-                
-                const responseData = findResponseWithAnalysis(message);
-                console.log("Response data gevonden:", responseData);
-                
-                if (analysisMode) {
-                    addAnalysisMessage(responseData.analysis);
-                }
-                
-                addBotMessage(responseData, responseData.category);
-                
-                userInput.value = "";
+                thinking.remove();
+                const response = findBestResponse(message);
+                addBotMessage(response.answer, response.containsHTML);
+                userInput.value = '';
                 userInput.focus();
-                updateSendButton();
-                
-                saveBotData();
-            }, 1500 + Math.random() * 2000);
+            }, 1000);
         }
+
+        // EVENT LISTENERS
+        window.onload = function() {
+            initializeBot();
+            
+            // Sidebar functionaliteit
+            hamburgerMenu.addEventListener('click', () => {
+                sidebar.classList.toggle('active');
+                overlay.classList.toggle('active');
+            });
+            
+            overlay.addEventListener('click', () => {
+                sidebar.classList.remove('active');
+                overlay.classList.remove('active');
+                if (memoryManagement.classList.contains('active')) {
+                    memoryManagement.classList.remove('active');
+                }
+            });
+            
+            // Send knop
+            sendBtn.addEventListener('click', handleUserInput);
+            
+            // Enter toets
+            userInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') handleUserInput();
+            });
+            
+            // Analyse knop
+            analysisBtn.addEventListener('click', () => {
+                analysisMode = !analysisMode;
+                analysisBtn.textContent = analysisMode ? "Analyse Uit" : "Analyse Aan";
+                analysisBtn.classList.toggle('active', analysisMode);
+                saveData();
+                addBotMessage(`Analyse modus is nu ${analysisMode ? 'ingeschakeld' : 'uitgeschakeld'}.`, false);
+            });
+            
+            // Spraakmodus knop
+            speechModeBtn.addEventListener('click', () => {
+                window.location.href = 'spraak.html';
+            });
+            
+            // Geheugen beheer knop
+            memoryManagementBtn.addEventListener('click', () => {
+                memoryManagement.classList.add('active');
+                overlay.classList.add('active');
+                updateMemoryManagement();
+            });
+            
+            // Sluit geheugen beheer
+            closeMemory.addEventListener('click', () => {
+                memoryManagement.classList.remove('active');
+                overlay.classList.remove('active');
+            });
+            
+            // Zoek in geheugen
+            memorySearch.addEventListener('input', updateMemoryManagement);
+            
+            // Export geheugen
+            exportMemoryBtn.addEventListener('click', () => {
+                const memoryData = {
+                    learnedPatterns: learnedPatterns,
+                    knowledgeBase: knowledgeBase,
+                    botPersonality: botPersonality,
+                    learnedQA: learnedQA
+                };
+                
+                const dataStr = JSON.stringify(memoryData, null, 2);
+                const dataBlob = new Blob([dataStr], {type: 'application/json'});
+                const url = URL.createObjectURL(dataBlob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = 'combot-geheugen.json';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(url);
+                
+                addBotMessage("Geheugen geëxporteerd!", false);
+            });
+            
+            // Wis alle geheugen
+            clearAllMemoryBtn.addEventListener('click', () => {
+                if (confirm("Weet je zeker dat je ALLES uit het geheugen wilt verwijderen?")) {
+                    localStorage.clear();
+                    location.reload();
+                }
+            });
+        };
     </script>
 </body>
 </html>
