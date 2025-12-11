@@ -1,3 +1,4 @@
 maak een aap = https://copilot.microsoft.com/th/id/BCO.8e5cfd57-e30c-482f-baf5-b415c083b344.png
 maak een kat = https://copilot.microsoft.com/th/id/BCO.7c7a2938-dbf7-4846-b37d-36fbbd34179d.png
 maak een hond = https://copilot.microsoft.com/th/id/BCO.a70b2226-daab-4522-816e-750b89ec4490.png
+maak een mens in bed = https://copilot.microsoft.com/th/id/BCO.a598389a-e534-41b7-b1db-5fe91bf04282.png
