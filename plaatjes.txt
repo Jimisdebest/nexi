@@ -14,3 +14,4 @@ maak het leugdjournaal = https://over.nos.nl/wp-content/uploads/oud/Jeugdjournaa
 maak een fatbike = https://copilot.microsoft.com/th/id/BCO.b68d4f20-c1ed-4337-8412-b2fcc6aff8b4.png
 maak een fatbike met een stoel als zadel = https://copilot.microsoft.com/th/id/BCO.026ce4d7-da68-433d-a5df-f3ceb8f7b65b.png
 maak een fatbike met tafel en parasol = https://copilot.microsoft.com/th/id/BCO.28bf4608-00a9-4cec-b49d-67a04358150b.png
+maak een logo voor merkkleding = https://copilot.microsoft.com/th/id/BCO.23bc6398-02b8-4931-9d76-d91e1f5ac46e.png
