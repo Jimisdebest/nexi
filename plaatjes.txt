@@ -11,5 +11,5 @@ maak een kickbokser = https://copilot.microsoft.com/th/id/BCO.6bd14aed-e17d-4dde
 maak een famillie die oliebollen eet = https://copilot.microsoft.com/th/id/BCO.9ea00e12-76c4-4506-8c70-d26b32cafcbe.png
 maak een mooie famillie die oliebollen eet = https://copilot.microsoft.com/th/id/BCO.44902caf-743d-4b69-9bde-2310fd873bcf.png
 maak het leugdjournaal = https://over.nos.nl/wp-content/uploads/oud/Jeugdjournaal_logo-nieuwe_huisstijl-1.jpg
-maak een domme fatbike = https://www.bing.com/th/id/OIG2.j11gmVgesN9K_PX3xXK5?w=540&h=540&c=6&r=0&o=5&cb=ucfimg2&dpr=1.1&pid=ImgGn&ucfimg=1
+maak een fatbike met een stoel als zadel = https://copilot.microsoft.com/th/id/BCO.026ce4d7-da68-433d-a5df-f3ceb8f7b65b.png
 maak een fatbike = https://copilot.microsoft.com/th/id/BCO.b68d4f20-c1ed-4337-8412-b2fcc6aff8b4.png
