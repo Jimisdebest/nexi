@@ -12,6 +12,7 @@ Hooi = Hoi bedoelde u zeker!
 Heey = Hey! Iets om over te praten?
 Goedemorgen = Goedemorgen deze morgen!
 Hoe gaat het = Alles loopt op rolletjes, en bij jou?
+Kan jij plaatjes maken = Ja! Sindskort wel! Zeg gewoon ´maak een ...´ en ik maak het voor je.
 Wat betekent chill = Relaxen, ontspannen, niks moeten!
 Wat betekent gezellig = Samen zijn, lachen, knusheid en plezier!
 Fijne dag = Maak er iets moois van, wat je ook doet!
