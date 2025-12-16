@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Combot</title>
+    <title>Nexi</title>
     <style>
         :root {
             --primary-color: #4a6cf7;
@@ -816,7 +816,7 @@
     <div class="container">
         <div class="header">
             <button class="hamburger-menu">☰</button>
-            <h1>Combot</h1>
+            <h1>Nexi</h1>
         </div>
         
         <div class="sidebar" id="sidebar">
@@ -935,7 +935,7 @@
         async function loadAllData() {
             try {
                 // Laad reacties.txt
-                const reactiesResponse = await fetch('https://raw.githubusercontent.com/jimisdebest/ai/main/reacties.txt');
+                const reactiesResponse = await fetch('https://raw.githubusercontent.com/jimisdebest/combot/main/reacties.txt');
                 const reactiesText = await reactiesResponse.text();
                 
                 // Laad plaatjes.txt
@@ -1029,7 +1029,7 @@
             };
 
             const defaultBotPersonality = {
-                name: "Combot",
+                name: "Nexi",
                 mood: "blij",
                 favoriteWords: ["leuk", "interessant", "geweldig", "grappig"],
                 learnedPhrases: [],
@@ -1047,9 +1047,9 @@
             
             // Update knoppen tekst
             updateSendButton();
-            analysisBtn.textContent = analysisMode ? "Analyse Uit" : "Analyse Aan";
+            analysisBtn.textContent = analysisMode ? "Analyse Uitzetten" : "Analyse Aanzetten";
             analysisBtn.classList.toggle('active', analysisMode);
-            autoLearnBtn.textContent = autoLearnMode ? "Auto-leren Uit" : "Auto-leren Aan";
+            autoLearnBtn.textContent = autoLearnMode ? "Auto-leren Uitzetten" : "Auto-leren Aanzetten";
             autoLearnBtn.classList.toggle('active', autoLearnMode);
             
             // Toon welkomstbericht
