@@ -936,11 +936,11 @@
         async function loadAllData() {
             try {
                 // Laad reacties.txt
-                const reactiesResponse = await fetch('https://raw.githubusercontent.com/jimisdebest/combot/main/reacties.txt');
+                const reactiesResponse = await fetch('https://raw.githubusercontent.com/jimisdebest/nexi/main/reacties.txt');
                 const reactiesText = await reactiesResponse.text();
                 
                 // Laad plaatjes.txt
-                const plaatjesResponse = await fetch('https://raw.githubusercontent.com/Jimisdebest/combot/main/plaatjes.txt');
+                const plaatjesResponse = await fetch('https://raw.githubusercontent.com/Jimisdebest/nexi/main/plaatjes.txt');
                 const plaatjesText = await plaatjesResponse.text();
                 
                 // Parse reacties
