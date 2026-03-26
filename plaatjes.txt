@@ -1,10 +1,1 @@
-maak een stickman die op een auto springt = https://copilot.microsoft.com/shares/W11efHydwwkC2SLqZaNJ4
-maak een stickman die iets doms zegt = https://copilot.microsoft.com/shares/sr7u49LJYJKGAkMffVgQx
-maak een stickman die een pan aan een ander geeft = https://copilot.microsoft.com/shares/CQ9LAn7bG8xTdwKJKCnH2
-maak een webshop = https://copilot.microsoft.com/shares/UfFhEQShqkHLiVZroqcrr
-maak een tangi humorplaatje = https://copilot.microsoft.com/shares/SQJ5DtfnhJY6omBAn5wXX
-maak een schaap van de achterkant = https://copilot.microsoft.com/shares/aKj8hZRFTAwae9NhYRzhV
-maak een schaap van de zijkant = https://copilot.microsoft.com/shares/BB9SN1k9hsfQsRuDdkTUm
-maak een grasachtergrond = https://copilot.microsoft.com/shares/JggQ1mQ9VRBu3G18utcDv
-maak een kale trump = https://copilot.microsoft.com/shares/W4daQaq8dpP8UBraWEwav
-maak een katje = https://copilot.microsoft.com/shares/sGvgw4tKCUQmsn4xnwxTr
+
