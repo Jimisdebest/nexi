@@ -1,1 +1,1 @@
-
+nexi logo = jimisdebest.github.io/nexi/logo.png
