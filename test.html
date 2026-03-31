@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>Nexi - Slimme Leerbot met SmartBot Backup</title>
+    <title>Nexi</title>
     <link rel="icon" type="image/png" href="logo.png">
     <style>
         * {
@@ -28,17 +28,6 @@
             --user-bubble-text: #ffffff;
             --bot-bubble: #f1f5f9;
             --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-            --smartbot-bg: #fef3c7;
-            --smartbot-border: #f59e0b;
-            --category-begroeting: #4cd964;
-            --category-boos: #ff3b30;
-            --category-compliment: #ffcc00;
-            --category-tip: #5ac8fa;
-            --category-grap: #af52de;
-            --category-verdrietig: #5856d6;
-            --category-vraag: #007aff;
-            --category-antwoord: #34c759;
-            --category-random: #8e8e93;
         }
 
         @media (prefers-color-scheme: dark) {
@@ -56,8 +45,6 @@
                 --user-bubble: #3b82f6;
                 --user-bubble-text: #ffffff;
                 --bot-bubble: #334155;
-                --smartbot-bg: #422c0a;
-                --smartbot-border: #f59e0b;
                 --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
             }
         }
@@ -92,47 +79,14 @@
             border-bottom: 1px solid var(--border);
             display: flex;
             align-items: center;
-            justify-content: space-between;
+            gap: 12px;
             flex-shrink: 0;
-            flex-wrap: wrap;
-            gap: 12px;
-        }
-
-        .header-title {
-            display: flex;
-            align-items: center;
-            gap: 12px;
         }
 
         .chat-header h1 {
             font-size: 1.5rem;
             font-weight: 600;
             color: var(--text-primary);
-        }
-
-        .bot-icon-small {
-            font-size: 1.8rem;
-        }
-
-        .stats-row {
-            display: flex;
-            gap: 20px;
-            font-size: 0.8rem;
-            color: var(--text-secondary);
-        }
-
-        .stat-badge {
-            background: var(--surface-elevated);
-            padding: 4px 12px;
-            border-radius: 20px;
-            display: flex;
-            gap: 6px;
-            align-items: center;
-        }
-
-        .stat-value {
-            font-weight: bold;
-            color: var(--accent);
         }
 
         .messages-area {
@@ -154,15 +108,6 @@
             animation: fadeSlideUp 0.25s ease;
         }
 
-        .message-bot.smartbot-mode {
-            opacity: 0.95;
-        }
-
-        .message-bot.smartbot-mode .bubble-bot {
-            background: var(--smartbot-bg);
-            border-left: 3px solid var(--smartbot-border);
-        }
-
         .bot-avatar {
             width: 40px;
             height: 40px;
@@ -174,7 +119,6 @@
             justify-content: center;
             overflow: hidden;
             box-shadow: var(--shadow);
-            font-size: 1.5rem;
         }
 
         .bot-avatar img {
@@ -193,34 +137,6 @@
             line-height: 1.45;
             word-break: break-word;
             box-shadow: var(--shadow);
-            position: relative;
-        }
-
-        .category-tag-bot {
-            position: absolute;
-            top: -10px;
-            left: 10px;
-            font-size: 0.6rem;
-            padding: 2px 8px;
-            border-radius: 12px;
-            color: white;
-            font-weight: bold;
-            background: var(--accent);
-        }
-
-        .source-tag {
-            margin-top: 6px;
-            font-size: 0.65rem;
-            opacity: 0.7;
-            display: flex;
-            gap: 8px;
-            align-items: center;
-        }
-
-        .source-badge {
-            background: rgba(0,0,0,0.1);
-            padding: 2px 8px;
-            border-radius: 12px;
         }
 
         .message-user {
@@ -245,7 +161,12 @@
             justify-content: center;
             overflow: hidden;
             box-shadow: var(--shadow);
-            font-size: 1.2rem;
+        }
+
+        .user-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
         }
 
         .bubble-user {
@@ -256,19 +177,6 @@
             border-bottom-right-radius: 6px;
             word-break: break-word;
             box-shadow: var(--shadow);
-            position: relative;
-        }
-
-        .category-tag-user {
-            position: absolute;
-            top: -10px;
-            right: 10px;
-            font-size: 0.6rem;
-            padding: 2px 8px;
-            border-radius: 12px;
-            color: white;
-            font-weight: bold;
-            background: #ff6b6b;
         }
 
         .generated-image {
@@ -279,6 +187,10 @@
             cursor: pointer;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
             transition: transform 0.2s;
+        }
+
+        .generated-image:hover {
+            transform: scale(1.01);
         }
 
         .thinking-bubble {
@@ -297,7 +209,6 @@
             margin-top: 4px;
             animation: fadeSlideUp 0.3s ease;
             max-width: 85%;
-            align-self: flex-start;
         }
 
         .analysis-step {
@@ -320,7 +231,6 @@
 
         .check.success { background: #22c55e; color: white; }
         .check.error { background: #ef4444; color: white; }
-        .check.warning { background: #f59e0b; color: white; }
         .check.pending { background: #eab308; color: white; }
 
         .input-bar {
@@ -388,6 +298,10 @@
             opacity: 0.7;
         }
 
+        .mode-chip .remove:hover {
+            opacity: 1;
+        }
+
         #messageInput {
             width: 100%;
             padding: 12px 52px 12px 16px;
@@ -424,79 +338,10 @@
             transition: 0.2s;
         }
 
-        .memory-panel {
-            background: var(--surface);
-            border-top: 1px solid var(--border);
-            padding: 12px 20px;
-            max-height: 100px;
-            overflow-y: auto;
-            flex-shrink: 0;
+        .send-knop:hover {
+            background: var(--accent-dark);
+            transform: translateY(-50%) scale(1.02);
         }
-
-        .memory-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 8px;
-            font-size: 0.75rem;
-            color: var(--text-secondary);
-        }
-
-        .clear-memory {
-            background: #ff6b6b;
-            color: white;
-            border: none;
-            border-radius: 20px;
-            padding: 4px 12px;
-            font-size: 0.7rem;
-            cursor: pointer;
-        }
-
-        .memory-items {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 6px;
-        }
-
-        .memory-word {
-            background: var(--surface-elevated);
-            padding: 2px 10px;
-            border-radius: 16px;
-            font-size: 0.7rem;
-            color: var(--accent);
-        }
-
-        .category-colors {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 12px;
-            padding: 10px 20px;
-            background: var(--surface);
-            border-top: 1px solid var(--border);
-            font-size: 0.7rem;
-            flex-shrink: 0;
-        }
-
-        .color-item {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-
-        .color-box {
-            width: 12px;
-            height: 12px;
-            border-radius: 3px;
-        }
-
-        .color-box.begroeting { background: #4cd964; }
-        .color-box.boos { background: #ff3b30; }
-        .color-box.compliment { background: #ffcc00; }
-        .color-box.tip { background: #5ac8fa; }
-        .color-box.grap { background: #af52de; }
-        .color-box.verdrietig { background: #5856d6; }
-        .color-box.vraag { background: #007aff; }
-        .color-box.antwoord { background: #34c759; }
 
         .plus-menu {
             position: absolute;
@@ -535,284 +380,106 @@
             align-items: center;
             gap: 12px;
             color: var(--text-primary);
+            transition: 0.1s;
         }
 
         .menu-optie:hover {
             background: var(--bg-secondary);
         }
 
+        .image-error {
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+            padding: 8px;
+            text-align: center;
+            background: var(--surface-elevated);
+            border-radius: 8px;
+            margin-top: 8px;
+        }
+
         @keyframes fadeSlideUp {
-            from { opacity: 0; transform: translateY(8px); }
-            to { opacity: 1; transform: translateY(0); }
+            from {
+                opacity: 0;
+                transform: translateY(8px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         @media (max-width: 640px) {
-            .message-bot, .message-user { max-width: 95%; }
-            .plus-menu { left: 16px; bottom: 80px; }
-            .bot-avatar, .user-avatar { width: 32px; height: 32px; font-size: 1.2rem; }
-            .stats-row { gap: 8px; }
-            .stat-badge { padding: 2px 8px; font-size: 0.7rem; }
+            .message-bot, .message-user {
+                max-width: 95%;
+            }
+            .plus-menu {
+                left: 16px;
+                bottom: 80px;
+            }
+            .bot-avatar, .user-avatar {
+                width: 32px;
+                height: 32px;
+            }
         }
     </style>
 </head>
 <body>
 <div class="chat-app">
     <div class="chat-header">
-        <div class="header-title">
-            <span class="bot-icon-small">🤖</span>
-            <h1>Nexi <span style="font-size:0.8rem; opacity:0.7;">met SmartBot backup</span></h1>
-        </div>
-        <div class="stats-row">
-            <div class="stat-badge">📊 <span id="message-count">0</span> berichten</div>
-            <div class="stat-badge">📚 <span id="learned-count">0</span> woorden</div>
-            <div class="stat-badge">🎯 <span id="match-threshold">50%</span> drempel</div>
-        </div>
+        <h1>Nexi</h1>
     </div>
 
     <div class="messages-area" id="messagesArea"></div>
-
-    <div class="memory-panel">
-        <div class="memory-header">
-            <span>🧠 SmartBot's geleerde woorden (gebruikt bij backup)</span>
-            <button class="clear-memory" id="clearMemoryBtn">Wis geheugen</button>
-        </div>
-        <div class="memory-items" id="memoryList"></div>
-    </div>
-
-    <div class="category-colors">
-        <div class="color-item"><div class="color-box begroeting"></div><span>Begroeting</span></div>
-        <div class="color-item"><div class="color-box boos"></div><span>Boos</span></div>
-        <div class="color-item"><div class="color-box compliment"></div><span>Compliment</span></div>
-        <div class="color-item"><div class="color-box tip"></div><span>Tip</span></div>
-        <div class="color-item"><div class="color-box grap"></div><span>Grap</span></div>
-        <div class="color-item"><div class="color-box verdrietig"></div><span>Verdrietig</span></div>
-        <div class="color-item"><div class="color-box vraag"></div><span>Vraag</span></div>
-        <div class="color-item"><div class="color-box antwoord"></div><span>Antwoord</span></div>
-    </div>
 
     <div class="input-bar">
         <button class="plus-btn" id="plusButton">➕</button>
         <div class="text-input-wrapper">
             <div class="chip-container" id="chipContainer"></div>
-            <input type="text" id="messageInput" placeholder="Typ je bericht... Nexi zoekt eerst, SmartBot helpt als nodig">
+            <input type="text" id="messageInput" placeholder="Typ je bericht...">
             <button class="send-knop" id="sendButton">➤</button>
         </div>
     </div>
 
     <div class="plus-menu" id="plusMenu">
-        <button class="menu-optie" data-action="toggleImageMode">🖼️ Afbeeldingen zoeken</button>
-        <button class="menu-optie" data-action="toggleAnalysisMode">🔍 Analyse tonen</button>
-        <button class="menu-optie" data-action="adjustThreshold">⚙️ Drempel aanpassen (50% nu)</button>
+        <button class="menu-optie" data-action="toggleImageMode">Afbeeldingen zoeken</button>
+        <button class="menu-optie" data-action="toggleAnalysisMode">Analyse tonen</button>
     </div>
 </div>
 
 <script>
-    // ==================== NEXI DATABASES ====================
+    // ==================== DATA STRUCTUREN ====================
     let qaDatabase = [];
     let imageDatabase = [];
     let learnedQA = [];
     
-    // ==================== SMARTBOT KERN ====================
-    let smartbotKnowledgeBase = {
-        begroeting: ["Hallo! Leuk je te ontmoeten!", "Hoi! Hoe gaat het?", "Goedendag! Klaar voor een leuk gesprek?", "Hé daar! Wat leuk dat je er bent!"],
-        boos: ["Waarom ben je zo boos?", "Laten we rustig praten.", "Ik begrijp dat je boos bent, maar schelden helpt niet.", "Oei, dat klinkt niet vriendelijk."],
-        compliment: ["Wat aardig van je! Dankjewel!", "Dank je wel, dat waardeer ik!", "Wat een leuk compliment! Jij bent ook geweldig!", "Dankjewel, dat maakt me blij!"],
-        tip: ["Weet je wat leuk is? Lachen is gezond!", "Een goede tip: geniet van de kleine dingen!", "Probeer eens iets nieuws vandaag!", "Een glimlach kost niets, maar is veel waard!"],
-        grap: ["Waarom gaan programmeurs altijd met de verkeerde voet uit bed? Omdat ze alert gebruiken!", "Hoe noem je een koe zonder poten? Grondrund!", "Waarom kon de computer niet eten? Hij had te veel cookies!", "Twee nullen staan te praten. Zegt de een tegen de ander: Ben jij ook niets?"],
-        verdrietig: ["Het spijt me dat je je zo voelt.", "Soms hebben we gewoon een slechte dag. Morgen wordt beter!", "Ik ben hier voor je, ook al ben ik maar een bot.", "Het is oké om je verdrietig te voelen."],
-        vraag: ["Dat is een interessante vraag!", "Daar zou ik even over moeten nadenken...", "Goede vraag! Wat denk jij zelf?", "Daar kan ik lang over praten!"],
-        antwoord: ["Dat is een goed antwoord!", "Interessant perspectief!", "Daar had ik nog niet aan gedacht!", "Zo kun je het ook zien!"],
-        random: ["Interessant! Vertel me meer.", "Daar moet ik even over nadenken...", "Leuk! Wat vind je zelf?", "Dat is een goed punt!"]
-    };
-    
-    let smartbotLearnedPatterns = {
-        begroeting: ["hallo", "hoi", "hey", "goedendag", "dag", "goedemorgen", "goedenmiddag", "goedenavond"],
-        boos: ["dommerd", "stommerd", "idioot", "sukkel", "lul", "klootzak", "kut"],
-        compliment: ["mooi", "leuk", "geweldig", "fantastisch", "super", "knap", "slim", "grappig"],
-        tip: ["tip", "advies", "suggestie", "idee", "aanrader"],
-        grap: ["grap", "grappig", "lachen", "mop", "humor", "lach"],
-        verdrietig: ["verdrietig", "triest", "somber", "depri", "huilen", "zielig"],
-        vraag: ["waarom", "hoe", "wat", "wanneer", "wie", "welke"],
-        antwoord: ["omdat", "daarom", "dus", "want", "om"]
-    };
-    
-    let smartbotLearnedWords = [];
-    let smartbotLearnedPhrases = [];
-    
-    let totalMessages = 0;
-    let totalLearned = 0;
-    let matchThreshold = 0.5; // 50% drempel
-    
-    // Modi
     let imageModeActive = false;
     let analysisModeActive = false;
     let currentPlusMenuOpen = false;
-    let lastUserMessage = "";
+    let lastBotMessage = "";
     
-    // DOM elements
     const messagesDiv = document.getElementById('messagesArea');
     const messageInput = document.getElementById('messageInput');
     const sendBtn = document.getElementById('sendButton');
     const plusBtn = document.getElementById('plusButton');
     const plusMenu = document.getElementById('plusMenu');
     const chipContainer = document.getElementById('chipContainer');
-    const memoryListDiv = document.getElementById('memoryList');
-    const clearMemoryBtn = document.getElementById('clearMemoryBtn');
-    const messageCountSpan = document.getElementById('message-count');
-    const learnedCountSpan = document.getElementById('learned-count');
-    const matchThresholdSpan = document.getElementById('match-threshold');
     
-    // ==================== NEXI MATCHING ALGORITME ====================
-    function calculateRelevanceScore(userMessage, candidateQuestion) {
-        const userLower = userMessage.toLowerCase();
-        const candidateLower = candidateQuestion.toLowerCase();
-        
-        if (userLower === candidateLower) return 1.0;
-        
-        const userWords = userLower.split(/\s+/).filter(w => w.length > 1);
-        const candidateWords = candidateLower.split(/\s+/).filter(w => w.length > 1);
-        
-        if (userWords.length === 0 || candidateWords.length === 0) return 0;
-        
-        let exactMatches = 0;
-        let partialMatches = 0;
-        
-        for (let uw of userWords) {
-            for (let cw of candidateWords) {
-                if (uw === cw) {
-                    exactMatches++;
-                    break;
-                } else if (cw.includes(uw) || uw.includes(cw)) {
-                    partialMatches += 0.5;
-                    break;
-                }
-            }
-        }
-        
-        const wordOverlap = (exactMatches + partialMatches) / Math.max(userWords.length, candidateWords.length);
-        
-        let charOverlap = 0;
-        const minLen = Math.min(userLower.length, candidateLower.length);
-        for (let i = 0; i < minLen; i++) {
-            if (userLower[i] === candidateLower[i]) charOverlap++;
-        }
-        const charScore = charOverlap / Math.max(userLower.length, candidateLower.length);
-        
-        const lengthFactor = Math.min(1, userWords.length / 8) * 0.1;
-        let score = (wordOverlap * 0.7) + (charScore * 0.2) + lengthFactor;
-        
-        if (exactMatches >= 2) score += 0.15;
-        
-        return Math.min(score, 1.0);
-    }
+    // Voorbeeld data voor als de bestanden niet laden
+    const defaultImages = [
+        { keyword: "brug", url: "https://picsum.photos/id/104/400/300" },
+        { keyword: "mens", url: "https://picsum.photos/id/64/400/300" },
+        { keyword: "natuur", url: "https://picsum.photos/id/15/400/300" },
+        { keyword: "stad", url: "https://picsum.photos/id/104/400/300" },
+        { keyword: "auto", url: "https://picsum.photos/id/107/400/300" }
+    ];
     
-    function findBestNexiMatch(message) {
-        const lowerMsg = message.toLowerCase();
-        let bestMatch = null;
-        let bestScore = 0;
-        
-        // Zoek in reacties.txt database
-        for (let item of qaDatabase) {
-            let score = calculateRelevanceScore(lowerMsg, item.vraag);
-            if (score > bestScore) {
-                bestScore = score;
-                bestMatch = item;
-            }
-        }
-        
-        // Zoek in geleerde QA
-        for (let item of learnedQA) {
-            let score = calculateRelevanceScore(lowerMsg, item.vraag);
-            if (score > bestScore) {
-                bestScore = score;
-                bestMatch = item;
-            }
-        }
-        
-        return { match: bestMatch, score: bestScore };
-    }
+    const defaultQA = [
+        { vraag: "hallo", antwoord: "Hallo! Hoe kan ik je helpen?", containsHtml: false, bron: "default" },
+        { vraag: "hoi", antwoord: "Hoi! Leuk dat je er bent!", containsHtml: false, bron: "default" },
+        { vraag: "hoe gaat het", antwoord: "Goed hoor! En met jou?", containsHtml: false, bron: "default" }
+    ];
     
-    function findImageMatch(message) {
-        if (!imageModeActive && !message.toLowerCase().includes('afbeelding') && !message.toLowerCase().includes('foto') && !message.toLowerCase().includes('plaatje')) {
-            return null;
-        }
-        const lowerMsg = message.toLowerCase();
-        for (let img of imageDatabase) {
-            if (lowerMsg.includes(img.keyword)) return img;
-        }
-        return imageDatabase.length > 0 ? imageDatabase[0] : null;
-    }
-    
-    // ==================== SMARTBOT FUNCTIES ====================
-    function smartbotCategorize(message) {
-        const lowerMsg = message.toLowerCase();
-        for (const cat in smartbotLearnedPatterns) {
-            for (const word of smartbotLearnedPatterns[cat]) {
-                if (lowerMsg.includes(word)) return cat;
-            }
-        }
-        return "random";
-    }
-    
-    function smartbotLearn(message, category) {
-        const words = message.toLowerCase().split(/\s+/);
-        const commonWords = ["de", "het", "een", "en", "of", "maar", "dan", "om", "naar", "voor", "met", "zonder", "ik", "je", "jij", "mij"];
-        
-        for (const word of words) {
-            if (word.length > 2 && !commonWords.includes(word) && !smartbotLearnedWords.includes(word)) {
-                let exists = false;
-                for (const cat in smartbotLearnedPatterns) {
-                    if (smartbotLearnedPatterns[cat].includes(word)) { exists = true; break; }
-                }
-                if (!exists) {
-                    if (!smartbotLearnedPatterns[category]) smartbotLearnedPatterns[category] = [];
-                    smartbotLearnedPatterns[category].push(word);
-                    smartbotLearnedWords.push(word);
-                    totalLearned++;
-                    
-                    if (!smartbotKnowledgeBase[category]) smartbotKnowledgeBase[category] = [];
-                    if (!smartbotLearnedPhrases.includes(message)) {
-                        smartbotLearnedPhrases.push(message);
-                        smartbotKnowledgeBase[category].push(message);
-                    }
-                }
-            }
-        }
-        saveSmartbotData();
-        updateStatsAndMemory();
-    }
-    
-    function smartbotGenerateResponse(category) {
-        const useLearned = Math.random() < 0.4 && smartbotLearnedWords.length > 0;
-        
-        if (useLearned) {
-            const randomWord = smartbotLearnedWords[Math.floor(Math.random() * smartbotLearnedWords.length)];
-            let wordCat = "random";
-            for (const cat in smartbotLearnedPatterns) {
-                if (smartbotLearnedPatterns[cat].includes(randomWord)) { wordCat = cat; break; }
-            }
-            
-            const templates = {
-                begroeting: [`Hallo! Jij bent ook een ${randomWord}!`, `Hé ${randomWord}! Hoe gaat het?`],
-                compliment: [`Wat ben jij een ${randomWord}!`, `Jij bent echt ${randomWord}!`],
-                grap: [`Waarom is een ${randomWord} zoals een banaan? Omdat ze allebei krom zijn!`],
-                vraag: [`Waarom ben je zo ${randomWord}?`, `Wat vind je van ${randomWord}?`],
-                antwoord: [`Ik denk dat ${randomWord} het antwoord is!`],
-                random: [`Leuk woord: ${randomWord}!`, `Wist je dat ${randomWord} een interessant woord is?`]
-            };
-            const catTemplates = templates[wordCat] || templates.random;
-            if (catTemplates && catTemplates.length) {
-                return catTemplates[Math.floor(Math.random() * catTemplates.length)];
-            }
-        }
-        
-        if (smartbotKnowledgeBase[category] && smartbotKnowledgeBase[category].length) {
-            return smartbotKnowledgeBase[category][Math.floor(Math.random() * smartbotKnowledgeBase[category].length)];
-        }
-        return smartbotKnowledgeBase.random[Math.floor(Math.random() * smartbotKnowledgeBase.random.length)];
-    }
-    
-    // ==================== DATA OPSLAG ====================
+    // ==================== DATA LADEN ====================
     async function loadReacties() {
         try {
             const response = await fetch('https://raw.githubusercontent.com/jimisdebest/nexi/main/reacties.txt');
@@ -824,13 +491,24 @@
                     if (line.includes('=')) {
                         let [vraag, antwoord] = line.split('=').map(part => part.trim());
                         if (vraag && antwoord) {
-                            qaDatabase.push({ vraag: vraag.toLowerCase(), antwoord: antwoord, containsHtml: antwoord.includes('<img') });
+                            qaDatabase.push({
+                                vraag: vraag.toLowerCase(),
+                                antwoord: antwoord,
+                                containsHtml: antwoord.includes('<img') || antwoord.includes('<br'),
+                                bron: 'reacties.txt'
+                            });
                         }
                     }
                 }
-                console.log(`Nexi geladen: ${qaDatabase.length} reacties`);
+                console.log(`✅ Geladen: ${qaDatabase.length} reacties uit reacties.txt`);
+            } else {
+                console.log('Gebruik standaard reacties');
+                qaDatabase.push(...defaultQA);
             }
-        } catch (err) { console.warn('Kan reacties niet laden', err); }
+        } catch (err) {
+            console.warn('Kan reacties.txt niet laden, gebruik standaard', err);
+            qaDatabase.push(...defaultQA);
+        }
     }
     
     async function loadPlaatjes() {
@@ -843,70 +521,281 @@
                     line = line.trim();
                     if (line.includes('=')) {
                         let [keyword, url] = line.split('=').map(part => part.trim());
-                        if (keyword && url && url.startsWith('http')) {
-                            imageDatabase.push({ keyword: keyword.toLowerCase(), url: url });
+                        if (keyword && url && (url.startsWith('http') || url.startsWith('https'))) {
+                            imageDatabase.push({ 
+                                keyword: keyword.toLowerCase(), 
+                                url: url 
+                            });
                         }
                     }
                 }
+                console.log(`✅ Geladen: ${imageDatabase.length} afbeeldingen uit plaatjes.txt`);
+            } else {
+                console.log('Gebruik standaard afbeeldingen');
+                imageDatabase.push(...defaultImages);
             }
-        } catch (err) { console.warn('Kan plaatjes niet laden', err); }
-        if (imageDatabase.length === 0) {
-            imageDatabase = [{ keyword: "default", url: "https://media.giphy.com/media/3o7abB06u9bNzA8LC8/giphy.gif" }];
+        } catch (err) {
+            console.warn('Kan plaatjes.txt niet laden, gebruik standaard', err);
+            imageDatabase.push(...defaultImages);
         }
-    }
-    
-    function saveSmartbotData() {
-        localStorage.setItem('nexi_smartbot_words', JSON.stringify(smartbotLearnedWords));
-        localStorage.setItem('nexi_smartbot_phrases', JSON.stringify(smartbotLearnedPhrases));
-        localStorage.setItem('nexi_smartbot_patterns', JSON.stringify(smartbotLearnedPatterns));
-        localStorage.setItem('nexi_smartbot_kb', JSON.stringify(smartbotKnowledgeBase));
-        localStorage.setItem('nexi_stats', JSON.stringify({ totalMessages, totalLearned }));
-    }
-    
-    function loadSmartbotData() {
-        const words = localStorage.getItem('nexi_smartbot_words');
-        const phrases = localStorage.getItem('nexi_smartbot_phrases');
-        const patterns = localStorage.getItem('nexi_smartbot_patterns');
-        const kb = localStorage.getItem('nexi_smartbot_kb');
-        const stats = localStorage.getItem('nexi_stats');
         
-        if (words) smartbotLearnedWords = JSON.parse(words);
-        if (phrases) smartbotLearnedPhrases = JSON.parse(phrases);
-        if (patterns) smartbotLearnedPatterns = JSON.parse(patterns);
-        if (kb) smartbotKnowledgeBase = JSON.parse(kb);
-        if (stats) { const s = JSON.parse(stats); totalMessages = s.totalMessages; totalLearned = s.totalLearned; }
+        // Toon wat er geladen is voor debugging
+        console.log('Afbeeldingen database:', imageDatabase);
     }
     
-    function clearSmartbotMemory() {
-        if (confirm("Wis alle geleerde woorden van SmartBot?")) {
-            smartbotLearnedWords = [];
-            smartbotLearnedPhrases = [];
-            totalLearned = 0;
-            saveSmartbotData();
-            updateStatsAndMemory();
-            addBotMessage("SmartBot's geheugen is gewist! Hij leert opnieuw van je.", "tip", false, false);
+    function loadLearnedFromStorage() {
+        const stored = localStorage.getItem('nexi_learned_qa');
+        if (stored) {
+            learnedQA = JSON.parse(stored);
+            console.log(`Geladen uit localStorage: ${learnedQA.length} geleerde reacties`);
         }
+    }
+    
+    function saveLearnedToStorage() {
+        localStorage.setItem('nexi_learned_qa', JSON.stringify(learnedQA));
+    }
+    
+    // ==================== MATCHING FUNCTIES ====================
+    function findBestImageMatch(userMessage) {
+        if (imageDatabase.length === 0) {
+            console.log('Geen afbeeldingen in database');
+            return null;
+        }
+        
+        const lowerMsg = userMessage.toLowerCase();
+        let bestMatch = null;
+        let bestScore = 0;
+        
+        for (let img of imageDatabase) {
+            const keyword = img.keyword;
+            let score = 0;
+            
+            // Exact match
+            if (lowerMsg === keyword) {
+                score = 1.0;
+            }
+            // Keyword komt voor in bericht
+            else if (lowerMsg.includes(keyword)) {
+                score = 0.8;
+            }
+            // Woord voor woord check
+            else {
+                const userWords = lowerMsg.split(/\s+/);
+                const keywordWords = keyword.split(/\s+/);
+                
+                for (let uw of userWords) {
+                    for (let kw of keywordWords) {
+                        if (uw === kw) {
+                            score += 0.5;
+                        } else if (kw.length > 3 && uw.includes(kw) || kw.includes(uw)) {
+                            score += 0.3;
+                        }
+                    }
+                }
+                score = Math.min(score, 0.7);
+            }
+            
+            // Extra bonus als er expliciet om een afbeelding wordt gevraagd
+            if (lowerMsg.includes('afbeelding') || lowerMsg.includes('foto') || lowerMsg.includes('plaatje') || lowerMsg.includes('toon')) {
+                score += 0.1;
+            }
+            
+            console.log(`Match voor "${keyword}": score ${score}`);
+            
+            if (score > bestScore && score > 0.2) {
+                bestScore = score;
+                bestMatch = img;
+            }
+        }
+        
+        if (bestMatch) {
+            console.log(`Beste match: ${bestMatch.keyword} met score ${bestScore}`);
+        } else {
+            console.log('Geen goede match gevonden');
+        }
+        
+        // Als afbeeldingen-modus aan staat en er is een match, toon die
+        if (imageModeActive && bestMatch) {
+            return bestMatch;
+        }
+        
+        // Anders alleen tonen als score hoog genoeg is
+        if (bestMatch && bestScore >= 0.5) {
+            return bestMatch;
+        }
+        
+        return null;
+    }
+    
+    function findBestQAMatch(userMessage) {
+        const lowerMsg = userMessage.toLowerCase();
+        let bestMatch = null;
+        let bestScore = 0;
+        
+        // Zoek in geleerde QA
+        for (let item of learnedQA) {
+            let score = 0;
+            if (lowerMsg === item.vraag) {
+                score = 1.0;
+            } else if (lowerMsg.includes(item.vraag) || item.vraag.includes(lowerMsg)) {
+                score = 0.7;
+            } else {
+                const userWords = lowerMsg.split(/\s+/);
+                const qWords = item.vraag.split(/\s+/);
+                let matches = 0;
+                for (let uw of userWords) {
+                    for (let qw of qWords) {
+                        if (uw === qw) matches++;
+                    }
+                }
+                score = matches / Math.max(userWords.length, qWords.length) * 0.6;
+            }
+            
+            if (score > bestScore) {
+                bestScore = score;
+                bestMatch = item;
+            }
+        }
+        
+        // Zoek in reacties.txt
+        for (let item of qaDatabase) {
+            let score = 0;
+            if (lowerMsg === item.vraag) {
+                score = 1.0;
+            } else if (lowerMsg.includes(item.vraag) || item.vraag.includes(lowerMsg)) {
+                score = 0.7;
+            } else {
+                const userWords = lowerMsg.split(/\s+/);
+                const qWords = item.vraag.split(/\s+/);
+                let matches = 0;
+                for (let uw of userWords) {
+                    for (let qw of qWords) {
+                        if (uw === qw) matches++;
+                    }
+                }
+                score = matches / Math.max(userWords.length, qWords.length) * 0.6;
+            }
+            
+            if (score > bestScore) {
+                bestScore = score;
+                bestMatch = item;
+            }
+        }
+        
+        return { match: bestMatch, score: bestScore };
+    }
+    
+    // ==================== LEER VAN CONVERSATIE ====================
+    function learnFromConversation(botMessage, userResponse) {
+        if (!botMessage || !userResponse) return false;
+        
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = botMessage;
+        const cleanBotMessage = tempDiv.textContent || tempDiv.innerText || botMessage;
+        
+        if (cleanBotMessage.length < 3 || userResponse.length < 1) return false;
+        
+        const lowerQuestion = cleanBotMessage.toLowerCase().trim();
+        
+        const existsInLearned = learnedQA.some(qa => qa.vraag === lowerQuestion);
+        const existsInBase = qaDatabase.some(qa => qa.vraag === lowerQuestion);
+        
+        if (existsInLearned || existsInBase) return false;
+        
+        learnedQA.push({
+            vraag: lowerQuestion,
+            antwoord: userResponse,
+            containsHtml: false,
+            timestamp: new Date().toISOString(),
+            bron: 'geleerd'
+        });
+        
+        saveLearnedToStorage();
+        
+        console.log(`Stil geleerd: "${cleanBotMessage.substring(0, 40)}..." = "${userResponse.substring(0, 40)}..."`);
+        
+        return true;
+    }
+    
+    // ==================== BESTE ANTWOORD KIEZEN ====================
+    async function getBestResponse(userMessage) {
+        const steps = [];
+        
+        // Stap 1: Zoek naar afbeelding in plaatjes.txt
+        steps.push({ text: "Zoeken naar afbeelding in plaatjes.txt...", success: null });
+        const imageMatch = findBestImageMatch(userMessage);
+        
+        if (imageMatch) {
+            steps[steps.length - 1] = { text: `✓ Afbeelding gevonden: "${imageMatch.keyword}"`, success: true };
+            
+            const imageHtml = `
+                <div>
+                    <img src="${imageMatch.url}" class="generated-image" alt="${imageMatch.keyword}" loading="lazy" onclick="window.open('${imageMatch.url}', '_blank')">
+                    <br>
+                    <span style="font-size:0.7rem; opacity:0.7;">🖼️ ${imageMatch.keyword}</span>
+                </div>
+            `;
+            return { 
+                answer: imageHtml, 
+                isHtml: true, 
+                steps, 
+                source: `afbeelding: ${imageMatch.keyword}`
+            };
+        } else {
+            steps[steps.length - 1] = { text: "✗ Geen passende afbeelding gevonden in plaatjes.txt", success: false };
+        }
+        
+        // Stap 2: Zoek in reacties.txt en geleerde QA
+        steps.push({ text: "Zoeken in reacties en geleerde gesprekken...", success: null });
+        const qaMatch = findBestQAMatch(userMessage);
+        
+        if (qaMatch.match && qaMatch.score >= 0.3) {
+            steps[steps.length - 1] = { text: `✓ Antwoord gevonden (${Math.round(qaMatch.score * 100)}% match)`, success: true };
+            return { 
+                answer: qaMatch.match.antwoord, 
+                isHtml: qaMatch.match.containsHtml || false, 
+                steps, 
+                source: qaMatch.match.bron || 'database'
+            };
+        } else {
+            steps[steps.length - 1] = { text: "✗ Geen passend antwoord gevonden", success: false };
+        }
+        
+        // Stap 3: Fallback antwoord
+        steps.push({ text: "Genereren van standaard antwoord...", success: true });
+        const fallbackAnswer = `Ik heb je vraag "${userMessage}" geanalyseerd. Helaas heb ik hier nog geen antwoord op. Kun je het anders vragen?`;
+        return { answer: fallbackAnswer, isHtml: false, steps, source: 'generated' };
     }
     
     // ==================== UI FUNCTIES ====================
-    function escapeHtml(text) {
-        const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
-    }
-    
-    function addUserMessage(text, category) {
+    function addUserMessage(text) {
         const wrapper = document.createElement('div');
         wrapper.className = 'message-user';
-        wrapper.innerHTML = `<div class="user-avatar">👤</div><div class="bubble-user"><span class="category-tag-user">${category}</span>${escapeHtml(text)}</div>`;
+        wrapper.innerHTML = `
+            <div class="user-avatar"><img src="mens.png" alt="Gebruiker" onerror="this.src='https://via.placeholder.com/40?text=U'"></div>
+            <div class="bubble-user">${escapeHtml(text)}</div>
+        `;
         messagesDiv.appendChild(wrapper);
         scrollToBottom();
     }
     
-    function addBotMessage(text, category, isHtml = false, isSmartbot = false) {
+    function addBotMessage(text, isHtml = false) {
         const wrapper = document.createElement('div');
-        wrapper.className = `message-bot ${isSmartbot ? 'smartbot-mode' : ''}`;
-        wrapper.innerHTML = `<div class="bot-avatar">${isSmartbot ? '🤖' : '✨'}</div><div class="bubble-bot"><span class="category-tag-bot" style="background: var(--category-${category})">${category}</span>${isHtml ? text : escapeHtml(text)}<div class="source-tag"><span class="source-badge">${isSmartbot ? '🤖 SmartBot backup' : '✨ Nexi'}</span></div></div>`;
+        wrapper.className = 'message-bot';
+        wrapper.innerHTML = `
+            <div class="bot-avatar"><img src="logo.png" alt="Nexi logo" onerror="this.src='https://via.placeholder.com/40?text=N'"></div>
+            <div class="bubble-bot"></div>
+        `;
+        const bubble = wrapper.querySelector('.bubble-bot');
+        if (isHtml) {
+            bubble.innerHTML = text;
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = text;
+            lastBotMessage = tempDiv.textContent || tempDiv.innerText || text;
+        } else {
+            bubble.textContent = text;
+            lastBotMessage = text;
+        }
         messagesDiv.appendChild(wrapper);
         scrollToBottom();
     }
@@ -915,17 +804,27 @@
         if (!analysisModeActive) return;
         const analysisDiv = document.createElement('div');
         analysisDiv.className = 'analysis-message';
-        steps.forEach(step => {
+        for (let step of steps) {
             const stepDiv = document.createElement('div');
             stepDiv.className = 'analysis-step';
             const checkSpan = document.createElement('span');
             checkSpan.className = 'check';
-            checkSpan.classList.add(step.success ? 'success' : (step.warning ? 'warning' : 'error'));
-            checkSpan.textContent = step.success ? '✓' : (step.warning ? '⚠' : '✗');
+            if (step.success === true) {
+                checkSpan.classList.add('success');
+                checkSpan.textContent = '✓';
+            } else if (step.success === false) {
+                checkSpan.classList.add('error');
+                checkSpan.textContent = '✗';
+            } else {
+                checkSpan.classList.add('pending');
+                checkSpan.textContent = '…';
+            }
+            const textSpan = document.createElement('span');
+            textSpan.textContent = step.text;
             stepDiv.appendChild(checkSpan);
-            stepDiv.appendChild(document.createTextNode(step.text));
+            stepDiv.appendChild(textSpan);
             analysisDiv.appendChild(stepDiv);
-        });
+        }
         messagesDiv.appendChild(analysisDiv);
         scrollToBottom();
     }
@@ -934,147 +833,143 @@
         const thinkDiv = document.createElement('div');
         thinkDiv.className = 'message-bot';
         thinkDiv.id = 'tempThinking';
-        thinkDiv.innerHTML = `<div class="bot-avatar">✨</div><div class="bubble-bot thinking-bubble">Nexi zoekt het beste antwoord...</div>`;
+        thinkDiv.innerHTML = `
+            <div class="bot-avatar"><img src="logo.png" alt="Nexi logo" onerror="this.src='https://via.placeholder.com/40?text=N'"></div>
+            <div class="bubble-bot thinking-bubble">Nexi zoekt het beste antwoord...</div>
+        `;
         messagesDiv.appendChild(thinkDiv);
         scrollToBottom();
         return thinkDiv;
     }
     
-    function removeThinking(el) { if (el && el.remove) el.remove(); }
-    function scrollToBottom() { setTimeout(() => messagesDiv.scrollTop = messagesDiv.scrollHeight, 50); }
-    
-    function updateStatsAndMemory() {
-        messageCountSpan.textContent = totalMessages;
-        learnedCountSpan.textContent = totalLearned;
-        matchThresholdSpan.textContent = `${Math.round(matchThreshold * 100)}%`;
-        
-        memoryListDiv.innerHTML = '';
-        smartbotLearnedWords.slice(-15).forEach(word => {
-            const mem = document.createElement('div');
-            mem.className = 'memory-word';
-            mem.textContent = word;
-            memoryListDiv.appendChild(mem);
-        });
+    function removeThinking(element) {
+        if (element && element.remove) element.remove();
     }
     
+    function scrollToBottom() {
+        setTimeout(() => {
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }, 50);
+    }
+    
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+    
+    // ==================== MODUS UI ====================
     function updateChips() {
         chipContainer.innerHTML = '';
         if (imageModeActive) {
             const chip = document.createElement('div');
             chip.className = 'mode-chip';
             chip.innerHTML = `Afbeeldingen zoeken <span class="remove">✕</span>`;
-            chip.querySelector('.remove').addEventListener('click', () => { imageModeActive = false; updateChips(); addBotMessage("Afbeeldingen-modus uit.", "tip", false, false); });
+            chip.querySelector('.remove').addEventListener('click', () => {
+                imageModeActive = false;
+                updateChips();
+                addBotMessage("Afbeeldingen-modus uitgeschakeld.", false);
+            });
             chipContainer.appendChild(chip);
         }
         if (analysisModeActive) {
             const chip = document.createElement('div');
             chip.className = 'mode-chip';
             chip.innerHTML = `Analyse tonen <span class="remove">✕</span>`;
-            chip.querySelector('.remove').addEventListener('click', () => { analysisModeActive = false; updateChips(); addBotMessage("Analyse-modus uit.", "tip", false, false); });
+            chip.querySelector('.remove').addEventListener('click', () => {
+                analysisModeActive = false;
+                updateChips();
+                addBotMessage("Analyse-modus uitgeschakeld.", false);
+            });
             chipContainer.appendChild(chip);
         }
     }
     
-    function toggleImageMode() { imageModeActive = !imageModeActive; updateChips(); addBotMessage(imageModeActive ? "Afbeeldingen zoeken aan." : "Afbeeldingen zoeken uit.", "tip", false, false); closePlusMenu(); }
-    function toggleAnalysisMode() { analysisModeActive = !analysisModeActive; updateChips(); addBotMessage(analysisModeActive ? "Analyse zichtbaar." : "Analyse verborgen.", "tip", false, false); closePlusMenu(); }
-    
-    function adjustThreshold() {
-        let newThreshold = prompt(`Huidige drempel: ${Math.round(matchThreshold * 100)}%\nVoer nieuwe drempel in (0-100):`, Math.round(matchThreshold * 100));
-        if (newThreshold !== null) {
-            let val = parseFloat(newThreshold) / 100;
-            if (val >= 0 && val <= 1) {
-                matchThreshold = val;
-                matchThresholdSpan.textContent = `${Math.round(matchThreshold * 100)}%`;
-                addBotMessage(`Drempel aangepast naar ${Math.round(matchThreshold * 100)}%. Nexi neemt het over bij scores boven deze waarde.`, "tip", false, false);
-            }
-        }
+    function toggleImageMode() {
+        imageModeActive = !imageModeActive;
+        updateChips();
+        addBotMessage(imageModeActive ? "Afbeeldingen zoeken staat nu aan. Ik zoek in plaatjes.txt naar het beste resultaat bij je bericht." : "Afbeeldingen zoeken staat nu uit.", false);
         closePlusMenu();
     }
     
-    function openPlusMenu() { plusMenu.classList.add('open'); currentPlusMenuOpen = true; }
-    function closePlusMenu() { plusMenu.classList.remove('open'); currentPlusMenuOpen = false; }
-    function togglePlusMenu() { currentPlusMenuOpen ? closePlusMenu() : openPlusMenu(); }
+    function toggleAnalysisMode() {
+        analysisModeActive = !analysisModeActive;
+        updateChips();
+        addBotMessage(analysisModeActive ? "Mijn analyse is nu zichtbaar." : "Mijn analyse is nu niet zichtbaar.", false);
+        closePlusMenu();
+    }
     
-    // ==================== HOOFDVERWERKING ====================
+    // ==================== PLUS MENU ====================
+    function openPlusMenu() {
+        plusMenu.classList.add('open');
+        currentPlusMenuOpen = true;
+    }
+    
+    function closePlusMenu() {
+        plusMenu.classList.remove('open');
+        currentPlusMenuOpen = false;
+    }
+    
+    function togglePlusMenu() {
+        if (currentPlusMenuOpen) closePlusMenu();
+        else openPlusMenu();
+    }
+    
+    // ==================== HOOFD AFHANDELING ====================
     async function handleSend() {
-        const userMsg = messageInput.value.trim();
-        if (!userMsg) return;
+        const message = messageInput.value.trim();
+        if (message === "") return;
         
-        const userCategory = smartbotCategorize(userMsg);
-        addUserMessage(userMsg, userCategory);
-        totalMessages++;
-        updateStatsAndMemory();
+        addUserMessage(message);
         messageInput.value = "";
+        
+        if (lastBotMessage) {
+            learnFromConversation(lastBotMessage, message);
+        }
         
         const thinking = showThinking();
         
         setTimeout(async () => {
             removeThinking(thinking);
-            const steps = [];
-            
-            // Eerst afbeelding check
-            const imgMatch = findImageMatch(userMsg);
-            if (imgMatch) {
-                steps.push({ text: `Afbeelding gevonden: ${imgMatch.keyword}`, success: true });
-                const imgHtml = `<div><img src="${imgMatch.url}" class="generated-image" alt="${imgMatch.keyword}"><br><span style="font-size:0.7rem;">🖼️ ${imgMatch.keyword}</span></div>`;
-                addBotMessage(imgHtml, "afbeelding", true, false);
-                addAnalysisMessage(steps);
-                saveSmartbotData();
-                return;
+            const response = await getBestResponse(message);
+            addBotMessage(response.answer, response.isHtml);
+            if (response.steps && response.steps.length > 0) {
+                addAnalysisMessage(response.steps);
             }
-            
-            // Nexi zoekt antwoord
-            steps.push({ text: "Nexi zoekt in databases...", success: null });
-            const nexiResult = findBestNexiMatch(userMsg);
-            
-            if (nexiResult.match && nexiResult.score >= matchThreshold) {
-                steps.push({ text: `Nexi vond antwoord! Relevantie: ${Math.round(nexiResult.score * 100)}%`, success: true });
-                addBotMessage(nexiResult.match.antwoord, userCategory, nexiResult.match.containsHtml || false, false);
-                addAnalysisMessage(steps);
-            } else {
-                steps.push({ text: `Nexi score: ${Math.round(nexiResult.score * 100)}% (onder ${Math.round(matchThreshold * 100)}% drempel)`, success: false, warning: true });
-                steps.push({ text: "SmartBot neemt het over met creatief antwoord!", success: true });
-                
-                // SmartBot leert van het bericht
-                smartbotLearn(userMsg, userCategory);
-                
-                // Genereer SmartBot antwoord
-                const smartResponse = smartbotGenerateResponse(userCategory);
-                addBotMessage(smartResponse, userCategory, false, true);
-                addAnalysisMessage(steps);
-            }
-            
-            saveSmartbotData();
-        }, 500);
+        }, 300);
     }
     
-    // ==================== INIT ====================
+    // ==================== INITIALISATIE ====================
     async function init() {
         await Promise.all([loadReacties(), loadPlaatjes()]);
-        loadSmartbotData();
-        updateStatsAndMemory();
+        loadLearnedFromStorage();
         updateChips();
         
         sendBtn.addEventListener('click', handleSend);
-        messageInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') handleSend(); });
-        plusBtn.addEventListener('click', (e) => { e.stopPropagation(); togglePlusMenu(); });
-        clearMemoryBtn.addEventListener('click', clearSmartbotMemory);
+        messageInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') handleSend();
+        });
+        plusBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            togglePlusMenu();
+        });
         
         document.querySelectorAll('.menu-optie').forEach(opt => {
             opt.addEventListener('click', (e) => {
                 const action = opt.getAttribute('data-action');
                 if (action === 'toggleImageMode') toggleImageMode();
                 if (action === 'toggleAnalysisMode') toggleAnalysisMode();
-                if (action === 'adjustThreshold') adjustThreshold();
                 closePlusMenu();
             });
         });
         
         document.addEventListener('click', (event) => {
-            if (!plusBtn.contains(event.target) && !plusMenu.contains(event.target) && currentPlusMenuOpen) closePlusMenu();
+            if (!plusBtn.contains(event.target) && !plusMenu.contains(event.target)) {
+                if (currentPlusMenuOpen) closePlusMenu();
+            }
         });
         
-        addBotMessage("Hallo! Ik ben Nexi. Ik zoek eerst in mijn database naar antwoorden. Als de match-score onder de 50% zit, neemt SmartBot het over met creatieve antwoorden en leert hij van jou!", "begroeting", false, false);
+        addBotMessage("Hey! Hoe is het ermee? Vraag me alles, ik ben hier om je te helpen. Als ik een afbeelding heb in plaatjes.txt, laat ik die zien! Probeer bijvoorbeeld 'brug', 'mens' of 'natuur'.", false);
     }
     
     init();
