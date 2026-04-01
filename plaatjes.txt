@@ -1,5 +1,5 @@
 zebra = https://pixabay.com/photos/zebra-animals-africa-wildlife-3018471/
-cheetah_welpen = https://pixabay.com/photos/cheetah-cubs-wildlife-animals-3012515/
+tijger = https://cdn.pixabay.com/photo/2018/03/26/20/49/tiger-3264048_1280.jpg
 leeuw = https://pixabay.com/photos/lion-africa-wildlife-mane-3012511/
 zebra_drinkend = https://pixabay.com/photos/zebra-wildlife-safari-animal-3018472/
 olifanten = https://pixabay.com/photos/elephants-wildlife-safari-africa-3018473/
