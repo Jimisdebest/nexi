@@ -1,2 +1,4 @@
 tijger = https://cdn.pixabay.com/photo/2018/03/26/20/49/tiger-3264048_1280.jpg
 kat en hond op de bank = https://media.istockphoto.com/id/2159501928/nl/foto/friendship.jpg?s=1024x1024&w=is&k=20&c=Augm25v0BcBugHzTo0KOV5hb6A0cEWeAdb-LwJ8a8Rs=
+hond = https://media.istockphoto.com/id/2184260648/nl/foto/border-collie-with-owner-training-in-a-public-park.jpg?s=1024x1024&w=is&k=20&c=pcYst_wPx8lpVnHC4fHLUCinfn-jXdTa4bgnPbyrxEs=
+stad porto = https://media.istockphoto.com/id/700954448/nl/foto/porto-portugal-skyline.jpg?s=1024x1024&w=is&k=20&c=LfULpG1wOL_-25RpQOHOmyYIChV5TOog0TvWwr7XAOM=
