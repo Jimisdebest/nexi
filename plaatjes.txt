@@ -1,10 +1,2 @@
-zebra = https://pixabay.com/photos/zebra-animals-africa-wildlife-3018471/
 tijger = https://cdn.pixabay.com/photo/2018/03/26/20/49/tiger-3264048_1280.jpg
-leeuw = https://pixabay.com/photos/lion-africa-wildlife-mane-3012511/
-zebra_drinkend = https://pixabay.com/photos/zebra-wildlife-safari-animal-3018472/
-olifanten = https://pixabay.com/photos/elephants-wildlife-safari-africa-3018473/
-hagedis = https://pixabay.com/photos/lizard-reptile-nature-animal-3264049/
-giraffe = https://pixabay.com/photos/giraffe-wildlife-animal-nature-3018474/
-cheetah = https://pixabay.com/photos/cheetah-wildlife-animal-nature-3264048/
-eekhoorn = https://pixabay.com/photos/squirrel-rodent-animal-nature-3018475/
-panda = https://pixabay.com/photos/panda-bear-animal-wildlife-3264050/
+kat en hond op de bank = https://media.istockphoto.com/id/2159501928/nl/foto/friendship.jpg?s=1024x1024&w=is&k=20&c=Augm25v0BcBugHzTo0KOV5hb6A0cEWeAdb-LwJ8a8Rs=
