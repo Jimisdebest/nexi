@@ -1,1 +1,10 @@
-nexi logo = jimisdebest.github.io/nexi/logo.png
+zebra = https://pixabay.com/photos/zebra-animals-africa-wildlife-3018471/
+cheetah_welpen = https://pixabay.com/photos/cheetah-cubs-wildlife-animals-3012515/
+leeuw = https://pixabay.com/photos/lion-africa-wildlife-mane-3012511/
+zebra_drinkend = https://pixabay.com/photos/zebra-wildlife-safari-animal-3018472/
+olifanten = https://pixabay.com/photos/elephants-wildlife-safari-africa-3018473/
+hagedis = https://pixabay.com/photos/lizard-reptile-nature-animal-3264049/
+giraffe = https://pixabay.com/photos/giraffe-wildlife-animal-nature-3018474/
+cheetah = https://pixabay.com/photos/cheetah-wildlife-animal-nature-3264048/
+eekhoorn = https://pixabay.com/photos/squirrel-rodent-animal-nature-3018475/
+panda = https://pixabay.com/photos/panda-bear-animal-wildlife-3264050/
