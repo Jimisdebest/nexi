@@ -1,4 +1,3 @@
-tangi vuile matter =  mijn antwoord is https://jimisdebest.github.io/nexi/logo.png
 Wat weet je over mij? = Zeg je naam, en ik zoek het op!
 Kick = Hey Kick! Ik heb je even opgezocht. Dit is wat ik over je vond: Je ben een jongen van 10 of 11, zit op kickboksen (waarschijnlijk, dat dacht ik door je naam), kijkt elk jaar tijdens kerst de kerstfilm Home Alone met jouw famillie. Zo, dat is zeker meer dan je dacht!
 Tycho = Hey Tycho! Ik heb je even opgezocht. Ik vond jouw Facebook en zag het volgende: je bent 11 jaar, zit op mountainbiken, houdt van treinen en modeltreinbanen. Je hebt er zelf ook een. Je houdt ook van computers. Ik zie op YouTube een filmpje van jouw prachtige PC!
@@ -2541,3 +2540,5 @@ Wat is het tegenovergestelde van vrolijk = somber
 Wat is het tegenovergestelde van warm = koud
 Wat is het tegenovergestelde van wijs = dwaas
 Wat is het tegenovergestelde van zacht = hard
+
+Maak een tijger = 
