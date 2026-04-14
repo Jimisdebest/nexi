@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Nexi - Wereldwijd Leren</title>
+    <link rel="icon" type="image/png" href="logo.png">
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: system-ui, 'Segoe UI', 'Inter', -apple-system, sans-serif;
+        }
+
+        :root {
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --surface: #1e293b;
+            --surface-elevated: #334155;
+            --text-primary: #f1f5f9;
+            --text-secondary: #cbd5e1;
+            --accent: #60a5fa;
+            --accent-dark: #3b82f6;
+            --accent-light: #1e3a8a;
+            --border: #334155;
+            --user-bubble: #3b82f6;
+            --user-bubble-text: #ffffff;
+            --bot-bubble: #334155;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+        }
+
+        body {
+            background: var(--bg-secondary);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 16px;
+            overflow: hidden;
+        }
+
+        .chat-app {
+            width: 100%;
+            max-width: 1200px;
+            height: 95vh;
+            max-height: 900px;
+            background: var(--bg-primary);
+            border-radius: 32px;
+            box-shadow: var(--shadow), 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            border: 1px solid var(--border);
+        }
+
+        .chat-header {
+            background: var(--surface);
+            padding: 18px 24px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-shrink: 0;
+            justify-content: space-between;
+        }
+
+        .chat-header h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--accent-light);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            color: var(--text-primary);
+        }
+        
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #4cd964;
+            animation: pulse 1.5s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 0.4; transform: scale(0.8); }
+            100% { opacity: 1; transform: scale(1.2); }
+        }
+
+        .messages-area {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            background: var(--bg-secondary);
+            scroll-behavior: smooth;
+        }
+
+        .message-bot {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            max-width: 85%;
+            animation: fadeSlideUp 0.25s ease;
+        }
+
+        .bot-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            flex-shrink: 0;
+            background: var(--surface);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+        }
+
+        .bot-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .bubble-bot {
+            background: var(--bot-bubble);
+            border-radius: 20px;
+            border-bottom-left-radius: 6px;
+            padding: 10px 18px;
+            color: var(--text-primary);
+            font-size: 0.95rem;
+            line-height: 1.45;
+            word-break: break-word;
+            box-shadow: var(--shadow);
+        }
+
+        .message-user {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            justify-content: flex-end;
+            max-width: 85%;
+            align-self: flex-end;
+            animation: fadeSlideUp 0.25s ease;
+            flex-direction: row-reverse;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            flex-shrink: 0;
+            background: var(--surface);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+        }
+
+        .user-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .bubble-user {
+            background: var(--user-bubble);
+            color: var(--user-bubble-text);
+            padding: 10px 18px;
+            border-radius: 20px;
+            border-bottom-right-radius: 6px;
+            word-break: break-word;
+            box-shadow: var(--shadow);
+        }
+
+        .thinking-bubble {
+            background: var(--bot-bubble);
+            opacity: 0.7;
+            font-style: italic;
+        }
+
+        .input-bar {
+            background: var(--surface);
+            border-top: 1px solid var(--border);
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-shrink: 0;
+        }
+
+        .text-input-wrapper {
+            flex: 1;
+            position: relative;
+        }
+
+        #messageInput {
+            width: 100%;
+            padding: 12px 52px 12px 16px;
+            border-radius: 28px;
+            border: 1px solid var(--border);
+            background: var(--surface);
+            color: var(--text-primary);
+            font-size: 0.95rem;
+            outline: none;
+            transition: 0.2s;
+        }
+
+        #messageInput:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.1);
+        }
+
+        .send-knop {
+            position: absolute;
+            right: 6px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: var(--accent);
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: white;
+            font-size: 1.2rem;
+            transition: 0.2s;
+        }
+
+        .send-knop:hover {
+            background: var(--accent-dark);
+            transform: translateY(-50%) scale(1.02);
+        }
+
+        .stats-bar {
+            display: flex;
+            justify-content: space-around;
+            padding: 10px 20px;
+            background: var(--surface);
+            border-top: 1px solid var(--border);
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+        
+        .stat-item {
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-weight: bold;
+            color: var(--accent);
+            font-size: 1rem;
+        }
+
+        @keyframes fadeSlideUp {
+            from {
+                opacity: 0;
+                transform: translateY(8px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (max-width: 640px) {
+            .message-bot, .message-user {
+                max-width: 95%;
+            }
+            .bot-avatar, .user-avatar {
+                width: 32px;
+                height: 32px;
+            }
+            .stats-bar {
+                flex-wrap: wrap;
+                gap: 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="chat-app">
+    <div class="chat-header">
+        <h1>Nexi</h1>
+        <div class="status-indicator">
+            <div class="status-dot" id="statusDot"></div>
+            <span id="connectionLabel">Verbinden...</span>
+        </div>
+    </div>
+
+    <div class="messages-area" id="messagesArea"></div>
+
+    <div class="stats-bar">
+        <div class="stat-item"><span class="stat-value" id="messageCount">0</span><br>Berichten</div>
+        <div class="stat-item"><span class="stat-value" id="learnedCount">0</span><br>Woorden geleerd</div>
+        <div class="stat-item"><span class="stat-value" id="activeUsers">0</span><br>Actief</div>
+    </div>
+
+    <div class="input-bar">
+        <div class="text-input-wrapper">
+            <input type="text" id="messageInput" placeholder="Typ je bericht... (wereldwijd gedeeld)">
+            <button class="send-knop" id="sendButton">➤</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ========== FIREBASE CONFIG (JOUW PROJECT) ==========
+    const firebaseConfig = {
+        apiKey: "AIzaSyCjIbmMxyIOHltsYWRPvZCP9jCPIn5Da4w",
+        authDomain: "nexi-912f3.firebaseapp.com",
+        databaseURL: "https://nexi-912f3-default-rtdb.europe-west1.firebasedatabase.app",
+        projectId: "nexi-912f3",
+        storageBucket: "nexi-912f3.firebasestorage.app",
+        messagingSenderId: "785968902217",
+        appId: "1:785968902217:web:0568836bcd1b0e01988f98"
+    };
+    
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    // ========== REFERENTIES ==========
+    const userPhrasesRef = db.ref('nexi/userPhrases');
+    const learnedWordsRef = db.ref('nexi/learnedWords');
+    const statsRef = db.ref('nexi/stats');
+    const activeUsersRef = db.ref('nexi/activeUsers');
+
+    // ========== GLOBALE DATA ==========
+    let userPhrases = {
+        begroeting: [], boos: [], compliment: [], tip: [], grap: [], verdrietig: [], vraag: [], antwoord: [], random: []
+    };
+    let learnedWords = [];
+    let totalMessages = 0;
+    let basisKennis = [];
+    
+    const userId = 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 8);
+    
+    // DOM elementen
+    const messagesDiv = document.getElementById('messagesArea');
+    const messageInput = document.getElementById('messageInput');
+    const sendBtn = document.getElementById('sendButton');
+    const messageCountSpan = document.getElementById('messageCount');
+    const learnedCountSpan = document.getElementById('learnedCount');
+    const activeUsersSpan = document.getElementById('activeUsers');
+    const connectionLabel = document.getElementById('connectionLabel');
+    const statusDot = document.getElementById('statusDot');
+
+    // ========== CATEGORISATIE ==========
+    const categoryKeywords = {
+        begroeting: ["hallo","hoi","hey","dag","goedemorgen","goedenmiddag","goedenavond","hi"],
+        boos: ["dommerd","stommerd","idioot","sukkel","lul","klootzak","kut"],
+        compliment: ["mooi","leuk","geweldig","fantastisch","super","knap","slim","topper"],
+        tip: ["tip","advies","suggestie","idee","aanrader","probeer"],
+        grap: ["grap","grappig","lachen","mop","humor","lach"],
+        verdrietig: ["verdrietig","triest","somber","depri","huilen","zielig","balen"],
+        vraag: ["waarom","hoe","wat","wanneer","wie","welke","weet je","vertel"],
+        antwoord: ["omdat","daarom","dus","want","inderdaad","precies"]
+    };
+
+    function categorizeMessage(msg) {
+        const lower = msg.toLowerCase();
+        for (let cat in categoryKeywords) {
+            for (let word of categoryKeywords[cat]) {
+                if (lower.includes(word)) return cat;
+            }
+        }
+        return "random";
+    }
+
+    // ========== BASISKENNIS LADEN ==========
+    async function loadBasisKennis() {
+        try {
+            const response = await fetch('https://raw.githubusercontent.com/jimisdebest/nexi/main/reacties.txt');
+            if (!response.ok) throw new Error('reacties.txt niet gevonden');
+            const text = await response.text();
+            const lines = text.split('\n');
+            for (let line of lines) {
+                line = line.trim();
+                if (line.includes('=')) {
+                    let [vraag, antwoord] = line.split('=').map(part => part.trim());
+                    if (vraag && antwoord) {
+                        basisKennis.push({
+                            vraag: vraag.toLowerCase(),
+                            antwoord: antwoord
+                        });
+                    }
+                }
+            }
+            console.log(`✅ ${basisKennis.length} basisreacties geladen`);
+            return true;
+        } catch (err) {
+            console.warn('Kan reacties.txt niet laden', err);
+            return false;
+        }
+    }
+
+    // ========== FIREBASE SYNC ==========
+    userPhrasesRef.on('value', (snap) => {
+        if (snap.exists()) userPhrases = snap.val();
+        else userPhrasesRef.set(userPhrases);
+    });
+    
+    learnedWordsRef.on('value', (snap) => {
+        if (snap.exists()) learnedWords = snap.val();
+        else learnedWords = [];
+        learnedCountSpan.innerText = learnedWords.length;
+    });
+    
+    statsRef.on('value', (snap) => {
+        if (snap.exists()) {
+            totalMessages = snap.val().totalMessages || 0;
+            messageCountSpan.innerText = totalMessages;
+        }
+    });
+    
+    activeUsersRef.on('value', (snap) => {
+        let count = snap.exists() ? Object.keys(snap.val()).length : 0;
+        activeUsersSpan.innerText = count;
+    });
+
+    function syncUserPhrases() {
+        userPhrasesRef.set(userPhrases);
+    }
+    
+    function syncLearnedWords() {
+        learnedWordsRef.set(learnedWords);
+        statsRef.set({ totalMessages, totalLearned: learnedWords.length });
+    }
+
+    // ========== ACTIEVE GEBRUIKER ==========
+    function registerActiveUser() {
+        const userRef = activeUsersRef.child(userId);
+        userRef.set({ lastActive: firebase.database.ServerValue.TIMESTAMP });
+        window.addEventListener('beforeunload', () => userRef.remove());
+        setInterval(() => userRef.update({ lastActive: firebase.database.ServerValue.TIMESTAMP }), 30000);
+        setInterval(() => {
+            const oneMinuteAgo = Date.now() - 60000;
+            activeUsersRef.once('value', (snapshot) => {
+                const users = snapshot.val() || {};
+                for (const [id, data] of Object.entries(users)) {
+                    if (data.lastActive && data.lastActive < oneMinuteAgo) activeUsersRef.child(id).remove();
+                }
+            });
+        }, 60000);
+    }
+
+    // ========== LEREN ==========
+    function isCommonWord(word) {
+        const common = ["de","het","een","en","of","maar","dan","om","naar","voor","met","zonder","door","over","onder","boven","tussen","naast","achter","bij","sinds","tot","van","aan","in","uit","op","te","is","was","zijn","niet","geen","ze","we","je","jij","u","hij","zij","het","mijn","jouw","zijn","haar","ons","jullie","hun","die","dat","deze","wat","wie","waar","daar","hier"];
+        return common.includes(word.toLowerCase());
+    }
+
+    function learnFromMessage(msg, category) {
+        if (!userPhrases[category]) userPhrases[category] = [];
+        if (!userPhrases[category].includes(msg)) {
+            userPhrases[category].push(msg);
+            syncUserPhrases();
+        }
+        
+        const words = msg.toLowerCase().split(/\s+/);
+        let newWords = 0;
+        for (let w of words) {
+            if (w.length > 2 && !isCommonWord(w)) {
+                const exists = learnedWords.some(item => item.word === w);
+                if (!exists) {
+                    learnedWords.push({ word: w, category: category });
+                    newWords++;
+                }
+            }
+        }
+        if (newWords > 0) {
+            syncLearnedWords();
+            learnedCountSpan.innerText = learnedWords.length;
+        }
+    }
+
+    // ========== ANTWOORD GENEREREN ==========
+    function generateReply(userMessage, category) {
+        const lowerMsg = userMessage.toLowerCase();
+        
+        // PRIORITEIT 1: Basiskennis (reacties.txt)
+        for (let item of basisKennis) {
+            if (lowerMsg.includes(item.vraag) || item.vraag.includes(lowerMsg.split(' ')[0])) {
+                return item.antwoord;
+            }
+        }
+        
+        // PRIORITEIT 2: Gebruikerszinnen uit zelfde categorie
+        const phrasesForCat = userPhrases[category] || [];
+        if (phrasesForCat.length > 0 && Math.random() < 0.7) {
+            return phrasesForCat[Math.floor(Math.random() * phrasesForCat.length)];
+        }
+        
+        // PRIORITEIT 3: Geleerde woorden in sjabloon
+        if (learnedWords.length > 0 && Math.random() < 0.6) {
+            const randomEntry = learnedWords[Math.floor(Math.random() * learnedWords.length)];
+            const randomWord = randomEntry.word;
+            const templates = {
+                begroeting: [`Hallo! Jij bent ook een ${randomWord}!`, `Hé ${randomWord}, hoe gaat het?`],
+                boos: [`Jij bent zelf een ${randomWord}!`, `Niet zo ${randomWord} doen!`],
+                compliment: [`Wat ben jij een ${randomWord}!`, `Jij bent echt ${randomWord}!`],
+                tip: [`Goede tip: ${randomWord}!`, `Probeer eens ${randomWord}!`],
+                grap: [`Waarom is een ${randomWord} zoals een banaan?`, `Er loopt een ${randomWord} over straat...`],
+                verdrietig: [`Ik voel me zo ${randomWord} vandaag.`, `Het is zo ${randomWord} soms.`],
+                vraag: [`Waarom ben je zo ${randomWord}?`, `Wat vind je van ${randomWord}?`],
+                antwoord: [`Ik denk dat ${randomWord} het antwoord is!`, `Misschien is ${randomWord} de oplossing!`],
+                random: [`Leuk woord: ${randomWord}!`, `Wist je dat ${randomWord} interessant is?`]
+            };
+            const catTemplates = templates[category] || templates.random;
+            return catTemplates[Math.floor(Math.random() * catTemplates.length)];
+        }
+        
+        // PRIORITEIT 4: Slimme fallback
+        const fallbacks = {
+            begroeting: ["Hallo! Hoe kan ik je helpen?", "Hey! Leuk dat je er bent!"],
+            boos: ["Sorry dat je je zo voelt. Wil je erover praten?", "Rustig aan, samen komen we er wel uit."],
+            compliment: ["Dank je wel! Jij bent ook geweldig!", "Wat lief dat je dat zegt!"],
+            tip: ["Goede tip! Dank voor het delen!", "Daar kan ik wat mee! Bedankt!"],
+            grap: ["Haha, goede grap! 😄", "LOL! Dat is een leuke! 😂"],
+            verdrietig: ["Het komt goed, echt waar.", "Sterkte! Ik ben hier voor je."],
+            vraag: ["Goede vraag! Wat denk jij zelf?", "Daar moet ik even over nadenken..."],
+            antwoord: ["Dat is een goed antwoord!", "Precies! Daar ben ik het mee eens."],
+            random: ["Interessant! Vertel me meer.", "Daar moet ik even over nadenken."]
+        };
+        const catFallbacks = fallbacks[category] || fallbacks.random;
+        return catFallbacks[Math.floor(Math.random() * catFallbacks.length)];
+    }
+
+    // ========== UI FUNCTIES ==========
+    function addUserMessage(text, category) {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'message-user';
+        wrapper.innerHTML = `
+            <div class="user-avatar"><img src="mens.png" alt="Gebruiker" onerror="this.src='https://jimisdebest.github.io/nexi/mens.png'"></div>
+            <div class="bubble-user">${escapeHtml(text)}</div>
+        `;
+        messagesDiv.appendChild(wrapper);
+        scrollToBottom();
+    }
+    
+    function addBotMessage(text) {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'message-bot';
+        wrapper.innerHTML = `
+            <div class="bot-avatar"><img src="logo.png" alt="Nexi logo" onerror="this.src='https://jimisdebest.github.io/nexi/logo.png'"></div>
+            <div class="bubble-bot">${escapeHtml(text)}</div>
+        `;
+        messagesDiv.appendChild(wrapper);
+        scrollToBottom();
+        return wrapper;
+    }
+    
+    function showThinking() {
+        const thinkDiv = document.createElement('div');
+        thinkDiv.className = 'message-bot';
+        thinkDiv.id = 'tempThinking';
+        thinkDiv.innerHTML = `
+            <div class="bot-avatar"><img src="logo.png" alt="Nexi logo" onerror="this.src='https://jimisdebest.github.io/nexi/logo.png'"></div>
+            <div class="bubble-bot thinking-bubble">🤔 Nexi denkt na...</div>
+        `;
+        messagesDiv.appendChild(thinkDiv);
+        scrollToBottom();
+        return thinkDiv;
+    }
+    
+    function removeThinking(element) {
+        if (element && element.remove) element.remove();
+    }
+    
+    function scrollToBottom() {
+        setTimeout(() => {
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }, 50);
+    }
+    
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    // ========== BERICHTVERWERKING ==========
+    let isProcessing = false;
+    let laatsteBotBericht = "";
+    
+    async function handleSend() {
+        if (isProcessing) return;
+        
+        const bericht = messageInput.value.trim();
+        if (bericht === "") return;
+        
+        isProcessing = true;
+        
+        const category = categorizeMessage(bericht);
+        addUserMessage(bericht, category);
+        messageInput.value = "";
+        
+        // Leren van vorig bot bericht
+        if (laatsteBotBericht && laatsteBotBericht.length > 3) {
+            learnFromMessage(laatsteBotBericht, category);
+        }
+        
+        // Leren van huidig bericht
+        learnFromMessage(bericht, category);
+        totalMessages++;
+        messageCountSpan.innerText = totalMessages;
+        syncLearnedWords();
+        
+        const thinking = showThinking();
+        
+        setTimeout(() => {
+            removeThinking(thinking);
+            const reply = generateReply(bericht, category);
+            addBotMessage(reply);
+            laatsteBotBericht = reply;
+            statsRef.set({ totalMessages, totalLearned: learnedWords.length });
+            isProcessing = false;
+        }, 600 + Math.random() * 500);
+    }
+
+    // ========== INIT ==========
+    async function init() {
+        await loadBasisKennis();
+        registerActiveUser();
+        
+        const connectedRef = db.ref('.info/connected');
+        connectedRef.on('value', (snap) => {
+            if (snap.val()) {
+                connectionLabel.innerHTML = 'Online';
+                statusDot.style.backgroundColor = '#4cd964';
+            } else {
+                connectionLabel.innerHTML = 'Offline';
+                statusDot.style.backgroundColor = '#ff3b30';
+            }
+        });
+        
+        sendBtn.addEventListener('click', handleSend);
+        messageInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && !isProcessing) handleSend();
+        });
+        
+        addBotMessage(`🌟 Hallo! Ik ben Nexi. Wat je mij leert, onthoud ik en deel ik met iedereen!\n\n📚 Ik heb ${basisKennis.length} basisantwoorden en leer bij van elke gebruiker wereldwijd!`);
+    }
+    
+    init();
+</script>
+</body>
+</html>
