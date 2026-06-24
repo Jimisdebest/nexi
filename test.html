@@ -89,6 +89,24 @@
             color: var(--text-primary);
         }
 
+        .file-status {
+            margin-left: auto;
+            font-size: 0.8rem;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-weight: 500;
+        }
+
+        .file-status.connected {
+            background: #22c55e20;
+            color: #22c55e;
+        }
+
+        .file-status.disconnected {
+            background: #ef444420;
+            color: #ef4444;
+        }
+
         .messages-area {
             flex: 1;
             overflow-y: auto;
@@ -354,7 +372,7 @@
             padding: 8px 0;
             display: flex;
             flex-direction: column;
-            min-width: 200px;
+            min-width: 220px;
             z-index: 200;
             border: 1px solid var(--border);
             opacity: 0;
@@ -388,27 +406,75 @@
             background: var(--bg-secondary);
         }
 
-        .save-indicator {
+        .permission-modal {
             position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background: #22c55e;
-            color: white;
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-size: 0.85rem;
-            font-weight: 500;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            z-index: 999;
-            opacity: 0;
-            transform: translateY(10px);
-            transition: all 0.3s ease;
-            pointer-events: none;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.2s ease;
         }
 
-        .save-indicator.show {
-            opacity: 1;
-            transform: translateY(0);
+        .permission-dialog {
+            background: var(--surface);
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 450px;
+            width: 90%;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border);
+        }
+
+        .permission-dialog h3 {
+            font-size: 1.3rem;
+            margin-bottom: 12px;
+            color: var(--text-primary);
+        }
+
+        .permission-dialog p {
+            color: var(--text-secondary);
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+
+        .permission-dialog .buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        .permission-dialog button {
+            padding: 10px 20px;
+            border-radius: 12px;
+            border: none;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 0.9rem;
+            transition: 0.2s;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--accent-dark);
+        }
+
+        .btn-secondary {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
         }
 
         @keyframes fadeSlideUp {
@@ -441,6 +507,7 @@
 <div class="chat-app">
     <div class="chat-header">
         <h1>Nexi</h1>
+        <span class="file-status disconnected" id="fileStatus">📁 Geen bestand</span>
     </div>
 
     <div class="messages-area" id="messagesArea"></div>
@@ -455,13 +522,11 @@
     </div>
 
     <div class="plus-menu" id="plusMenu">
-        <button class="menu-optie" data-action="toggleAnalysisMode">Analyse tonen</button>
-        <button class="menu-optie" data-action="downloadLearnedFile">Download Nexi-Geleerde-Zinnen.txt</button>
-        <button class="menu-optie" data-action="clearLearned">Wis geleerde zinnen</button>
+        <button class="menu-optie" data-action="connectFile">📁 Kies bestand om op te slaan</button>
+        <button class="menu-optie" data-action="toggleAnalysisMode">🔍 Analyse tonen</button>
+        <button class="menu-optie" data-action="clearLearned">🗑️ Wis geleerde zinnen</button>
     </div>
 </div>
-
-<div class="save-indicator" id="saveIndicator">💾 Bestand bijgewerkt!</div>
 
 <script>
     // ==================== DATA STRUCTUREN ====================
@@ -472,18 +537,24 @@
     let currentPlusMenuOpen = false;
     let lastBotMessage = "";
     
+    // File System Access API variabelen
+    let fileHandle = null;
+    const LEARNED_FILENAME = 'Nexi-Geleerde-Zinnen.txt';
+    
     const messagesDiv = document.getElementById('messagesArea');
     const messageInput = document.getElementById('messageInput');
     const sendBtn = document.getElementById('sendButton');
     const plusBtn = document.getElementById('plusButton');
     const plusMenu = document.getElementById('plusMenu');
     const chipContainer = document.getElementById('chipContainer');
-    const saveIndicator = document.getElementById('saveIndicator');
+    const fileStatus = document.getElementById('fileStatus');
     
-    // Bestandsnaam voor de geleerde zinnen
-    const LEARNED_FILENAME = 'Nexi-Geleerde-Zinnen.txt';
+    // ==================== BESTAND SYSTEEM FUNCTIES ====================
     
-    // ==================== BESTAND OPSLAAN FUNCTIES ====================
+    // Controleer of de File System Access API beschikbaar is
+    function isFileSystemAccessSupported() {
+        return 'showSaveFilePicker' in window || 'showOpenFilePicker' in window;
+    }
     
     // Genereer de inhoud voor het bestand
     function generateLearnedFileContent() {
@@ -506,8 +577,150 @@
         return content;
     }
     
-    // Download het bestand naar de computer
-    function downloadLearnedFile() {
+    // Vraag toestemming om een bestand te kiezen/aan te maken
+    async function connectToFile() {
+        if (!isFileSystemAccessSupported()) {
+            // Fallback: gebruik download methode
+            addBotMessage("⚠️ Je browser ondersteunt geen automatisch bestand aanpassen. Ik gebruik de download-methode als alternatief.", false);
+            downloadAsNewFile();
+            return;
+        }
+        
+        try {
+            // Probeer eerst een bestaand bestand te openen
+            const [existingHandle] = await window.showOpenFilePicker({
+                types: [{
+                    description: 'Tekstbestand',
+                    accept: { 'text/plain': ['.txt'] }
+                }],
+                multiple: false
+            });
+            
+            fileHandle = existingHandle;
+            updateFileStatus(true);
+            
+            // Lees bestaande inhoud
+            const file = await fileHandle.getFile();
+            const content = await file.text();
+            
+            // Probeer bestaande geleerde zinnen te parsen
+            parseExistingFileContent(content);
+            
+            addBotMessage(`✅ Verbonden met "${fileHandle.name}". Ik zal dit bestand nu automatisch bijwerken als ik iets leer!`, false);
+            console.log(`📁 Verbonden met bestand: ${fileHandle.name}`);
+            
+        } catch (err) {
+            // Gebruiker heeft geannuleerd of bestand niet gevonden - maak nieuw bestand aan
+            if (err.name === 'AbortError') {
+                try {
+                    // Maak een nieuw bestand aan
+                    fileHandle = await window.showSaveFilePicker({
+                        suggestedName: LEARNED_FILENAME,
+                        types: [{
+                            description: 'Tekstbestand',
+                            accept: { 'text/plain': ['.txt'] }
+                        }]
+                    });
+                    
+                    updateFileStatus(true);
+                    
+                    // Schrijf initiële inhoud
+                    await writeToFile(generateLearnedFileContent());
+                    
+                    addBotMessage(`✅ Nieuw bestand "${LEARNED_FILENAME}" aangemaakt. Ik zal het automatisch bijwerken!`, false);
+                    console.log(`📁 Nieuw bestand aangemaakt: ${fileHandle.name}`);
+                    
+                } catch (saveErr) {
+                    console.error('Kan geen bestand aanmaken:', saveErr);
+                    addBotMessage("❌ Ik kon geen bestand aanmaken. Ik gebruik de download-methode als alternatief.", false);
+                    downloadAsNewFile();
+                }
+            } else {
+                console.error('Fout bij openen bestand:', err);
+                addBotMessage("❌ Er ging iets mis bij het openen van het bestand.", false);
+            }
+        }
+        closePlusMenu();
+    }
+    
+    // Parse bestaande zinnen uit een bestand
+    function parseExistingFileContent(content) {
+        const lines = content.split('\n');
+        let currentQA = {};
+        let parsedCount = 0;
+        
+        for (let line of lines) {
+            line = line.trim();
+            if (line.startsWith('Vraag: ')) {
+                currentQA.vraag = line.substring(7).toLowerCase().trim();
+            } else if (line.startsWith('Antwoord: ')) {
+                currentQA.antwoord = line.substring(10).trim();
+            } else if (line.startsWith('Geleerd op: ')) {
+                currentQA.timestamp = new Date(line.substring(12)).toISOString();
+            } else if (line.startsWith('Bron: ')) {
+                currentQA.bron = line.substring(6).trim();
+                
+                // Als we een complete QA hebben, voeg toe
+                if (currentQA.vraag && currentQA.antwoord) {
+                    // Check of deze al bestaat
+                    const exists = learnedQA.some(qa => qa.vraag === currentQA.vraag);
+                    if (!exists) {
+                        learnedQA.push({
+                            ...currentQA,
+                            containsHtml: false,
+                            timestamp: currentQA.timestamp || new Date().toISOString()
+                        });
+                        parsedCount++;
+                    }
+                    currentQA = {};
+                }
+            }
+        }
+        
+        if (parsedCount > 0) {
+            saveLearnedToStorage();
+            console.log(`📖 ${parsedCount} bestaande zinnen ingelezen uit bestand`);
+        }
+    }
+    
+    // Schrijf naar het verbonden bestand
+    async function writeToFile(content) {
+        if (!fileHandle) return false;
+        
+        try {
+            const writable = await fileHandle.createWritable();
+            await writable.write(content);
+            await writable.close();
+            console.log(`💾 Bestand bijgewerkt: ${fileHandle.name} (${learnedQA.length} zinnen)`);
+            return true;
+        } catch (err) {
+            console.error('Fout bij schrijven naar bestand:', err);
+            return false;
+        }
+    }
+    
+    // Automatisch het bestand bijwerken
+    async function autoSaveToFile() {
+        if (!fileHandle) {
+            // Geen bestand verbonden - val terug op download
+            downloadAsNewFile();
+            return;
+        }
+        
+        const content = generateLearnedFileContent();
+        const success = await writeToFile(content);
+        
+        if (success) {
+            console.log(`✅ Bestand automatisch bijgewerkt met ${learnedQA.length} zinnen`);
+        } else {
+            // Als schrijven mislukt, download als fallback
+            console.warn('⚠️ Kon bestand niet bijwerken, download als alternatief');
+            downloadAsNewFile();
+        }
+    }
+    
+    // Fallback: download als nieuw bestand
+    function downloadAsNewFile() {
         const content = generateLearnedFileContent();
         const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
         const url = URL.createObjectURL(blob);
@@ -520,63 +733,34 @@
         document.body.removeChild(downloadLink);
         URL.revokeObjectURL(url);
         
-        // Toon indicator
-        showSaveIndicator();
-        
-        console.log(`✅ Bestand gedownload: ${LEARNED_FILENAME} met ${learnedQA.length} zinnen`);
-        addBotMessage(`✅ Bestand "${LEARNED_FILENAME}" is gedownload met ${learnedQA.length} geleerde zinnen.`, false);
+        console.log(`📥 Bestand gedownload: ${LEARNED_FILENAME}`);
     }
     
-    // Automatisch opslaan naar localStorage (als backup) en trigger download
-    function autoSaveLearnedFile() {
-        // Sla op in localStorage als backup
-        saveLearnedToStorage();
-        
-        // Automatisch downloaden van het bestand
-        const content = generateLearnedFileContent();
-        const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
-        const url = URL.createObjectURL(blob);
-        
-        const downloadLink = document.createElement('a');
-        downloadLink.href = url;
-        downloadLink.download = LEARNED_FILENAME;
-        document.body.appendChild(downloadLink);
-        downloadLink.click();
-        document.body.removeChild(downloadLink);
-        URL.revokeObjectURL(url);
-        
-        // Toon indicator
-        showSaveIndicator();
-    }
-    
-    // Toon een korte melding dat het bestand is opgeslagen
-    function showSaveIndicator() {
-        saveIndicator.classList.add('show');
-        setTimeout(() => {
-            saveIndicator.classList.remove('show');
-        }, 2500);
+    // Update de status indicator
+    function updateFileStatus(connected) {
+        if (connected && fileHandle) {
+            fileStatus.textContent = `📁 ${fileHandle.name}`;
+            fileStatus.className = 'file-status connected';
+        } else {
+            fileStatus.textContent = '📁 Geen bestand';
+            fileStatus.className = 'file-status disconnected';
+        }
     }
     
     // Wis alle geleerde zinnen
-    function clearLearned() {
+    async function clearLearned() {
         if (confirm('Weet je zeker dat je alle geleerde zinnen wilt wissen? Dit kan niet ongedaan worden gemaakt.')) {
             learnedQA = [];
             saveLearnedToStorage();
             
-            // Update ook het bestand (leeg)
-            const content = '# Nexi Geleerde Zinnen\n# Alle zinnen zijn gewist.\n';
-            const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
-            const url = URL.createObjectURL(blob);
+            // Update het bestand als het verbonden is
+            if (fileHandle) {
+                await autoSaveToFile();
+            } else {
+                downloadAsNewFile();
+            }
             
-            const downloadLink = document.createElement('a');
-            downloadLink.href = url;
-            downloadLink.download = LEARNED_FILENAME;
-            document.body.appendChild(downloadLink);
-            downloadLink.click();
-            document.body.removeChild(downloadLink);
-            URL.revokeObjectURL(url);
-            
-            addBotMessage('Alle geleerde zinnen zijn gewist en het bestand is bijgewerkt.', false);
+            addBotMessage('🗑️ Alle geleerde zinnen zijn gewist en het bestand is bijgewerkt.', false);
         }
         closePlusMenu();
     }
@@ -723,11 +907,10 @@
         
         saveLearnedToStorage();
         
-        // 🔥 AUTOMATISCH BESTAND DOWNLOADEN BIJ ELKE NIEUWE GELEERDE ZIN
-        autoSaveLearnedFile();
+        // Automatisch het verbonden bestand bijwerken
+        autoSaveToFile();
         
-        console.log(`Stil geleerd: "${cleanBotMessage.substring(0, 40)}..." = "${userResponse.substring(0, 40)}..."`);
-        console.log(`📁 Bestand "${LEARNED_FILENAME}" automatisch bijgewerkt!`);
+        console.log(`🧠 Stil geleerd: "${cleanBotMessage.substring(0, 40)}..." = "${userResponse.substring(0, 40)}..."`);
         
         return true;
     }
@@ -883,7 +1066,7 @@
         if (analysisModeActive) {
             const chip = document.createElement('div');
             chip.className = 'mode-chip';
-            chip.innerHTML = `Analyse tonen <span class="remove">✕</span>`;
+            chip.innerHTML = `🔍 Analyse tonen <span class="remove">✕</span>`;
             chip.querySelector('.remove').addEventListener('click', () => {
                 analysisModeActive = false;
                 updateChips();
@@ -926,8 +1109,7 @@
         
         // Leer van de vorige bot reactie (stil)
         if (lastBotMessage) {
-            const learned = learnFromConversation(lastBotMessage, message);
-            // Als er iets nieuws is geleerd, wordt het bestand automatisch gedownload
+            learnFromConversation(lastBotMessage, message);
         }
         
         const thinking = showThinking();
@@ -948,9 +1130,9 @@
         loadLearnedFromStorage();
         updateChips();
         
-        // Bij het starten: download het huidige bestand zodat gebruiker het meteen heeft
-        if (learnedQA.length > 0) {
-            console.log(`📁 Start: ${learnedQA.length} geleerde zinnen geladen. Bestand wordt klaargezet.`);
+        // Toon status van File System Access API
+        if (!isFileSystemAccessSupported()) {
+            console.log('⚠️ File System Access API niet beschikbaar - gebruik download-methode');
         }
         
         sendBtn.addEventListener('click', handleSend);
@@ -964,11 +1146,11 @@
         
         // Menu opties event listeners
         document.querySelectorAll('.menu-optie').forEach(opt => {
-            opt.addEventListener('click', (e) => {
+            opt.addEventListener('click', async (e) => {
                 const action = opt.getAttribute('data-action');
+                if (action === 'connectFile') await connectToFile();
                 if (action === 'toggleAnalysisMode') toggleAnalysisMode();
-                if (action === 'downloadLearnedFile') downloadLearnedFile();
-                if (action === 'clearLearned') clearLearned();
+                if (action === 'clearLearned') await clearLearned();
                 closePlusMenu();
             });
         });
@@ -979,7 +1161,12 @@
             }
         });
         
-        addBotMessage("Hey! Hoe is het ermee? Vraag me alles, ik ben hier om je te helpen. Alles wat ik leer wordt automatisch opgeslagen in Nexi-Geleerde-Zinnen.txt!", false);
+        // Welkomstbericht
+        if (isFileSystemAccessSupported()) {
+            addBotMessage("Hey! 👋 Ik ben Nexi. Klik op ⚙️ en kies 'Kies bestand om op te slaan' om een bestand te verbinden. Dan kan ik dat bestand automatisch bijwerken als ik iets leer!", false);
+        } else {
+            addBotMessage("Hey! 👋 Ik ben Nexi. Als ik iets leer, download ik automatisch een bijgewerkt bestand naar je computer.", false);
+        }
     }
     
     init();
