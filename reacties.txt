@@ -32,11 +32,7 @@ Wat betekent knus = Gezellig en behaaglijk samen zijn!
 Wat betekent relax = Ontspannen en niks hoeven doen!
 Wat betekent vrolijk = Blij, opgewekt en lachend!
 
-Maak een leuke game = <!DOCTYPE html>
-<html lang="nl">
-<head>
-<meta charset="UTF-8">
-<title>Catch the Box</title>
+Maak een leuke game = <head> <meta charset="UTF-8"> <title>Catch the Box</title>
 <style>
   body {
     font-family: Arial;
