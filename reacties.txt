@@ -32,6 +32,98 @@ Wat betekent knus = Gezellig en behaaglijk samen zijn!
 Wat betekent relax = Ontspannen en niks hoeven doen!
 Wat betekent vrolijk = Blij, opgewekt en lachend!
 
+Maak een leuke game = <!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<title>Catch the Box</title>
+<style>
+  body {
+    font-family: Arial;
+    text-align: center;
+    background: #f0f0f0;
+  }
+  #gameArea {
+    width: 400px;
+    height: 400px;
+    background: white;
+    border: 3px solid black;
+    margin: 20px auto;
+    position: relative;
+    overflow: hidden;
+  }
+  #box {
+    width: 40px;
+    height: 40px;
+    background: red;
+    position: absolute;
+    cursor: pointer;
+  }
+</style>
+</head>
+<body>
+
+<h2>Catch the Box!</h2>
+<p>Klik zo vaak mogelijk op het blok binnen 10 seconden.</p>
+
+<div id="gameArea">
+  <div id="box"></div>
+</div>
+
+<p>Score: <span id="score">0</span></p>
+<p>Tijd: <span id="time">10</span>s</p>
+
+<button onclick="startGame()">Start Game</button>
+
+<script>
+let score = 0;
+let timeLeft = 10;
+let timer;
+let gameRunning = false;
+
+const box = document.getElementById("box");
+const scoreDisplay = document.getElementById("score");
+const timeDisplay = document.getElementById("time");
+const gameArea = document.getElementById("gameArea");
+
+function randomPosition() {
+  const x = Math.random() * (gameArea.clientWidth - box.clientWidth);
+  const y = Math.random() * (gameArea.clientHeight - box.clientHeight);
+  box.style.left = x + "px";
+  box.style.top = y + "px";
+}
+
+box.onclick = function () {
+  if (!gameRunning) return;
+  score++;
+  scoreDisplay.textContent = score;
+  randomPosition();
+};
+
+function startGame() {
+  score = 0;
+  timeLeft = 10;
+  scoreDisplay.textContent = score;
+  timeDisplay.textContent = timeLeft;
+  gameRunning = true;
+  randomPosition();
+
+  timer = setInterval(() => {
+    timeLeft--;
+    timeDisplay.textContent = timeLeft;
+    if (timeLeft <= 0) {
+      clearInterval(timer);
+      gameRunning = false;
+      alert("Tijd is op! Je score: " + score);
+    }
+  }, 1000);
+}
+</script>
+
+</body>
+</html>
+
+
 Wat betekent inspirerend = Iets dat je motiveert of blij maakt!
 Wat betekent grappig = Iets dat je laat lachen!
 Wat betekent slim = Iemand die goed nadenkt en creatieve oplossingen vindt!
