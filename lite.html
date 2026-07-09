@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Nexi Lite</title>
-    <link rel="icon" type="image/png" href="NexiLite.png">
+    <link rel="icon" type="image/png" href="logo.png">
     <style>
         * {
             margin: 0;
@@ -37,24 +37,17 @@
 
         .chat-header {
             background: white;
-            padding: 16px 20px;
+            padding: 20px;
             border-bottom: 1px solid #e2e8f0;
             display: flex;
             align-items: center;
-            gap: 10px;
+            justify-content: center;
         }
 
-        .header-logo {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            object-fit: cover;
-        }
-
-        .chat-header h1 {
-            font-size: 1.3rem;
-            color: #1e293b;
-            font-weight: 600;
+        .header-logo-full {
+            max-width: 200px;
+            max-height: 60px;
+            object-fit: contain;
         }
 
         .messages-area {
@@ -193,9 +186,6 @@
                 background: #1e293b;
                 border-bottom-color: #334155;
             }
-            .chat-header h1 {
-                color: #f1f5f9;
-            }
             .messages-area {
                 background: #0f172a;
             }
@@ -222,8 +212,7 @@
 <body>
     <div class="chat-app">
         <div class="chat-header">
-            <img src="NexiLite.png" alt="Nexi Lite" class="header-logo" onerror="this.src='jimisdebest.github.io/nexi/NexiLite.png'">
-            <h1>Nexi</h1>
+            <img src="NexiLite.png" alt="Nexi Lite" class="header-logo-full" onerror="this.src='jimisdebest.github.io/nexi/NexiLite.png'">
         </div>
 
         <div class="messages-area" id="messagesArea"></div>
@@ -316,8 +305,8 @@
             const wrapper = document.createElement('div');
             wrapper.className = `message ${type}`;
             
-            const avatarImg = type === 'bot' ? 'NexiLite.png' : 'mens.png';
-            const avatarFallback = type === 'bot' ? 'jimisdebest.github.io/nexi/NexiLite.png' : 'jimisdebest.github.io/nexi/mens.png';
+            const avatarImg = type === 'bot' ? 'logo.png' : 'mens.png';
+            const avatarFallback = type === 'bot' ? 'jimisdebest.github.io/nexi/logo.png' : 'jimisdebest.github.io/nexi/mens.png';
             
             wrapper.innerHTML = `
                 <div class="message-avatar">
@@ -336,7 +325,7 @@
             wrapper.id = 'typingIndicator';
             wrapper.innerHTML = `
                 <div class="message-avatar">
-                    <img src="NexiLite.png" alt="Nexi" onerror="this.src='jimisdebest.github.io/nexi/NexiLite.png'">
+                    <img src="logo.png" alt="Nexi" onerror="this.src='jimisdebest.github.io/nexi/logo.png'">
                 </div>
                 <div class="bubble">
                     <div class="typing-indicator">
@@ -377,10 +366,10 @@
 
                 if (result.score >= 0.6) {
                     response = result.match.antwoord;
-                    console.log(`Match: ${Math.round(result.score * 100)}% - "${result.match.vraag}"`);
+                    console.log(`✅ Match: ${Math.round(result.score * 100)}% - "${result.match.vraag}"`);
                 } else {
                     response = "Dat weet ik nog niet. Ik ben momenteel nog hard aan het leren.";
-                    console.log(`Geen match (${Math.round(result.score * 100)}% onder de 60%)`);
+                    console.log(`❌ Geen match (${Math.round(result.score * 100)}% onder de 60%)`);
                 }
 
                 addMessage(response, 'bot');
