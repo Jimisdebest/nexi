@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nexi - Kies je versie</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: system-ui, 'Segoe UI', 'Inter', -apple-system, sans-serif;
+        }
+
+        body {
+            background: #f5f7fb;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .keuze-container {
+            text-align: center;
+            max-width: 400px;
+            width: 100%;
+        }
+
+        .keuze-container h1 {
+            font-size: 2rem;
+            color: #1e293b;
+            margin-bottom: 8px;
+        }
+
+        .keuze-container p {
+            font-size: 1.1rem;
+            color: #475569;
+            margin-bottom: 32px;
+            line-height: 1.5;
+        }
+
+        .knoppen {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .knop {
+            display: block;
+            padding: 18px 24px;
+            border-radius: 16px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            text-decoration: none;
+            cursor: pointer;
+            transition: 0.2s;
+            border: none;
+            color: white;
+        }
+
+        .knop-train {
+            background: #3b82f6;
+        }
+
+        .knop-train:hover {
+            background: #2563eb;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3);
+        }
+
+        .knop-simpel {
+            background: #22c55e;
+        }
+
+        .knop-simpel:hover {
+            background: #16a34a;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(34, 197, 94, 0.3);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            body {
+                background: #0f172a;
+            }
+            .keuze-container h1 {
+                color: #f1f5f9;
+            }
+            .keuze-container p {
+                color: #cbd5e1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="keuze-container">
+        <h1>Nexi</h1>
+        <p>Wil je Nexi trainen of de simpele versie gebruiken?</p>
+        <div class="knoppen">
+            <a href="train.html" class="knop knop-train">🧠 Nexi trainen</a>
+            <a href="simpel.html" class="knop knop-simpel">💬 Simpele versie</a>
+        </div>
+    </div>
+</body>
+</html>
