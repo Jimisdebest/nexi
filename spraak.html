@@ -107,130 +107,54 @@
             border-bottom-right-radius: 6px;
         }
 
-        .input-bar {
+        .status-bar {
             background: white;
             border-top: 1px solid #e2e8f0;
-            padding: 12px 16px;
-            display: flex;
-            gap: 10px;
-            align-items: center;
-        }
-
-        #messageInput {
-            flex: 1;
-            padding: 12px 16px;
-            border-radius: 24px;
-            border: 1px solid #e2e8f0;
-            font-size: 0.95rem;
-            outline: none;
-            background: #f8fafc;
-            transition: 0.2s;
-        }
-
-        #messageInput:focus {
-            border-color: #3b82f6;
-            background: white;
-        }
-
-        .mic-button {
-            width: 44px;
-            height: 44px;
-            border-radius: 50%;
-            background: #ef4444;
-            border: none;
-            color: white;
-            font-size: 1.2rem;
-            cursor: pointer;
-            transition: 0.2s;
-            flex-shrink: 0;
+            padding: 16px;
             display: flex;
             align-items: center;
             justify-content: center;
+            gap: 12px;
         }
 
-        .mic-button:hover {
-            background: #dc2626;
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+            color: #64748b;
         }
 
-        .mic-button.listening {
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #ef4444;
+            transition: 0.3s;
+        }
+
+        .status-dot.listening {
             background: #22c55e;
             animation: pulse 1.5s infinite;
         }
 
-        .mic-button.listening:hover {
-            background: #16a34a;
-        }
-
-        #sendButton {
-            width: 44px;
-            height: 44px;
-            border-radius: 50%;
+        .status-dot.speaking {
             background: #3b82f6;
-            border: none;
-            color: white;
-            font-size: 1.2rem;
-            cursor: pointer;
-            transition: 0.2s;
-            flex-shrink: 0;
+            animation: pulse 1s infinite;
         }
 
-        #sendButton:hover {
-            background: #2563eb;
+        .status-dot.thinking {
+            background: #f59e0b;
+            animation: pulse 0.8s infinite;
         }
 
-        .speak-button {
-            width: 28px;
-            height: 28px;
-            border-radius: 50%;
-            background: transparent;
-            border: 1px solid #cbd5e1;
-            color: #64748b;
-            font-size: 0.8rem;
-            cursor: pointer;
-            transition: 0.2s;
-            flex-shrink: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-left: 8px;
-        }
-
-        .speak-button:hover {
-            background: #f1f5f9;
-            border-color: #94a3b8;
-        }
-
-        .speak-button.speaking {
-            background: #3b82f6;
-            color: white;
-            border-color: #3b82f6;
-        }
-
-        .typing-indicator {
-            display: flex;
-            gap: 4px;
-            padding: 8px 0;
-        }
-
-        .typing-indicator span {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: #94a3b8;
-            animation: bounce 1.4s infinite;
-        }
-
-        .typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
-        .typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
-
-        @keyframes bounce {
-            0%, 60%, 100% { transform: translateY(0); }
-            30% { transform: translateY(-8px); }
+        .status-text {
+            font-weight: 500;
         }
 
         @keyframes pulse {
             0% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4); }
-            70% { box-shadow: 0 0 0 12px rgba(34, 197, 94, 0); }
+            70% { box-shadow: 0 0 0 10px rgba(34, 197, 94, 0); }
             100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
         }
 
@@ -258,24 +182,12 @@
                 color: #f1f5f9;
                 border-color: #334155;
             }
-            #messageInput {
-                background: #0f172a;
-                border-color: #334155;
-                color: #f1f5f9;
-            }
-            #messageInput:focus {
-                background: #1e293b;
-            }
-            .input-bar {
+            .status-bar {
                 background: #1e293b;
                 border-top-color: #334155;
             }
-            .speak-button {
-                border-color: #475569;
+            .status-indicator {
                 color: #94a3b8;
-            }
-            .speak-button:hover {
-                background: #334155;
             }
         }
     </style>
@@ -288,24 +200,24 @@
 
         <div class="messages-area" id="messagesArea"></div>
 
-        <div class="input-bar">
-            <button class="mic-button" id="micButton" title="Spraakinvoer">🎤</button>
-            <input type="text" id="messageInput" placeholder="Typ je bericht of klik op 🎤...">
-            <button id="sendButton">➤</button>
+        <div class="status-bar">
+            <div class="status-indicator">
+                <div class="status-dot" id="statusDot"></div>
+                <span class="status-text" id="statusText">Starten...</span>
+            </div>
         </div>
     </div>
 
     <script>
         const messagesArea = document.getElementById('messagesArea');
-        const messageInput = document.getElementById('messageInput');
-        const sendButton = document.getElementById('sendButton');
-        const micButton = document.getElementById('micButton');
+        const statusDot = document.getElementById('statusDot');
+        const statusText = document.getElementById('statusText');
 
         let qaDatabase = [];
-        let isListening = false;
         let recognition = null;
-        let speechSynthesis = window.speechSynthesis;
+        let isListening = false;
         let isSpeaking = false;
+        let isProcessing = false;
 
         // Laad reacties
         async function loadReacties() {
@@ -375,141 +287,209 @@
             return { match: bestMatch, score: bestScore };
         }
 
-        // Spraakherkenning
+        // Update status
+        function updateStatus(state) {
+            statusDot.className = 'status-dot';
+            switch(state) {
+                case 'listening':
+                    statusDot.classList.add('listening');
+                    statusText.textContent = '🟢 Aan het luisteren...';
+                    break;
+                case 'thinking':
+                    statusDot.classList.add('thinking');
+                    statusText.textContent = '🟡 Aan het denken...';
+                    break;
+                case 'speaking':
+                    statusDot.classList.add('speaking');
+                    statusText.textContent = '🔵 Aan het praten...';
+                    break;
+                case 'idle':
+                    statusText.textContent = '⏳ Even wachten...';
+                    break;
+                case 'error':
+                    statusText.textContent = '🔴 Fout - probeer opnieuw';
+                    break;
+            }
+        }
+
+        // Spraakherkenning - continu modus
         function initSpeechRecognition() {
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
             
             if (!SpeechRecognition) {
-                micButton.style.display = 'none';
-                console.warn('Spraakherkenning niet ondersteund in deze browser');
-                return;
-            }
-
-            recognition = new SpeechRecognition();
-            recognition.lang = 'nl-NL';
-            recognition.interimResults = false;
-            recognition.maxAlternatives = 1;
-
-            recognition.onstart = () => {
-                isListening = true;
-                micButton.classList.add('listening');
-                micButton.textContent = '🔴';
-                messageInput.placeholder = 'Luisteren...';
-            };
-
-            recognition.onend = () => {
-                isListening = false;
-                micButton.classList.remove('listening');
-                micButton.textContent = '🎤';
-                messageInput.placeholder = 'Typ je bericht of klik op 🎤...';
-            };
-
-            recognition.onresult = (event) => {
-                const transcript = event.results[0][0].transcript;
-                messageInput.value = transcript;
-                console.log(`🗣️ Verstaan: "${transcript}"`);
-                
-                // Automatisch verzenden na spraakinvoer
-                setTimeout(() => {
-                    sendMessage();
-                }, 300);
-            };
-
-            recognition.onerror = (event) => {
-                console.error('Spraakherkenning fout:', event.error);
-                isListening = false;
-                micButton.classList.remove('listening');
-                micButton.textContent = '🎤';
-                messageInput.placeholder = 'Typ je bericht of klik op 🎤...';
-            };
-        }
-
-        function toggleListening() {
-            if (!recognition) {
+                updateStatus('error');
+                statusText.textContent = '❌ Spraakherkenning niet ondersteund';
                 addMessage('⚠️ Spraakherkenning wordt niet ondersteund in jouw browser. Probeer Chrome of Edge.', 'bot');
-                return;
+                return null;
             }
 
-            if (isListening) {
-                recognition.stop();
-            } else {
-                // Stop met praten als Nexi aan het spreken is
-                if (isSpeaking) {
-                    speechSynthesis.cancel();
-                    isSpeaking = false;
-                    updateAllSpeakButtons(false);
-                }
-                recognition.start();
-            }
-        }
+            const rec = new SpeechRecognition();
+            rec.lang = 'nl-NL';
+            rec.interimResults = false;
+            rec.maxAlternatives = 1;
+            rec.continuous = true; // Blijft luisteren
 
-        // Tekst naar spraak
-        function speakText(text, buttonElement) {
-            if (!speechSynthesis) {
-                console.warn('Tekst naar spraak niet ondersteund');
-                return;
-            }
+            rec.onstart = () => {
+                isListening = true;
+                updateStatus('listening');
+                console.log('🎤 Begonnen met luisteren...');
+            };
 
-            // Als al aan het spreken, stop dan
-            if (isSpeaking) {
-                speechSynthesis.cancel();
-                isSpeaking = false;
-                updateAllSpeakButtons(false);
-                return;
-            }
-
-            // Stop met luisteren als we gaan praten
-            if (isListening && recognition) {
-                recognition.stop();
-            }
-
-            // Verwijder HTML tags voor spraak
-            const tempDiv = document.createElement('div');
-            tempDiv.innerHTML = text;
-            const cleanText = tempDiv.textContent || tempDiv.innerText || text;
-
-            const utterance = new SpeechSynthesisUtterance(cleanText);
-            utterance.lang = 'nl-NL';
-            utterance.rate = 1.0;
-            utterance.pitch = 1.0;
-
-            // Probeer een Nederlandse stem te vinden
-            const voices = speechSynthesis.getVoices();
-            const dutchVoice = voices.find(voice => voice.lang.startsWith('nl'));
-            if (dutchVoice) {
-                utterance.voice = dutchVoice;
-            }
-
-            utterance.onstart = () => {
-                isSpeaking = true;
-                if (buttonElement) {
-                    buttonElement.classList.add('speaking');
-                    buttonElement.textContent = '⏹';
+            rec.onend = () => {
+                console.log('🎤 Luisteren gestopt');
+                // Automatisch herstarten als we niet aan het praten of verwerken zijn
+                if (!isSpeaking && !isProcessing) {
+                    setTimeout(() => {
+                        if (!isSpeaking && !isProcessing) {
+                            console.log('🔄 Herstarten met luisteren...');
+                            rec.start();
+                        }
+                    }, 500);
                 }
             };
 
-            utterance.onend = () => {
-                isSpeaking = false;
-                updateAllSpeakButtons(false);
+            rec.onresult = (event) => {
+                const lastResult = event.results[event.results.length - 1];
+                if (lastResult.isFinal) {
+                    const transcript = lastResult[0].transcript.trim();
+                    if (transcript) {
+                        console.log(`🗣️ Verstaan: "${transcript}"`);
+                        processUserInput(transcript);
+                    }
+                }
             };
 
-            utterance.onerror = () => {
-                isSpeaking = false;
-                updateAllSpeakButtons(false);
-            };
-
-            speechSynthesis.speak(utterance);
-        }
-
-        function updateAllSpeakButtons(speaking) {
-            document.querySelectorAll('.speak-button').forEach(btn => {
-                if (speaking) {
-                    btn.classList.add('speaking');
-                    btn.textContent = '⏹';
+            rec.onerror = (event) => {
+                console.error('Spraakherkenning fout:', event.error);
+                
+                if (event.error === 'no-speech') {
+                    // Geen spraak gedetecteerd, dat is oké bij continu luisteren
+                    updateStatus('listening');
+                } else if (event.error === 'aborted') {
+                    // Handmatig gestopt
+                    updateStatus('idle');
                 } else {
-                    btn.classList.remove('speaking');
-                    btn.textContent = '🔊';
+                    updateStatus('error');
+                    // Probeer opnieuw na een fout
+                    setTimeout(() => {
+                        if (!isSpeaking && !isProcessing && !isListening) {
+                            try {
+                                rec.start();
+                            } catch (e) {
+                                console.log('Kon niet herstarten:', e);
+                            }
+                        }
+                    }, 2000);
                 }
+            };
+
+            return rec;
+        }
+
+        // Verwerk gebruikersinvoer
+        async function processUserInput(message) {
+            if (isProcessing || isSpeaking) {
+                console.log('⏳ Nog bezig, negeer input:', message);
+                return;
+            }
+
+            isProcessing = true;
+            
+            // Stop tijdelijk met luisteren
+            if (recognition && isListening) {
+                recognition.stop();
+                isListening = false;
+            }
+
+            // Toon gebruikersbericht
+            addMessage(message, 'user');
+
+            // Denk status
+            updateStatus('thinking');
+
+            // Simuleer denktijd
+            await new Promise(resolve => setTimeout(resolve, 600 + Math.random() * 800));
+
+            // Zoek antwoord
+            const result = findBestMatch(message);
+            let response;
+
+            if (result.score >= 0.6) {
+                response = result.match.antwoord;
+                console.log(`✅ Match: ${Math.round(result.score * 100)}% - "${result.match.vraag}"`);
+            } else {
+                response = "Dat weet ik nog niet. Ik ben momenteel nog hard aan het leren.";
+                console.log(`❌ Geen match (${Math.round(result.score * 100)}% onder de 60%)`);
+            }
+
+            // Toon bot bericht
+            addMessage(response, 'bot');
+
+            // Spreek het antwoord uit
+            isProcessing = false;
+            await speakResponse(response);
+
+            // Hervat luisteren
+            if (!isListening && !isSpeaking) {
+                setTimeout(() => {
+                    try {
+                        recognition.start();
+                    } catch (e) {
+                        console.log('Kon niet herstarten:', e);
+                        setTimeout(() => recognition.start(), 500);
+                    }
+                }, 300);
+            }
+        }
+
+        // Spreek antwoord uit
+        function speakResponse(text) {
+            return new Promise((resolve) => {
+                const speechSynthesis = window.speechSynthesis;
+                
+                if (!speechSynthesis) {
+                    console.warn('Tekst naar spraak niet ondersteund');
+                    updateStatus('listening');
+                    resolve();
+                    return;
+                }
+
+                // Verwijder HTML tags
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = text;
+                const cleanText = tempDiv.textContent || tempDiv.innerText || text;
+
+                const utterance = new SpeechSynthesisUtterance(cleanText);
+                utterance.lang = 'nl-NL';
+                utterance.rate = 1.0;
+                utterance.pitch = 1.0;
+
+                // Probeer Nederlandse stem
+                const voices = speechSynthesis.getVoices();
+                const dutchVoice = voices.find(voice => voice.lang.startsWith('nl'));
+                if (dutchVoice) {
+                    utterance.voice = dutchVoice;
+                }
+
+                utterance.onstart = () => {
+                    isSpeaking = true;
+                    updateStatus('speaking');
+                };
+
+                utterance.onend = () => {
+                    isSpeaking = false;
+                    updateStatus('listening');
+                    resolve();
+                };
+
+                utterance.onerror = (e) => {
+                    console.error('Spraakfout:', e);
+                    isSpeaking = false;
+                    updateStatus('listening');
+                    resolve();
+                };
+
+                speechSynthesis.speak(utterance);
             });
         }
 
@@ -521,60 +501,14 @@
             const avatarImg = type === 'bot' ? 'logo.png' : 'mens.png';
             const avatarFallback = type === 'bot' ? 'jimisdebest.github.io/nexi/logo.png' : 'jimisdebest.github.io/nexi/mens.png';
             
-            const messageId = 'msg-' + Date.now() + '-' + Math.random().toString(36).substr(2, 5);
-            
             wrapper.innerHTML = `
                 <div class="message-avatar">
                     <img src="${avatarImg}" alt="${type === 'bot' ? 'Nexi' : 'Gebruiker'}" onerror="this.src='${avatarFallback}'">
                 </div>
-                <div class="bubble">
-                    ${escapeHtml(text)}
-                    ${type === 'bot' ? `<button class="speak-button" data-message-id="${messageId}" title="Uitspreken">🔊</button>` : ''}
-                </div>
-            `;
-            wrapper.id = messageId;
-            messagesArea.appendChild(wrapper);
-            messagesArea.scrollTop = messagesArea.scrollHeight;
-
-            // Event listener voor de spreek-knop
-            if (type === 'bot') {
-                const speakBtn = wrapper.querySelector('.speak-button');
-                speakBtn.addEventListener('click', () => {
-                    speakText(text, speakBtn);
-                });
-            }
-
-            // Automatisch uitspreken van bot berichten
-            if (type === 'bot') {
-                setTimeout(() => {
-                    const autoSpeakBtn = wrapper.querySelector('.speak-button');
-                    speakText(text, autoSpeakBtn);
-                }, 500);
-            }
-        }
-
-        // Toon typing indicator
-        function showTyping() {
-            const wrapper = document.createElement('div');
-            wrapper.className = 'message bot';
-            wrapper.id = 'typingIndicator';
-            wrapper.innerHTML = `
-                <div class="message-avatar">
-                    <img src="logo.png" alt="Nexi" onerror="this.src='jimisdebest.github.io/nexi/logo.png'">
-                </div>
-                <div class="bubble">
-                    <div class="typing-indicator">
-                        <span></span><span></span><span></span>
-                    </div>
-                </div>
+                <div class="bubble">${escapeHtml(text)}</div>
             `;
             messagesArea.appendChild(wrapper);
             messagesArea.scrollTop = messagesArea.scrollHeight;
-        }
-
-        function removeTyping() {
-            const typing = document.getElementById('typingIndicator');
-            if (typing) typing.remove();
         }
 
         function escapeHtml(text) {
@@ -583,51 +517,32 @@
             return div.innerHTML;
         }
 
-        // Verstuur bericht
-        async function sendMessage() {
-            const message = messageInput.value.trim();
-            if (!message) return;
-
-            addMessage(message, 'user');
-            messageInput.value = '';
-
-            showTyping();
-
-            setTimeout(() => {
-                removeTyping();
-
-                const result = findBestMatch(message);
-                let response;
-
-                if (result.score >= 0.6) {
-                    response = result.match.antwoord;
-                    console.log(`✅ Match: ${Math.round(result.score * 100)}% - "${result.match.vraag}"`);
-                } else {
-                    response = "Dat weet ik nog niet. Ik ben momenteel nog hard aan het leren.";
-                    console.log(`❌ Geen match (${Math.round(result.score * 100)}% onder de 60%)`);
-                }
-
-                addMessage(response, 'bot');
-            }, 500 + Math.random() * 1000);
-        }
-
-        // Event listeners
-        sendButton.addEventListener('click', sendMessage);
-        messageInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') sendMessage();
-        });
-        micButton.addEventListener('click', toggleListening);
-
-        // Laad stemmen
-        speechSynthesis.onvoiceschanged = () => {
-            console.log('📢 Stemmen geladen:', speechSynthesis.getVoices().length);
-        };
-
         // Init
         async function init() {
             await loadReacties();
-            initSpeechRecognition();
-            addMessage('Hey! 👋 Ik ben Nexi Spraak. Je kunt tegen me praten via de 🎤 knop of typen. Ik praat terug!', 'bot');
+            
+            recognition = initSpeechRecognition();
+            
+            if (recognition) {
+                // Start met luisteren
+                try {
+                    recognition.start();
+                    updateStatus('listening');
+                    addMessage('Hey! 👋 Ik ben Nexi Spraak. Praat tegen me, ik luister de hele tijd!', 'bot');
+                } catch (e) {
+                    console.error('Kon niet starten:', e);
+                    updateStatus('error');
+                    addMessage('⚠️ Klik ergens op de pagina en probeer opnieuw. Spraakherkenning heeft een gebruikersinteractie nodig.', 'bot');
+                    
+                    // Wacht op klik om te starten
+                    document.addEventListener('click', () => {
+                        if (!isListening && !isSpeaking) {
+                            recognition.start();
+                            updateStatus('listening');
+                        }
+                    }, { once: true });
+                }
+            }
         }
 
         init();
