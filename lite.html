@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nexi - Simpel</title>
-    <link rel="icon" type="image/png" href="logo.png">
+    <title>Nexi Lite</title>
+    <link rel="icon" type="image/png" href="NexiLite.png">
     <style>
         * {
             margin: 0;
@@ -222,7 +222,7 @@
 <body>
     <div class="chat-app">
         <div class="chat-header">
-            <img src="logo.png" alt="Nexi" class="header-logo" onerror="this.src='jimisdebest.github.io/nexi/logo.png'">
+            <img src="NexiLite.png" alt="Nexi Lite" class="header-logo" onerror="this.src='jimisdebest.github.io/nexi/NexiLite.png'">
             <h1>Nexi</h1>
         </div>
 
@@ -266,7 +266,7 @@
             }
         }
 
-        // Zoek beste match
+        // Zoek beste match met minimaal 60% overeenkomst
         function findBestMatch(userMessage) {
             const lowerMsg = userMessage.toLowerCase().trim();
             let bestMatch = null;
@@ -275,18 +275,29 @@
             for (let item of qaDatabase) {
                 const lowerVraag = item.vraag;
                 
-                // Exacte match
+                // Exacte match = 100%
                 if (lowerMsg === lowerVraag) {
-                    return item;
+                    return { match: item, score: 1.0 };
                 }
                 
                 // Woord-overlap score
-                const userWords = lowerMsg.split(/\s+/);
-                const vraagWords = lowerVraag.split(/\s+/);
+                const userWords = lowerMsg.split(/\s+/).filter(w => w.length > 1);
+                const vraagWords = lowerVraag.split(/\s+/).filter(w => w.length > 1);
+                
+                if (userWords.length === 0 || vraagWords.length === 0) continue;
+                
                 let matches = 0;
                 
                 for (let uw of userWords) {
-                    if (vraagWords.includes(uw)) matches++;
+                    for (let vw of vraagWords) {
+                        if (uw === vw) {
+                            matches++;
+                            break;
+                        } else if (vw.includes(uw) || uw.includes(vw)) {
+                            matches += 0.5;
+                            break;
+                        }
+                    }
                 }
                 
                 const score = matches / Math.max(userWords.length, vraagWords.length);
@@ -297,7 +308,7 @@
                 }
             }
 
-            return bestScore >= 0.3 ? bestMatch : null;
+            return { match: bestMatch, score: bestScore };
         }
 
         // Toon bericht
@@ -305,8 +316,8 @@
             const wrapper = document.createElement('div');
             wrapper.className = `message ${type}`;
             
-            const avatarImg = type === 'bot' ? 'logo.png' : 'mens.png';
-            const avatarFallback = type === 'bot' ? 'jimisdebest.github.io/nexi/logo.png' : 'jimisdebest.github.io/nexi/mens.png';
+            const avatarImg = type === 'bot' ? 'NexiLite.png' : 'mens.png';
+            const avatarFallback = type === 'bot' ? 'jimisdebest.github.io/nexi/NexiLite.png' : 'jimisdebest.github.io/nexi/mens.png';
             
             wrapper.innerHTML = `
                 <div class="message-avatar">
@@ -325,7 +336,7 @@
             wrapper.id = 'typingIndicator';
             wrapper.innerHTML = `
                 <div class="message-avatar">
-                    <img src="logo.png" alt="Nexi" onerror="this.src='jimisdebest.github.io/nexi/logo.png'">
+                    <img src="NexiLite.png" alt="Nexi" onerror="this.src='jimisdebest.github.io/nexi/NexiLite.png'">
                 </div>
                 <div class="bubble">
                     <div class="typing-indicator">
@@ -361,13 +372,15 @@
             setTimeout(() => {
                 removeTyping();
 
-                const match = findBestMatch(message);
+                const result = findBestMatch(message);
                 let response;
 
-                if (match) {
-                    response = match.antwoord;
+                if (result.score >= 0.6) {
+                    response = result.match.antwoord;
+                    console.log(`Match: ${Math.round(result.score * 100)}% - "${result.match.vraag}"`);
                 } else {
-                    response = "Sorry, ik begrijp je vraag niet helemaal. Kun je het anders formuleren?";
+                    response = "Dat weet ik nog niet. Ik ben momenteel nog hard aan het leren.";
+                    console.log(`Geen match (${Math.round(result.score * 100)}% onder de 60%)`);
                 }
 
                 addMessage(response, 'bot');
@@ -383,7 +396,7 @@
         // Init
         async function init() {
             await loadReacties();
-            addMessage('Hey! 👋 Ik ben Nexi. Stel me een vraag!', 'bot');
+            addMessage('Hey! 👋 Ik ben Nexi Lite. Stel me een vraag!', 'bot');
         }
 
         init();
