@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nexi Spraak</title>
+    <link rel="icon" type="image/png" href="logo.png">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: system-ui, 'Segoe UI', 'Inter', -apple-system, sans-serif;
+        }
+
+        body {
+            background: #f5f7fb;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 16px;
+        }
+
+        .chat-app {
+            width: 100%;
+            max-width: 800px;
+            height: 90vh;
+            max-height: 800px;
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .chat-header {
+            background: white;
+            padding: 20px;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .header-logo-full {
+            max-width: 200px;
+            max-height: 60px;
+            object-fit: contain;
+        }
+
+        .messages-area {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            background: #f8fafc;
+        }
+
+        .message {
+            display: flex;
+            gap: 10px;
+            max-width: 85%;
+            animation: fadeIn 0.2s ease;
+        }
+
+        .message.user {
+            align-self: flex-end;
+            flex-direction: row-reverse;
+        }
+
+        .message-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            flex-shrink: 0;
+            overflow: hidden;
+        }
+
+        .message-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .bubble {
+            padding: 10px 16px;
+            border-radius: 18px;
+            font-size: 0.95rem;
+            line-height: 1.4;
+            word-break: break-word;
+        }
+
+        .message.bot .bubble {
+            background: white;
+            color: #1e293b;
+            border-bottom-left-radius: 6px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .message.user .bubble {
+            background: #3b82f6;
+            color: white;
+            border-bottom-right-radius: 6px;
+        }
+
+        .input-bar {
+            background: white;
+            border-top: 1px solid #e2e8f0;
+            padding: 12px 16px;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        #messageInput {
+            flex: 1;
+            padding: 12px 16px;
+            border-radius: 24px;
+            border: 1px solid #e2e8f0;
+            font-size: 0.95rem;
+            outline: none;
+            background: #f8fafc;
+            transition: 0.2s;
+        }
+
+        #messageInput:focus {
+            border-color: #3b82f6;
+            background: white;
+        }
+
+        .mic-button {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: #ef4444;
+            border: none;
+            color: white;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: 0.2s;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .mic-button:hover {
+            background: #dc2626;
+        }
+
+        .mic-button.listening {
+            background: #22c55e;
+            animation: pulse 1.5s infinite;
+        }
+
+        .mic-button.listening:hover {
+            background: #16a34a;
+        }
+
+        #sendButton {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: #3b82f6;
+            border: none;
+            color: white;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: 0.2s;
+            flex-shrink: 0;
+        }
+
+        #sendButton:hover {
+            background: #2563eb;
+        }
+
+        .speak-button {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: transparent;
+            border: 1px solid #cbd5e1;
+            color: #64748b;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: 0.2s;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-left: 8px;
+        }
+
+        .speak-button:hover {
+            background: #f1f5f9;
+            border-color: #94a3b8;
+        }
+
+        .speak-button.speaking {
+            background: #3b82f6;
+            color: white;
+            border-color: #3b82f6;
+        }
+
+        .typing-indicator {
+            display: flex;
+            gap: 4px;
+            padding: 8px 0;
+        }
+
+        .typing-indicator span {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #94a3b8;
+            animation: bounce 1.4s infinite;
+        }
+
+        .typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
+        .typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes bounce {
+            0%, 60%, 100% { transform: translateY(0); }
+            30% { transform: translateY(-8px); }
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4); }
+            70% { box-shadow: 0 0 0 12px rgba(34, 197, 94, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @media (prefers-color-scheme: dark) {
+            body {
+                background: #0f172a;
+            }
+            .chat-app {
+                background: #1e293b;
+            }
+            .chat-header {
+                background: #1e293b;
+                border-bottom-color: #334155;
+            }
+            .messages-area {
+                background: #0f172a;
+            }
+            .message.bot .bubble {
+                background: #1e293b;
+                color: #f1f5f9;
+                border-color: #334155;
+            }
+            #messageInput {
+                background: #0f172a;
+                border-color: #334155;
+                color: #f1f5f9;
+            }
+            #messageInput:focus {
+                background: #1e293b;
+            }
+            .input-bar {
+                background: #1e293b;
+                border-top-color: #334155;
+            }
+            .speak-button {
+                border-color: #475569;
+                color: #94a3b8;
+            }
+            .speak-button:hover {
+                background: #334155;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-app">
+        <div class="chat-header">
+            <img src="NexiSpraak.png" alt="Nexi Spraak" class="header-logo-full" onerror="this.src='jimisdebest.github.io/nexi/NexiSpraak.png'">
+        </div>
+
+        <div class="messages-area" id="messagesArea"></div>
+
+        <div class="input-bar">
+            <button class="mic-button" id="micButton" title="Spraakinvoer">🎤</button>
+            <input type="text" id="messageInput" placeholder="Typ je bericht of klik op 🎤...">
+            <button id="sendButton">➤</button>
+        </div>
+    </div>
+
+    <script>
+        const messagesArea = document.getElementById('messagesArea');
+        const messageInput = document.getElementById('messageInput');
+        const sendButton = document.getElementById('sendButton');
+        const micButton = document.getElementById('micButton');
+
+        let qaDatabase = [];
+        let isListening = false;
+        let recognition = null;
+        let speechSynthesis = window.speechSynthesis;
+        let isSpeaking = false;
+
+        // Laad reacties
+        async function loadReacties() {
+            try {
+                const response = await fetch('https://raw.githubusercontent.com/jimisdebest/nexi/main/reacties.txt');
+                if (!response.ok) throw new Error('reacties niet gevonden');
+                const text = await response.text();
+                const lines = text.split('\n');
+                for (let line of lines) {
+                    line = line.trim();
+                    if (line.includes('=')) {
+                        let [vraag, antwoord] = line.split('=').map(part => part.trim());
+                        if (vraag && antwoord) {
+                            qaDatabase.push({
+                                vraag: vraag.toLowerCase(),
+                                antwoord: antwoord
+                            });
+                        }
+                    }
+                }
+                console.log(`✅ ${qaDatabase.length} reacties geladen`);
+            } catch (err) {
+                console.warn('Kan reacties.txt niet laden', err);
+            }
+        }
+
+        // Zoek beste match met minimaal 60% overeenkomst
+        function findBestMatch(userMessage) {
+            const lowerMsg = userMessage.toLowerCase().trim();
+            let bestMatch = null;
+            let bestScore = 0;
+
+            for (let item of qaDatabase) {
+                const lowerVraag = item.vraag;
+                
+                if (lowerMsg === lowerVraag) {
+                    return { match: item, score: 1.0 };
+                }
+                
+                const userWords = lowerMsg.split(/\s+/).filter(w => w.length > 1);
+                const vraagWords = lowerVraag.split(/\s+/).filter(w => w.length > 1);
+                
+                if (userWords.length === 0 || vraagWords.length === 0) continue;
+                
+                let matches = 0;
+                
+                for (let uw of userWords) {
+                    for (let vw of vraagWords) {
+                        if (uw === vw) {
+                            matches++;
+                            break;
+                        } else if (vw.includes(uw) || uw.includes(vw)) {
+                            matches += 0.5;
+                            break;
+                        }
+                    }
+                }
+                
+                const score = matches / Math.max(userWords.length, vraagWords.length);
+                
+                if (score > bestScore) {
+                    bestScore = score;
+                    bestMatch = item;
+                }
+            }
+
+            return { match: bestMatch, score: bestScore };
+        }
+
+        // Spraakherkenning
+        function initSpeechRecognition() {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            
+            if (!SpeechRecognition) {
+                micButton.style.display = 'none';
+                console.warn('Spraakherkenning niet ondersteund in deze browser');
+                return;
+            }
+
+            recognition = new SpeechRecognition();
+            recognition.lang = 'nl-NL';
+            recognition.interimResults = false;
+            recognition.maxAlternatives = 1;
+
+            recognition.onstart = () => {
+                isListening = true;
+                micButton.classList.add('listening');
+                micButton.textContent = '🔴';
+                messageInput.placeholder = 'Luisteren...';
+            };
+
+            recognition.onend = () => {
+                isListening = false;
+                micButton.classList.remove('listening');
+                micButton.textContent = '🎤';
+                messageInput.placeholder = 'Typ je bericht of klik op 🎤...';
+            };
+
+            recognition.onresult = (event) => {
+                const transcript = event.results[0][0].transcript;
+                messageInput.value = transcript;
+                console.log(`🗣️ Verstaan: "${transcript}"`);
+                
+                // Automatisch verzenden na spraakinvoer
+                setTimeout(() => {
+                    sendMessage();
+                }, 300);
+            };
+
+            recognition.onerror = (event) => {
+                console.error('Spraakherkenning fout:', event.error);
+                isListening = false;
+                micButton.classList.remove('listening');
+                micButton.textContent = '🎤';
+                messageInput.placeholder = 'Typ je bericht of klik op 🎤...';
+            };
+        }
+
+        function toggleListening() {
+            if (!recognition) {
+                addMessage('⚠️ Spraakherkenning wordt niet ondersteund in jouw browser. Probeer Chrome of Edge.', 'bot');
+                return;
+            }
+
+            if (isListening) {
+                recognition.stop();
+            } else {
+                // Stop met praten als Nexi aan het spreken is
+                if (isSpeaking) {
+                    speechSynthesis.cancel();
+                    isSpeaking = false;
+                    updateAllSpeakButtons(false);
+                }
+                recognition.start();
+            }
+        }
+
+        // Tekst naar spraak
+        function speakText(text, buttonElement) {
+            if (!speechSynthesis) {
+                console.warn('Tekst naar spraak niet ondersteund');
+                return;
+            }
+
+            // Als al aan het spreken, stop dan
+            if (isSpeaking) {
+                speechSynthesis.cancel();
+                isSpeaking = false;
+                updateAllSpeakButtons(false);
+                return;
+            }
+
+            // Stop met luisteren als we gaan praten
+            if (isListening && recognition) {
+                recognition.stop();
+            }
+
+            // Verwijder HTML tags voor spraak
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = text;
+            const cleanText = tempDiv.textContent || tempDiv.innerText || text;
+
+            const utterance = new SpeechSynthesisUtterance(cleanText);
+            utterance.lang = 'nl-NL';
+            utterance.rate = 1.0;
+            utterance.pitch = 1.0;
+
+            // Probeer een Nederlandse stem te vinden
+            const voices = speechSynthesis.getVoices();
+            const dutchVoice = voices.find(voice => voice.lang.startsWith('nl'));
+            if (dutchVoice) {
+                utterance.voice = dutchVoice;
+            }
+
+            utterance.onstart = () => {
+                isSpeaking = true;
+                if (buttonElement) {
+                    buttonElement.classList.add('speaking');
+                    buttonElement.textContent = '⏹';
+                }
+            };
+
+            utterance.onend = () => {
+                isSpeaking = false;
+                updateAllSpeakButtons(false);
+            };
+
+            utterance.onerror = () => {
+                isSpeaking = false;
+                updateAllSpeakButtons(false);
+            };
+
+            speechSynthesis.speak(utterance);
+        }
+
+        function updateAllSpeakButtons(speaking) {
+            document.querySelectorAll('.speak-button').forEach(btn => {
+                if (speaking) {
+                    btn.classList.add('speaking');
+                    btn.textContent = '⏹';
+                } else {
+                    btn.classList.remove('speaking');
+                    btn.textContent = '🔊';
+                }
+            });
+        }
+
+        // Toon bericht
+        function addMessage(text, type) {
+            const wrapper = document.createElement('div');
+            wrapper.className = `message ${type}`;
+            
+            const avatarImg = type === 'bot' ? 'logo.png' : 'mens.png';
+            const avatarFallback = type === 'bot' ? 'jimisdebest.github.io/nexi/logo.png' : 'jimisdebest.github.io/nexi/mens.png';
+            
+            const messageId = 'msg-' + Date.now() + '-' + Math.random().toString(36).substr(2, 5);
+            
+            wrapper.innerHTML = `
+                <div class="message-avatar">
+                    <img src="${avatarImg}" alt="${type === 'bot' ? 'Nexi' : 'Gebruiker'}" onerror="this.src='${avatarFallback}'">
+                </div>
+                <div class="bubble">
+                    ${escapeHtml(text)}
+                    ${type === 'bot' ? `<button class="speak-button" data-message-id="${messageId}" title="Uitspreken">🔊</button>` : ''}
+                </div>
+            `;
+            wrapper.id = messageId;
+            messagesArea.appendChild(wrapper);
+            messagesArea.scrollTop = messagesArea.scrollHeight;
+
+            // Event listener voor de spreek-knop
+            if (type === 'bot') {
+                const speakBtn = wrapper.querySelector('.speak-button');
+                speakBtn.addEventListener('click', () => {
+                    speakText(text, speakBtn);
+                });
+            }
+
+            // Automatisch uitspreken van bot berichten
+            if (type === 'bot') {
+                setTimeout(() => {
+                    const autoSpeakBtn = wrapper.querySelector('.speak-button');
+                    speakText(text, autoSpeakBtn);
+                }, 500);
+            }
+        }
+
+        // Toon typing indicator
+        function showTyping() {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'message bot';
+            wrapper.id = 'typingIndicator';
+            wrapper.innerHTML = `
+                <div class="message-avatar">
+                    <img src="logo.png" alt="Nexi" onerror="this.src='jimisdebest.github.io/nexi/logo.png'">
+                </div>
+                <div class="bubble">
+                    <div class="typing-indicator">
+                        <span></span><span></span><span></span>
+                    </div>
+                </div>
+            `;
+            messagesArea.appendChild(wrapper);
+            messagesArea.scrollTop = messagesArea.scrollHeight;
+        }
+
+        function removeTyping() {
+            const typing = document.getElementById('typingIndicator');
+            if (typing) typing.remove();
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Verstuur bericht
+        async function sendMessage() {
+            const message = messageInput.value.trim();
+            if (!message) return;
+
+            addMessage(message, 'user');
+            messageInput.value = '';
+
+            showTyping();
+
+            setTimeout(() => {
+                removeTyping();
+
+                const result = findBestMatch(message);
+                let response;
+
+                if (result.score >= 0.6) {
+                    response = result.match.antwoord;
+                    console.log(`✅ Match: ${Math.round(result.score * 100)}% - "${result.match.vraag}"`);
+                } else {
+                    response = "Dat weet ik nog niet. Ik ben momenteel nog hard aan het leren.";
+                    console.log(`❌ Geen match (${Math.round(result.score * 100)}% onder de 60%)`);
+                }
+
+                addMessage(response, 'bot');
+            }, 500 + Math.random() * 1000);
+        }
+
+        // Event listeners
+        sendButton.addEventListener('click', sendMessage);
+        messageInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') sendMessage();
+        });
+        micButton.addEventListener('click', toggleListening);
+
+        // Laad stemmen
+        speechSynthesis.onvoiceschanged = () => {
+            console.log('📢 Stemmen geladen:', speechSynthesis.getVoices().length);
+        };
+
+        // Init
+        async function init() {
+            await loadReacties();
+            initSpeechRecognition();
+            addMessage('Hey! 👋 Ik ben Nexi Spraak. Je kunt tegen me praten via de 🎤 knop of typen. Ik praat terug!', 'bot');
+        }
+
+        init();
+    </script>
+</body>
+</html>
