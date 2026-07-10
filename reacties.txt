@@ -728,7 +728,7 @@ Wie vond de auto uit? = Karl Benz
 Wat is de tegenhanger van snel? = Langzaam
 Hoeveel weken in een kwartaal? = 13
 Wat is de hoofdstad van Zwitserland? = Bern
-Hoeveel toetsen op een piano? = 88
+Hoeveel toetsen op een piano? = https://tse2.mm.bing.net/th/id/OIP.qDC5A3HYskX-3oQQ2Z2fnwHaEy?r=0&rs=1&pid=ImgDetMain&o=7&rm=3
 Wat is de chemische formule voor vitamine C? = C6H8O6
 Wie schreef "Pride and Prejudice"? = Jane Austen
 Welke planeet heeft ijskappen? = Mars
@@ -2646,3 +2646,4 @@ iPhone 17 tot iPhone 17 Pro Max = https://imgsrv2.voi.id/A5R5ZHxM3xNRY34N56QhSax
 Welke kleuren iPhone 17 Pro zijn er? = https://img.republicworld.com/all_images/iphone-17-pro-1752824861037-16_9.webp
 Hoe gaat de iPhone fold eruitzien? = Ongeveer zo https://images.macrumors.com/t/q_EpPfdiOLeWB3rZIC7LKv_YKNw=/1600x0/article-new/2025/12/iphone-fold-text.jpg
 MacOS Logo = Dit is het logo van MacOS https://jimisdebest.github.io/afbeeldingen/macoslogo.jpg
+Welp = https://www.restaurantwelp.nl/wp-content/uploads/2020/11/L_welpstadsrestaurant_stans_WIT-1536x695.webp
