@@ -1482,3 +1482,4 @@ Hoe gaat de iPhone fold eruitzien? = Ongeveer zo https://images.macrumors.com/t/
 MacOS Logo = Dit is het logo van MacOS https://jimisdebest.github.io/afbeeldingen/macoslogo.jpg
 Welp = https://www.restaurantwelp.nl/wp-content/uploads/2020/11/L_welpstadsrestaurant_stans_WIT-1536x695.webp
 Een vierkante, bittere, koude anti-fruitkubus = https://jimisdebest.github.io/afbeeldingen/vierkante-bittere-koude-anti-fruitkubus.png
+Oscar en Sophie = https://jimisdebest.github.io/afbeeldingen/Oscar-en-Sophie-in-bed.jpg
