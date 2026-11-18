@@ -72,7 +72,7 @@ button{cursor:pointer}
 .icon-btn:hover{background:var(--soft);color:var(--text)}
 
 /* MAIN */
-.main{flex:1;display:flex;flex-direction:column;min-width:0}
+.main{flex:1;display:flex;flex-direction:column;min-width:0;position:relative}
 .topbar{
   height:65px;min-height:65px;display:flex;align-items:center;
   padding:0 22px;gap:12px;background:var(--panel);
@@ -117,6 +117,34 @@ button{cursor:pointer}
 .dots i{width:5px;height:5px;border-radius:50%;background:var(--muted);animation:pulse 1s infinite}
 .dots i:nth-child(2){animation-delay:.15s}
 .dots i:nth-child(3){animation-delay:.3s}
+
+/* MESSAGE ACTIONS */
+.msg-actions{display:flex;gap:2px;margin-top:6px;opacity:0;transition:opacity .15s}
+.message:hover .msg-actions,.message:focus-within .msg-actions{opacity:1}
+.msg-actions button{
+  border:0;background:transparent;color:var(--muted);
+  padding:5px 9px;border-radius:7px;font-size:14px;line-height:1;
+}
+.msg-actions button:hover{background:var(--soft);color:var(--text)}
+
+/* SYSTEM MESSAGE */
+.system-msg{
+  align-self:center;text-align:center;font-size:11px;color:var(--muted);
+  padding:4px 12px;white-space:pre-wrap;line-height:1.6;max-width:600px;
+  font-style:italic
+}
+
+/* JUMP TO BOTTOM */
+.jump-bottom{
+  position:absolute;right:22px;bottom:130px;width:38px;height:38px;
+  border-radius:50%;border:1px solid var(--border);background:var(--panel);
+  color:var(--muted);display:grid;place-items:center;
+  box-shadow:0 4px 15px rgba(0,0,0,.12);z-index:10;
+  opacity:0;pointer-events:none;transition:opacity .2s,transform .2s
+}
+.jump-bottom.visible{opacity:1;pointer-events:auto}
+.jump-bottom:hover{color:var(--text);background:var(--soft)}
+@media(max-width:720px){.jump-bottom{right:14px;bottom:150px}}
 
 /* EMPTY CHAT */
 .empty{
@@ -193,6 +221,10 @@ textarea::placeholder{color:var(--muted)}
 .btn.danger{color:var(--danger)}
 .settings-buttons{display:flex;flex-direction:column;gap:9px;margin-bottom:17px}
 .settings-buttons .btn{text-align:left}
+.kb-list{max-height:50vh;overflow-y:auto;display:flex;flex-direction:column;gap:8px;margin-bottom:14px}
+.kb-item{border:1px solid var(--border);border-radius:10px;padding:10px}
+.kb-q{font-size:12px;font-weight:600;color:var(--accent);margin-bottom:4px}
+.kb-a{font-size:12px;color:var(--text);line-height:1.5;white-space:pre-wrap}
 
 /* SCROLLBARS */
 ::-webkit-scrollbar{width:6px}
@@ -267,6 +299,8 @@ textarea::placeholder{color:var(--muted)}
       <div class="message-container" id="messageContainer"></div>
     </section>
 
+    <button class="jump-bottom" id="jumpBottom" title="Naar beneden">↓</button>
+
     <div class="composer-wrap">
       <div class="composer">
         <textarea id="input" rows="1" placeholder="Typ een bericht aan Nexi..."></textarea>
@@ -278,7 +312,7 @@ textarea::placeholder{color:var(--muted)}
           <button class="send" id="send" title="Versturen">↑</button>
         </div>
       </div>
-      <div class="disclaimer">Nexi zoekt in zijn opgeslagen antwoorden en kennis.</div>
+      <div class="disclaimer">Nexi leert van elk antwoord dat jij geeft. Typ <b>/help</b> voor commando's.</div>
     </div>
   </main>
 </div>
@@ -291,24 +325,26 @@ textarea::placeholder{color:var(--muted)}
 
 <script>
 /* ======================================================
-   NEXI BACKUP — ALLE CHATS + GELEERDE KENNIS IN 1 TXT
+   NEXI — agressief lerende versie
 ====================================================== */
 
 const STORAGE = "nexi_data_v3";
 const THEME_KEY = "nexi_theme";
 const BACKUP_MARKER = "NEXI BACKUP FILE";
 
-let data = {
-  version: 1,
-  chats: [],
-  learned: []
-};
+/* Drempels */
+const UNKNOWN_BELOW = 0.35;      // < 35% => "weet ik niet"
+const CONFIDENT_FROM = 0.55;     // >= 55% => zelfverzekerd antwoord
 
+let data = { version:1, chats:[], learned:[] };
 let currentChatId = null;
 let qaDatabase = [];
 let analysisMode = false;
 let thinking = false;
 let menuChatId = null;
+
+/* Onthoudt de laatste onbeantwoorde vraag → volgende bericht wordt geleerd */
+let pendingLearn = null; // { question: string, time: number }
 
 const $ = id => document.getElementById(id);
 const chatList = $("chatList");
@@ -316,155 +352,277 @@ const messageContainer = $("messageContainer");
 const messages = $("messages");
 const input = $("input");
 const send = $("send");
+const jumpBottom = $("jumpBottom");
 
 /* ---------- HELPERS ---------- */
 
-function id(){
-  return "c_" + Date.now().toString(36) + "_" + Math.random().toString(36).slice(2,7);
-}
-
-function currentChat(){
-  return data.chats.find(c => c.id === currentChatId) || null;
-}
-
+function id(){ return "c_" + Date.now().toString(36) + "_" + Math.random().toString(36).slice(2,7); }
+function currentChat(){ return data.chats.find(c => c.id === currentChatId) || null; }
 function escapeHTML(s){
-  return String(s ?? "")
-    .replaceAll("&","&amp;")
-    .replaceAll("<","&lt;")
-    .replaceAll(">","&gt;")
-    .replaceAll('"',"&quot;")
-    .replaceAll("'","&#039;");
+  return String(s ?? "").replaceAll("&","&amp;").replaceAll("<","&lt;")
+    .replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;");
 }
-
 function save(){
-  try{
-    localStorage.setItem(STORAGE, JSON.stringify(data));
-  }catch(e){
-    toast("Opslaan is mislukt. Mogelijk is de opslag vol.");
-  }
+  try{ localStorage.setItem(STORAGE, JSON.stringify(data)); }
+  catch(e){ toast("Opslaan mislukt — opslag mogelijk vol."); }
 }
-
 function toast(message){
   $("toastRoot").innerHTML = "";
   const t = document.createElement("div");
-  t.className = "toast";
-  t.textContent = message;
+  t.className = "toast"; t.textContent = message;
   $("toastRoot").appendChild(t);
-  setTimeout(()=>t.remove(),2500);
+  setTimeout(()=>t.remove(), 2600);
+}
+function time(t){ return new Date(t).toLocaleTimeString("nl-NL",{hour:"2-digit",minute:"2-digit"}); }
+function safeFilename(s){ return String(s).replace(/[\\/:*?"<>|]/g,"_").slice(0,80) || "chat"; }
+function truncate(s, n){
+  s = String(s);
+  return s.length > n ? s.slice(0, n - 1) + "…" : s;
 }
 
-function time(t){
-  return new Date(t).toLocaleTimeString("nl-NL",{hour:"2-digit",minute:"2-digit"});
+/* ======================================================
+   TEKST-FORMATTERING (hoofdletter + eindpunt)
+====================================================== */
+
+function formatAnswer(text){
+  let t = String(text ?? "").trim();
+  if(!t) return "";
+  // Hoofdletter eerste teken
+  t = t.charAt(0).toUpperCase() + t.slice(1);
+  // Eindpunt toevoegen als er nog geen leesteken staat
+  if(!/[.!?…]$/.test(t)){
+    t += ".";
+  }
+  return t;
 }
 
-function safeFilename(s){
-  return String(s).replace(/[\\/:*?"<>|]/g,"_").slice(0,80);
+/* ======================================================
+   NORMALISATIE + MATCHING
+====================================================== */
+
+function normalize(s){
+  return String(s ?? "")
+    .toLowerCase()
+    .normalize("NFD").replace(/[\u0300-\u036f]/g,"")
+    .replace(/[^\p{L}\p{N}\s]/gu," ")
+    .replace(/\s+/g," ")
+    .trim();
 }
 
-/* ---------- CHAT MANAGEMENT ---------- */
+const STOPWORDS = new Set([
+  "de","het","een","ik","je","jij","we","wij","ze","zij","mij","me",
+  "is","was","zijn","ben","heb","heeft","had","do","does","did","en","of",
+  "maar","dat","dit","wat","hoe","waar","wie","aan","in","op","voor","van",
+  "met","naar","the","a","an","and","or","are","you","i","it","to","please",
+  "can","could","would","should","will","shall","my","your","our","their"
+]);
+
+function tokenize(s){
+  return normalize(s).split(" ").filter(w => w.length>1 && !STOPWORDS.has(w));
+}
+
+function levenshtein(a,b){
+  if(a===b) return 0;
+  const m=a.length, n=b.length;
+  if(!m) return n; if(!n) return m;
+  const dp=new Array(n+1);
+  for(let j=0;j<=n;j++) dp[j]=j;
+  for(let i=1;i<=m;i++){
+    let prev=dp[0];
+    dp[0]=i;
+    for(let j=1;j<=n;j++){
+      const tmp=dp[j];
+      dp[j]=Math.min(dp[j]+1, dp[j-1]+1, prev+(a[i-1]===b[j-1]?0:1));
+      prev=tmp;
+    }
+  }
+  return dp[n];
+}
+function similarity(a,b){
+  if(!a||!b) return 0;
+  if(a===b) return 1;
+  return 1 - levenshtein(a,b)/Math.max(a.length,b.length);
+}
+function diceBigrams(a,b){
+  if(a.length<2||b.length<2) return a===b?1:0;
+  const A=new Set(), B=new Set();
+  for(let i=0;i<a.length-1;i++) A.add(a.slice(i,i+2));
+  for(let i=0;i<b.length-1;i++) B.add(b.slice(i,i+2));
+  let inter=0;
+  for(const g of A) if(B.has(g)) inter++;
+  return 2*inter/(A.size+B.size);
+}
+
+function score(query, target){
+  const q = normalize(query);
+  const t = normalize(target);
+  if(!q||!t) return 0;
+  if(q===t) return 1;
+
+  const qw = tokenize(q);
+  const tw = tokenize(t);
+  if(!qw.length || !tw.length) return 0;
+
+  const tSet = new Set(tw);
+  let exact = 0, fuzzy = 0;
+  for(const w of qw){
+    if(tSet.has(w)){ exact++; continue; }
+    let best = 0;
+    for(const tw2 of tw){
+      const s = similarity(w, tw2);
+      if(s>best) best = s;
+    }
+    if(best >= 0.82) fuzzy += best;
+  }
+
+  const tokenScore = (exact + fuzzy * 0.85) / Math.max(qw.length, tw.length);
+  const bg = diceBigrams(q, t);
+
+  let s = 0.60 * tokenScore + 0.35 * bg;
+  if(exact === qw.length && qw.length >= 2) s += 0.10;
+  if(t.includes(q) || q.includes(t)) s += 0.12;
+
+  return Math.min(1, s);
+}
+
+function bestMatch(db, text){
+  let best=null, highest=0;
+  for(const item of db){
+    const s = score(text, item.vraag);
+    if(s > highest){ highest = s; best = item; }
+  }
+  return { match:best, score:highest };
+}
+
+/* ======================================================
+   META-ANTWOORDEN
+====================================================== */
+
+const metaAnswers = [
+  {
+    patterns: [/\b(hoe|wat)\b.*\b(leer|leren|train)/i, /leer.*(je|jij|ik|nex)/i],
+    answer:
+      "Ik leer automatisch! Als ik iets niet weet, typ je gewoon het antwoord in je volgende bericht — dan onthoud ik het.\n\n" +
+      "Handmatig kan ook:\n" +
+      "• /leer vraag = antwoord\n" +
+      "• Klik op 📌 onder een antwoord van mij\n\n" +
+      "Bekijk wat ik weet met /lijst. Vergeten doe je met /verwijder vraag."
+  },
+  {
+    patterns: [/wat kun je( allemaal)?/i, /wat kan je( allemaal)?/i, /^help$/i],
+    answer:
+      "Ik ben Nexi — een lokale chatassistent die constant bijleert.\n\n" +
+      "Zo werk ik:\n" +
+      "• Als ik iets niet weet, onthoud ik jouw volgende bericht als antwoord\n" +
+      "• Ik leer ook via /leer of de 📌-knop\n" +
+      "• Alles wordt lokaal opgeslagen (exporteerbaar als .txt)\n\n" +
+      "Commando's:\n" +
+      "/leer vraag = antwoord  — iets nieuws leren\n" +
+      "/verwijder vraag         — iets vergeten\n" +
+      "/lijst                   — geleerde kennis tonen\n" +
+      "/help                    — deze uitleg"
+  }
+];
+
+/* ======================================================
+   HULP: lijkt dit op een nieuwe vraag?
+====================================================== */
+
+function looksLikeQuestion(text){
+  const t = String(text).trim().toLowerCase();
+  if(!t) return false;
+  if(t.endsWith("?")) return true;
+  return /^(wat|hoe|waar|wanneer|waarom|wie|welke|wiens|is|kan|kun|kun\s+je|kan\s+je|heb|heeft|heb\s+je|doet|denk|vind|wil|mag|moet)\b/i.test(t);
+}
+
+/* Korte bevestigingen niet leren */
+const SKIP_LEARN = new Set([
+  "ja","nee","ok","oke","oké","okee","dank","thanks","thank you","bedankt",
+  "yes","no","tuurlijk","zeker","goed","prima","top","nice","cool","leuk",
+  "haha","lol","hm","hmm","mhm","uh","uhu","ah","oh","oké dan","prima hoor"
+]);
+
+/* ======================================================
+   CHAT MANAGEMENT
+====================================================== */
 
 function createChat(name){
   const chat = {
-    id:id(),
-    title:name || "Nieuwe chat",
-    created:Date.now(),
-    updated:Date.now(),
-    messages:[]
+    id: id(),
+    title: name || "Nieuwe chat",
+    created: Date.now(),
+    updated: Date.now(),
+    messages: []
   };
   data.chats.unshift(chat);
   currentChatId = chat.id;
-  save();
-  renderChats();
-  renderMessages();
-  updateHeader();
-  closeSidebar();
-
-  if(!name){
-    renameChat(chat.id,true);
-  }
+  pendingLearn = null;
+  save(); renderChats(); renderMessages(); updateHeader(); closeSidebar();
   input.focus();
   return chat;
 }
 
 function switchChat(chatId){
   currentChatId = chatId;
-  renderChats();
-  renderMessages();
-  updateHeader();
-  closeSidebar();
+  pendingLearn = null;
+  renderChats(); renderMessages(); updateHeader(); closeSidebar();
 }
 
-function renameChat(chatId,createMode=false){
-  const chat = data.chats.find(c=>c.id===chatId);
+function renameChat(chatId){
+  const chat = data.chats.find(c => c.id === chatId);
   if(!chat) return;
-
   const name = prompt("Naam van de chat:", chat.title);
   if(name === null) return;
-  if(!name.trim()){
-    if(createMode) chat.title = "Nieuwe chat";
-    save();renderChats();updateHeader();
-    return;
-  }
-  chat.title = name.trim();
+  chat.title = name.trim() || "Nieuwe chat";
   chat.updated = Date.now();
-  save();renderChats();updateHeader();
+  save(); renderChats(); updateHeader();
 }
 
 function deleteChat(chatId){
-  const chat = data.chats.find(c=>c.id===chatId);
+  const chat = data.chats.find(c => c.id === chatId);
   if(!chat) return;
   if(!confirm(`Chat "${chat.title}" verwijderen?`)) return;
 
-  data.chats = data.chats.filter(c=>c.id!==chatId);
-  if(currentChatId===chatId){
-    currentChatId = data.chats[0]?.id || null;
-  }
+  data.chats = data.chats.filter(c => c.id !== chatId);
+  if(currentChatId === chatId) currentChatId = data.chats[0]?.id || null;
   save();
 
   if(!currentChatId) createChat("Nieuwe chat");
-  else {
-    renderChats();renderMessages();updateHeader();
-  }
+  else { renderChats(); renderMessages(); updateHeader(); }
 }
 
 function renderChats(){
   const query = $("search").value.toLowerCase().trim();
   chatList.innerHTML = "";
 
-  data.chats.filter(c=>{
+  data.chats.filter(c => {
     const last = c.messages?.at(-1)?.text || "";
     return c.title.toLowerCase().includes(query) || last.toLowerCase().includes(query);
-  }).forEach(chat=>{
+  }).forEach(chat => {
     const item = document.createElement("div");
-    item.className = "chat-item" + (chat.id===currentChatId?" active":"");
+    item.className = "chat-item" + (chat.id === currentChatId ? " active" : "");
 
     const icon = document.createElement("div");
-    icon.className = "chat-icon";
-    icon.textContent = "▤";
+    icon.className = "chat-icon"; icon.textContent = "▤";
 
     const info = document.createElement("div");
     info.className = "chat-info";
 
     const title = document.createElement("div");
-    title.className = "chat-title";
-    title.textContent = chat.title;
+    title.className = "chat-title"; title.textContent = chat.title;
 
     const preview = document.createElement("div");
     preview.className = "chat-preview";
     preview.textContent = chat.messages?.at(-1)?.text || "Nog geen berichten";
 
-    info.append(title,preview);
+    info.append(title, preview);
 
     const more = document.createElement("button");
-    more.className = "more";
-    more.textContent = "⋯";
-    more.onclick = e=>{
-      e.stopPropagation();
-      showMenu(chat.id,more);
-    };
+    more.className = "more"; more.textContent = "⋯";
+    more.onclick = e => { e.stopPropagation(); showMenu(chat.id, more); };
 
-    item.append(icon,info,more);
-    item.onclick = ()=>switchChat(chat.id);
+    item.append(icon, info, more);
+    item.onclick = () => switchChat(chat.id);
     chatList.appendChild(item);
   });
 }
@@ -475,7 +633,7 @@ function updateHeader(){
 
 /* ---------- CHAT MENU ---------- */
 
-function showMenu(chatId,button){
+function showMenu(chatId, button){
   menuChatId = chatId;
   const r = button.getBoundingClientRect();
   $("menu").innerHTML = `
@@ -484,163 +642,199 @@ function showMenu(chatId,button){
     <button class="delete" data-action="delete">⌫ &nbsp; Verwijderen</button>
   `;
   $("menu").classList.remove("hidden");
-  $("menu").style.left = Math.min(r.left,innerWidth-180)+"px";
-  $("menu").style.top = Math.min(r.bottom+4,innerHeight-150)+"px";
+  $("menu").style.left = Math.min(r.left, innerWidth - 180) + "px";
+  $("menu").style.top = Math.min(r.bottom + 4, innerHeight - 150) + "px";
 
-  $("menu").querySelectorAll("[data-action]").forEach(b=>{
-    b.onclick=()=>{
+  $("menu").querySelectorAll("[data-action]").forEach(b => {
+    b.onclick = () => {
       $("menu").classList.add("hidden");
-      const action=b.dataset.action;
-      if(action==="rename") renameChat(chatId);
-      if(action==="delete") deleteChat(chatId);
-      if(action==="export") exportChat(chatId);
+      const a = b.dataset.action;
+      if(a === "rename") renameChat(chatId);
+      if(a === "delete") deleteChat(chatId);
+      if(a === "export") exportChat(chatId);
     };
   });
 }
-document.addEventListener("click",e=>{
+document.addEventListener("click", e => {
   if(!$("menu").contains(e.target)) $("menu").classList.add("hidden");
 });
 
-/* ---------- MESSAGE DISPLAY ---------- */
+/* ======================================================
+   MESSAGES
+====================================================== */
 
-function addMessage(role,text,analysis=null){
+function addMessage(role, text, analysis = null){
   const chat = currentChat();
   if(!chat) return null;
-
-  const msg = {id:id(),role,text:String(text),time:Date.now(),analysis};
+  const msg = { id:id(), role, text:String(text), time:Date.now(), analysis };
   chat.messages.push(msg);
   chat.updated = Date.now();
-  save();
-  renderMessages();
-  renderChats();
+  save(); renderMessages(); renderChats();
   return msg;
+}
+
+function addSystem(text){
+  const chat = currentChat();
+  if(!chat) return;
+  chat.messages.push({ id:id(), role:"system", text:String(text), time:Date.now() });
+  chat.updated = Date.now();
+  save(); renderMessages(); renderChats();
 }
 
 function renderMessages(){
   messageContainer.innerHTML = "";
-  const chat=currentChat();
-
-  if(!chat || !chat.messages.length){
-    showEmpty();
-    return;
-  }
-
+  const chat = currentChat();
+  if(!chat || !chat.messages.length){ showEmpty(); return; }
   chat.messages.forEach(renderMessage);
   scrollBottom();
 }
 
 function showEmpty(){
-  const empty=document.createElement("div");
-  empty.className="empty";
+  const empty = document.createElement("div");
+  empty.className = "empty";
 
-  const logo=document.createElement("img");
-  logo.src="logo.png";
-  logo.alt="Nexi";
-  logo.onerror=()=>logo.remove();
+  const logo = document.createElement("img");
+  logo.src = "logo.png"; logo.alt = "Nexi";
+  logo.onerror = () => logo.remove();
 
-  const heading=document.createElement("h2");
-  heading.textContent="Waar zullen we het over hebben?";
+  const heading = document.createElement("h2");
+  heading.textContent = "Waar zullen we het over hebben?";
 
-  const desc=document.createElement("p");
-  desc.textContent="Begin een gesprek met Nexi.";
+  const desc = document.createElement("p");
+  desc.textContent = "Nexi leert van elk antwoord dat jij geeft.";
 
-  const suggestions=document.createElement("div");
-  suggestions.className="suggestions";
+  const suggestions = document.createElement("div");
+  suggestions.className = "suggestions";
 
   [
     "Vertel me een leuk weetje",
-    "Help me met Frans",
     "Wat kun je allemaal?",
+    "Hoe leer jij eigenlijk?",
     "Leg iets simpel uit"
-  ].forEach(s=>{
-    const b=document.createElement("button");
-    b.className="suggestion";
-    b.textContent=s;
-    b.onclick=()=>{
-      input.value=s;
-      sendMessage();
-    };
+  ].forEach(s => {
+    const b = document.createElement("button");
+    b.className = "suggestion"; b.textContent = s;
+    b.onclick = () => { input.value = s; sendMessage(); };
     suggestions.appendChild(b);
   });
 
-  empty.append(logo,heading,desc,suggestions);
+  empty.append(logo, heading, desc, suggestions);
   messageContainer.appendChild(empty);
 }
 
 function renderMessage(msg){
-  const wrapper=document.createElement("div");
-  wrapper.className="message "+(msg.role==="user"?"user":"bot");
-
-  const avatar=document.createElement("div");
-  avatar.className="avatar";
-
-  if(msg.role==="bot"){
-    const img=document.createElement("img");
-    img.src="logo.png";
-    img.alt="Nexi";
-    img.onerror=()=>{avatar.textContent="N";};
-    avatar.appendChild(img);
-  }else{
-    avatar.textContent="J";
+  if(msg.role === "system"){
+    const el = document.createElement("div");
+    el.className = "system-msg";
+    el.textContent = msg.text;
+    messageContainer.appendChild(el);
+    return;
   }
 
-  const body=document.createElement("div");
-  body.className="body";
+  const wrapper = document.createElement("div");
+  wrapper.className = "message " + (msg.role === "user" ? "user" : "bot");
 
-  const name=document.createElement("div");
-  name.className="name";
-  name.textContent=(msg.role==="user"?"Jij":"Nexi")+" · "+time(msg.time);
+  const avatar = document.createElement("div");
+  avatar.className = "avatar";
+  if(msg.role === "bot"){
+    const img = document.createElement("img");
+    img.src = "logo.png"; img.alt = "Nexi";
+    img.onerror = () => { avatar.textContent = "N"; };
+    avatar.appendChild(img);
+  } else {
+    avatar.textContent = "J";
+  }
 
-  const bubble=document.createElement("div");
-  bubble.className="bubble";
-  renderTextSafely(bubble,msg.text);
+  const body = document.createElement("div");
+  body.className = "body";
 
-  body.append(name,bubble);
+  const name = document.createElement("div");
+  name.className = "name";
+  name.textContent = (msg.role === "user" ? "Jij" : "Nexi") + " · " + time(msg.time);
 
-  if(analysisMode && msg.analysis){
-    const panel=document.createElement("div");
-    panel.className="analysis";
-    const strong=document.createElement("strong");
-    strong.textContent="Analyse";
+  const bubble = document.createElement("div");
+  bubble.className = "bubble";
+  renderTextSafely(bubble, msg.text);
+
+  body.append(name, bubble);
+
+  if(analysisMode && msg.analysis?.length){
+    const panel = document.createElement("div");
+    panel.className = "analysis";
+    const strong = document.createElement("strong");
+    strong.textContent = "Analyse";
     panel.appendChild(strong);
-    msg.analysis.forEach(step=>{
-      const row=document.createElement("div");
-      row.textContent=(step.ok?"✓ ":"– ")+step.text;
+    msg.analysis.forEach(step => {
+      const row = document.createElement("div");
+      row.textContent = (step.ok ? "✓ " : "– ") + step.text;
       panel.appendChild(row);
     });
     body.appendChild(panel);
   }
 
-  wrapper.append(avatar,body);
+  // Actieknoppen (alleen symbolen)
+  const actions = document.createElement("div");
+  actions.className = "msg-actions";
+
+  const copyBtn = document.createElement("button");
+  copyBtn.textContent = "📋";
+  copyBtn.title = "Kopiëren";
+  copyBtn.setAttribute("aria-label","Kopiëren");
+  copyBtn.onclick = () => copyText(msg.text);
+  actions.appendChild(copyBtn);
+
+  if(msg.role === "bot"){
+    const learnBtn = document.createElement("button");
+    learnBtn.textContent = "📌";
+    learnBtn.title = "Leer dit als antwoord op de vorige vraag";
+    learnBtn.setAttribute("aria-label","Leer dit");
+    learnBtn.onclick = () => learnFromBotMessage(msg);
+    actions.appendChild(learnBtn);
+
+    const chat = currentChat();
+    const lastBot = chat && [...chat.messages].reverse().find(m => m.role === "bot");
+    if(lastBot && lastBot.id === msg.id){
+      const regenBtn = document.createElement("button");
+      regenBtn.textContent = "↻";
+      regenBtn.title = "Opnieuw antwoorden";
+      regenBtn.setAttribute("aria-label","Opnieuw");
+      regenBtn.onclick = () => regenerateLast();
+      actions.appendChild(regenBtn);
+    }
+  }
+
+  body.appendChild(actions);
+
+  wrapper.append(avatar, body);
   messageContainer.appendChild(wrapper);
 }
 
-function renderTextSafely(container,text){
-  const regex=/(https?:\/\/[^\s]+?\.(?:png|jpg|jpeg|gif|webp)(?:\?[^\s]*)?)/gi;
-  const parts=String(text).split(regex);
-
-  parts.forEach(part=>{
+function renderTextSafely(container, text){
+  const regex = /(https?:\/\/[^\s<]+?\.(?:png|jpe?g|gif|webp|svg)(?:\?[^\s<]*)?)/gi;
+  const parts = String(text).split(regex);
+  parts.forEach(part => {
     if(!part) return;
-    if(/^https?:\/\/.+\.(png|jpg|jpeg|gif|webp)(\?.*)?$/i.test(part)){
-      const img=document.createElement("img");
-      img.src=part;img.alt="Afbeelding";img.loading="lazy";
-      img.onerror=()=>img.remove();
+    if(/^https?:\/\/.+\.(png|jpe?g|gif|webp|svg)(\?.*)?$/i.test(part)){
+      const img = document.createElement("img");
+      img.src = part; img.alt = "Afbeelding"; img.loading = "lazy";
+      img.onerror = () => img.remove();
       container.appendChild(img);
-    }else{
+    } else {
       container.appendChild(document.createTextNode(part));
     }
   });
 }
 
-function scrollBottom(){
-  requestAnimationFrame(()=>messages.scrollTop=messages.scrollHeight);
+function scrollBottom(smooth){
+  if(smooth) messages.scrollTo({ top: messages.scrollHeight, behavior:"smooth" });
+  else requestAnimationFrame(() => messages.scrollTop = messages.scrollHeight);
 }
 
 function showThinking(){
-  const el=document.createElement("div");
-  el.className="message bot thinking";
-  el.id="thinking";
-  el.innerHTML=`
+  const el = document.createElement("div");
+  el.className = "message bot thinking";
+  el.id = "thinking";
+  el.innerHTML = `
     <div class="avatar"><img src="logo.png" onerror="this.parentElement.textContent='N'"></div>
     <div class="body">
       <div class="name">Nexi</div>
@@ -651,290 +845,472 @@ function showThinking(){
   return el;
 }
 
-/* ---------- REACTIES.TXT ---------- */
+/* ---------- KOPIËREN ---------- */
 
-async function loadResponses(){
+async function copyText(text){
   try{
-    const res=await fetch("https://raw.githubusercontent.com/jimisdebest/nexi/main/reacties.txt");
-    if(!res.ok) throw new Error("Geen reacties");
-    const text=await res.text();
-
-    qaDatabase=text.split(/\r?\n/).map(line=>{
-      const i=line.indexOf("=");
-      if(i<0) return null;
-      const question=line.slice(0,i).trim();
-      const answer=line.slice(i+1).trim();
-      if(!question||!answer) return null;
-      return {vraag:question.toLowerCase(),antwoord:answer};
-    }).filter(Boolean);
-  }catch(e){
-    console.warn("reacties.txt niet geladen:",e);
-    qaDatabase=[];
-  }
-}
-
-/* ---------- MATCHING ---------- */
-
-const stopWords=new Set([
-  "de","het","een","ik","je","jij","we","wij","ze","zij","mij","me",
-  "is","was","zijn","ben","heb","heeft","had","do","does","did","en","of",
-  "maar","dat","dit","wat","hoe","waar","wie","aan","in","op","voor","van",
-  "met","naar","the","a","an","and","or","are","you","i","it","to","please","can"
-]);
-
-function normalize(s){
-  return String(s).toLowerCase().replace(/[^\p{L}\p{N}\s]/gu," ").replace(/\s+/g," ").trim();
-}
-function words(s){
-  return normalize(s).split(" ").filter(w=>w.length>1&&!stopWords.has(w));
-}
-function score(a,b){
-  a=normalize(a);b=normalize(b);
-  if(!a||!b)return 0;
-  if(a===b)return 1;
-  const aw=words(a),bw=words(b);
-  if(!aw.length||!bw.length)return 0;
-  const set=new Set(bw);
-  const common=aw.filter(w=>set.has(w)).length;
-  let value=(common/Math.max(aw.length,bw.length))*.8;
-  if(a.includes(b)||b.includes(a))value+=.25;
-  aw.forEach(w=>{if(bw.some(x=>x!==w&&(x.includes(w)||w.includes(x))))value+=.15;});
-  return Math.min(1,value);
-}
-function bestMatch(db,text){
-  let best=null,highest=0;
-  for(const item of db){
-    const s=score(text,item.vraag);
-    if(s>highest){highest=s;best=item;}
-  }
-  return {match:best,score:highest};
-}
-
-/* ---------- ANSWER ENGINE ---------- */
-
-async function getAnswer(text){
-  const analysis=[
-    {text:"Zoeken in geleerde kennis",ok:true},
-    {text:"Zoeken in reacties.txt",ok:qaDatabase.length>0}
-  ];
-
-  const learned=bestMatch(data.learned,text);
-  const base=bestMatch(qaDatabase,text);
-
-  let match=null,scoreValue=0;
-  if(learned.match && learned.score>scoreValue){
-    match=learned.match;scoreValue=learned.score;
-  }
-  if(base.match && base.score>scoreValue){
-    match=base.match;scoreValue=base.score;
-  }
-
-  if(match && scoreValue>=.38){
-    analysis.push({text:"Een mogelijke match gevonden ("+Math.round(scoreValue*100)+"%)",ok:true});
-
-    if(scoreValue<.55){
-      return {
-        answer:"Ik heb iets gevonden dat misschien bij je vraag past:\n\n"+
-          match.antwoord+"\n\nIs dit wat je bedoelde?",
-        analysis
-      };
-    }
-    return {answer:match.antwoord,analysis};
-  }
-
-  analysis.push({text:"Geen passende match gevonden",ok:false});
-  return {
-    answer:"Ik weet nog niet precies hoe ik hierop moet antwoorden. Mijn opgeslagen kennis bevat geen goede match. Je kunt je vraag anders formuleren of mijn kennis uitbreiden.",
-    analysis
-  };
-}
-
-/* ---------- LEARNING ---------- */
-/* Nexi leert stilletjes uit vervolgcorrecties/antwoorden.
-   Geen melding wordt meer aan het gesprek toegevoegd. */
-
-function learn(previousBotText,userText){
-  if(!previousBotText||!userText)return false;
-
-  const question=normalize(previousBotText);
-  if(question.length<4)return false;
-
-  if(data.learned.some(x=>normalize(x.vraag)===question))return false;
-  if(qaDatabase.some(x=>normalize(x.vraag)===question))return false;
-
-  data.learned.push({
-    vraag:question,
-    antwoord:userText.trim(),
-    time:Date.now()
-  });
-  save();
-  return true;
-}
-
-/* ---------- SEND ---------- */
-
-async function sendMessage(){
-  if(thinking)return;
-  const text=input.value.trim();
-  if(!text)return;
-
-  if(!currentChatId) createChat("Nieuwe chat");
-  const chat=currentChat();
-  if(!chat)return;
-
-  const previousBot=[...chat.messages].reverse().find(m=>m.role==="bot");
-
-  addMessage("user",text);
-  input.value="";
-  resizeInput();
-  send.disabled=true;
-  thinking=true;
-
-  const typing=showThinking();
-  await new Promise(r=>setTimeout(r,300));
-
-  try{
-    const response=await getAnswer(text);
-    typing.remove();
-
-    if(previousBot) learn(previousBot.text,text);
-
-    // Geen automatische kennis-melding meer!
-    addMessage("bot",response.answer,response.analysis);
-  }catch(e){
-    typing.remove();
-    addMessage("bot","Er ging iets mis. Probeer het opnieuw.");
-    console.error(e);
-  }finally{
-    thinking=false;
-    send.disabled=false;
-    input.focus();
+    await navigator.clipboard.writeText(text);
+    toast("Gekopieerd");
+  }catch{
+    const ta = document.createElement("textarea");
+    ta.value = text; document.body.appendChild(ta);
+    ta.select(); document.execCommand("copy"); ta.remove();
+    toast("Gekopieerd");
   }
 }
 
 /* ======================================================
-   CENTRAAL TXT BACKUP — EXPORT / IMPORT
+   REACTIES.TXT
 ====================================================== */
 
-/*
-   nex i.txt bevat de volledige app-data in JSON-formaat.
-   JSON is bewust gekozen zodat alle chats, berichten, tijden
-   en geleerde kennis betrouwbaar terug te laden zijn.
-*/
+async function loadResponses(){
+  try{
+    const res = await fetch("https://raw.githubusercontent.com/jimisdebest/nexi/main/reacties.txt");
+    if(!res.ok) throw new Error("Geen reacties");
+    const text = await res.text();
+
+    qaDatabase = text.split(/\r?\n/).map(line => {
+      const i = line.indexOf("=");
+      if(i < 0) return null;
+      const vraag = line.slice(0, i).trim();
+      const antwoord = line.slice(i + 1).trim();
+      if(!vraag || !antwoord) return null;
+      return { vraag, antwoord };
+    }).filter(Boolean);
+  }catch(e){
+    console.warn("reacties.txt niet geladen:", e);
+    qaDatabase = [];
+  }
+}
+
+/* ======================================================
+   ANSWER ENGINE
+====================================================== */
+
+async function getAnswer(text){
+  for(const meta of metaAnswers){
+    if(meta.patterns.some(p => p.test(text))){
+      return {
+        answer: meta.answer,
+        analysis: [{ text:"Meta-vraag herkend", ok:true }],
+        confidence: 1
+      };
+    }
+  }
+
+  const analysis = [
+    { text:`Geleerde kennis (${data.learned.length} items)`, ok:true },
+    { text:`reacties.txt (${qaDatabase.length} items)`, ok:qaDatabase.length > 0 }
+  ];
+
+  const learned = bestMatch(data.learned, text);
+  const base    = bestMatch(qaDatabase, text);
+
+  let match = null, best = 0, source = "";
+
+  if(learned.match && learned.score > best){
+    match = learned.match; best = learned.score; source = "geleerde kennis";
+  }
+  if(base.match && base.score > best){
+    match = base.match; best = base.score; source = "reacties.txt";
+  }
+
+  if(match && best >= UNKNOWN_BELOW){
+    analysis.push({
+      text:`Match (${Math.round(best * 100)}%) uit ${source}`,
+      ok:true
+    });
+
+    if(best < CONFIDENT_FROM){
+      return {
+        answer:
+          "Ik heb iets gevonden dat misschien bij je vraag past:\n\n" +
+          match.antwoord +
+          "\n\nIs dit wat je bedoelde?",
+        analysis,
+        confidence: best
+      };
+    }
+    return { answer: match.antwoord, analysis, confidence: best };
+  }
+
+  analysis.push({ text:"Geen passende match gevonden", ok:false });
+  return {
+    answer:
+      "Dat weet ik nog niet.\n\n" +
+      "Typ in je volgende bericht gewoon het antwoord — dan onthoud ik het meteen. " +
+      "Of gebruik /leer vraag = antwoord.",
+    analysis,
+    confidence: 0
+  };
+}
+
+/* ======================================================
+   LEREN / VERGETEN
+====================================================== */
+
+function learnFromPair(vraag, antwoord){
+  vraag = String(vraag || "").trim();
+  antwoord = String(antwoord || "").trim();
+  if(!vraag || !antwoord) return false;
+
+  const nq = normalize(vraag);
+  if(nq.length < 3) return false;
+
+  const formattedQ = formatAnswer(vraag);
+  const formattedA = formatAnswer(antwoord);
+
+  // Overschrijf bestaand item met zelfde genormaliseerde vraag
+  data.learned = data.learned.filter(x => normalize(x.vraag) !== nq);
+  data.learned.push({ vraag: formattedQ, antwoord: formattedA, time: Date.now() });
+  save();
+  return true;
+}
+
+function forget(vraag){
+  const nq = normalize(vraag);
+  const before = data.learned.length;
+  data.learned = data.learned.filter(x => normalize(x.vraag) !== nq);
+  const changed = data.learned.length !== before;
+  if(changed) save();
+  return changed;
+}
+
+function learnFromBotMessage(botMsg){
+  const chat = currentChat();
+  if(!chat) return;
+  const idx = chat.messages.findIndex(m => m.id === botMsg.id);
+  if(idx < 0) return;
+
+  let prevUser = null;
+  for(let i = idx - 1; i >= 0; i--){
+    if(chat.messages[i].role === "user"){ prevUser = chat.messages[i]; break; }
+  }
+  if(!prevUser){ toast("Geen voorafgaande vraag gevonden"); return; }
+
+  if(learnFromPair(prevUser.text, botMsg.text)){
+    addSystem(`📌 Geleerd: "${truncate(prevUser.text, 60)}" → "${truncate(formatAnswer(botMsg.text), 80)}"`);
+    toast("Kennis opgeslagen");
+  } else {
+    toast("Kon niet leren");
+  }
+}
+
+/* ======================================================
+   COMMANDO'S
+====================================================== */
+
+function parseCommand(text){
+  const t = text.trim();
+  if(!t.startsWith("/")) return null;
+
+  if(t.startsWith("/leer ")){
+    const rest = t.slice(6);
+    const m = rest.match(/^(.*?)\s*(?:=>|=|:|\|)\s*([\s\S]+)$/);
+    if(!m) return { type:"unknown", hint:"Gebruik: /leer vraag = antwoord" };
+    return { type:"learn", vraag:m[1].trim(), antwoord:m[2].trim() };
+  }
+  if(t.startsWith("/verwijder ")){
+    return { type:"forget", vraag:t.slice(11).trim() };
+  }
+  if(t === "/lijst" || t === "/kennis"){
+    return { type:"list" };
+  }
+  if(t === "/help" || t === "/?"){
+    return { type:"help" };
+  }
+  return { type:"unknown", hint:"Onbekend commando. Typ /help." };
+}
+
+function handleCommand(cmd){
+  pendingLearn = null;
+
+  if(cmd.type === "learn"){
+    if(learnFromPair(cmd.vraag, cmd.antwoord)){
+      addSystem(`📌 Geleerd: "${truncate(cmd.vraag, 60)}" → "${truncate(formatAnswer(cmd.antwoord), 80)}"`);
+      toast("Kennis opgeslagen");
+    } else {
+      toast("Kon niet leren — vraag en antwoord mogen niet leeg zijn");
+    }
+    return;
+  }
+  if(cmd.type === "forget"){
+    if(forget(cmd.vraag)){
+      addSystem(`🗑️ Vergeten: "${truncate(cmd.vraag, 60)}"`);
+      toast("Kennis verwijderd");
+    } else {
+      toast("Niets gevonden om te vergeten");
+    }
+    return;
+  }
+  if(cmd.type === "list"){
+    if(!data.learned.length){
+      addSystem("📚 Geen geleerde kennis opgeslagen.");
+    } else {
+      const recent = data.learned.slice(-10).reverse();
+      const lines = recent.map((x, i) =>
+        `${i + 1}. ${truncate(x.vraag, 60)} → ${truncate(x.antwoord, 80)}`
+      );
+      addSystem(`📚 Laatste ${recent.length} geleerde items:\n${lines.join("\n")}`);
+    }
+    return;
+  }
+  if(cmd.type === "help"){
+    addSystem(
+      "Nexi commando's:\n" +
+      "/leer vraag = antwoord  — iets nieuws leren\n" +
+      "/verwijder vraag         — iets vergeten\n" +
+      "/lijst                   — geleerde kennis tonen\n" +
+      "/help                    — deze uitleg\n\n" +
+      "Automatisch leren: als ik iets niet weet, typ je gewoon het antwoord in je volgende bericht."
+    );
+    return;
+  }
+  if(cmd.type === "unknown"){
+    toast(cmd.hint || "Onbekend commando");
+  }
+}
+
+/* ======================================================
+   SEND / AUTO-LEARN / REGENERATE
+====================================================== */
+
+async function sendMessage(){
+  if(thinking) return;
+  const text = input.value.trim();
+  if(!text) return;
+
+  if(!currentChatId) createChat("Nieuwe chat");
+
+  const cmd = parseCommand(text);
+  if(cmd){
+    input.value = ""; resizeInput();
+    handleCommand(cmd);
+    return;
+  }
+
+  // ---- AUTO-LEREN: vorige onbeantwoorde vraag + dit bericht = kennis ----
+  if(pendingLearn && !looksLikeQuestion(text)){
+    const lower = text.toLowerCase().trim();
+    const tooShort = text.length < 3;
+    const trivial = SKIP_LEARN.has(lower);
+
+    if(!tooShort && !trivial){
+      const question = pendingLearn.question;
+      if(learnFromPair(question, text)){
+        addMessage("user", text);
+        addSystem(`📌 Geleerd: "${truncate(question, 60)}" → "${truncate(formatAnswer(text), 80)}"`);
+        input.value = "";
+        resizeInput();
+        pendingLearn = null;
+        return;
+      }
+    }
+  }
+
+  // Nieuwe vraag → oude pendingLearn laten vallen
+  if(pendingLearn) pendingLearn = null;
+
+  addMessage("user", text);
+  input.value = "";
+  resizeInput();
+  await runAnswer(text);
+}
+
+async function runAnswer(userText){
+  thinking = true;
+  send.disabled = true;
+  const typing = showThinking();
+  await new Promise(r => setTimeout(r, 300));
+
+  try{
+    const response = await getAnswer(userText);
+    typing.remove();
+    addMessage("bot", response.answer, response.analysis);
+
+    // Onthoud de vraag als het antwoord onzeker is
+    if(response.confidence < CONFIDENT_FROM){
+      pendingLearn = { question: userText, time: Date.now() };
+    } else {
+      pendingLearn = null;
+    }
+  }catch(e){
+    typing.remove();
+    addMessage("bot", "Er ging iets mis. Probeer het opnieuw.");
+    console.error(e);
+  }finally{
+    thinking = false;
+    send.disabled = false;
+    input.focus();
+  }
+}
+
+async function regenerateLast(){
+  if(thinking) return;
+  const chat = currentChat();
+  if(!chat) return;
+
+  let lastBotIdx = -1;
+  for(let i = chat.messages.length - 1; i >= 0; i--){
+    if(chat.messages[i].role === "bot"){ lastBotIdx = i; break; }
+  }
+  if(lastBotIdx < 0) return;
+
+  let lastUserIdx = -1;
+  for(let i = lastBotIdx - 1; i >= 0; i--){
+    if(chat.messages[i].role === "user"){ lastUserIdx = i; break; }
+  }
+  if(lastUserIdx < 0) return;
+
+  const userText = chat.messages[lastUserIdx].text;
+  chat.messages.splice(lastBotIdx, 1);
+  save(); renderMessages();
+
+  await runAnswer(userText);
+}
+
+/* ======================================================
+   EXPORT / IMPORT
+====================================================== */
 
 function exportAll(){
-  const backup={
-    marker:BACKUP_MARKER,
-    version:1,
-    exportedAt:new Date().toISOString(),
-    chats:data.chats,
-    learned:data.learned
+  const backup = {
+    marker: BACKUP_MARKER,
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    chats: data.chats,
+    learned: data.learned
   };
-
-  const contents=
-    "NEXI BACKUP FILE\n"+
-    "Dit bestand bevat chats en geleerde kennis van Nexi.\n"+
-    "Verander de gegevens hieronder bij voorkeur niet handmatig.\n\n"+
-    JSON.stringify(backup,null,2);
-
-  download("nexi.txt",contents);
-  toast("Nexi.txt is geëxporteerd");
+  const contents =
+    "NEXI BACKUP FILE\n" +
+    "Dit bestand bevat chats en geleerde kennis van Nexi.\n" +
+    "Verander de gegevens hieronder bij voorkeur niet handmatig.\n\n" +
+    JSON.stringify(backup, null, 2);
+  download("nexi.txt", contents);
+  toast("nexi.txt geëxporteerd");
 }
 
 function exportChat(chatId){
-  const chat=data.chats.find(c=>c.id===chatId);
-  if(!chat)return;
-
-  const backup={
-    marker:"NEXI SINGLE CHAT",
-    version:1,
-    chat
-  };
-
-  download(safeFilename(chat.title)+".txt",
-    "NEXI SINGLE CHAT\n\n"+JSON.stringify(backup,null,2));
+  const chat = data.chats.find(c => c.id === chatId);
+  if(!chat) return;
+  const backup = { marker:"NEXI SINGLE CHAT", version:1, chat };
+  download(
+    safeFilename(chat.title) + ".txt",
+    "NEXI SINGLE CHAT\n\n" + JSON.stringify(backup, null, 2)
+  );
   toast("Chat geëxporteerd");
 }
 
-function download(filename,text){
-  const blob=new Blob([text],{type:"text/plain;charset=utf-8"});
-  const url=URL.createObjectURL(blob);
-  const a=document.createElement("a");
-  a.href=url;a.download=filename;
-  document.body.appendChild(a);
-  a.click();a.remove();
-  setTimeout(()=>URL.revokeObjectURL(url),1000);
+function exportKnowledge(){
+  const text = "NEXI KNOWLEDGE ONLY\n\n" + JSON.stringify(data.learned, null, 2);
+  download("nexi-kennis.txt", text);
+  toast("Kennis geëxporteerd");
+}
+
+function download(filename, text){
+  const blob = new Blob([text], { type:"text/plain;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function sanitizeChat(chat){
+  if(!chat || typeof chat !== "object") return null;
+  return {
+    id: String(chat.id || id()),
+    title: String(chat.title || "Naamloos").slice(0, 100),
+    created: Number(chat.created) || Date.now(),
+    updated: Number(chat.updated) || Date.now(),
+    messages: (Array.isArray(chat.messages) ? chat.messages : [])
+      .map(sanitizeMessage).filter(Boolean)
+  };
+}
+
+function sanitizeMessage(m){
+  if(!m || typeof m !== "object") return null;
+  const role = ["user","bot","system"].includes(m.role) ? m.role : "bot";
+  return {
+    id: String(m.id || id()),
+    role,
+    text: String(m.text ?? ""),
+    time: Number(m.time) || Date.now(),
+    analysis: Array.isArray(m.analysis)
+      ? m.analysis.map(s => ({ text:String(s?.text ?? ""), ok:!!s?.ok }))
+      : null
+  };
 }
 
 function importBackupFile(file){
-  if(!file)return;
-
-  const reader=new FileReader();
-  reader.onload=()=>{
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
     try{
-      const raw=String(reader.result);
-      const start=raw.indexOf("{");
-      if(start<0)throw new Error("Geen JSON gevonden");
+      const raw = String(reader.result);
+      const start = raw.indexOf("{");
+      if(start < 0) throw new Error("Geen JSON gevonden");
+      const parsed = JSON.parse(raw.slice(start));
 
-      const parsed=JSON.parse(raw.slice(start));
-
-      // Full backup
-      if(parsed.marker===BACKUP_MARKER){
-        if(!Array.isArray(parsed.chats)||!Array.isArray(parsed.learned)){
-          throw new Error("Backup mist chats of kennis");
-        }
+      if(parsed.marker === BACKUP_MARKER){
+        const chats = (Array.isArray(parsed.chats) ? parsed.chats : [])
+          .map(sanitizeChat).filter(Boolean);
+        const learned = (Array.isArray(parsed.learned) ? parsed.learned : [])
+          .filter(x => x && x.vraag && x.antwoord)
+          .map(x => ({
+            vraag: String(x.vraag),
+            antwoord: String(x.antwoord),
+            time: Number(x.time) || Date.now()
+          }));
 
         if(!confirm(
-          "Deze import vervangt je huidige chats en geleerde kennis.\n\n"+
-          "Doorgaan?"
-        ))return;
+          "Deze import vervangt je huidige chats en geleerde kennis.\n\n" +
+          `Het bestand bevat ${chats.length} chats en ${learned.length} kennis-items.\n\nDoorgaan?`
+        )) return;
 
-        data={
-          version:1,
-          chats:parsed.chats,
-          learned:parsed.learned
-        };
+        data = { version:1, chats, learned };
         save();
-
-        currentChatId=data.chats[0]?.id||null;
-        if(!currentChatId)createChat("Nieuwe chat");
-        renderChats();renderMessages();updateHeader();
-        toast("Nexi backup volledig geladen");
+        currentChatId = data.chats[0]?.id || null;
+        if(!currentChatId) createChat("Nieuwe chat");
+        else { renderChats(); renderMessages(); updateHeader(); }
+        toast("Backup volledig geladen");
         return;
       }
 
-      // Single chat import
-      if(parsed.marker==="NEXI SINGLE CHAT" && parsed.chat){
-        const chat=parsed.chat;
-        if(!Array.isArray(chat.messages))chat.messages=[];
-        chat.id=id();
+      if(parsed.marker === "NEXI SINGLE CHAT" && parsed.chat){
+        const chat = sanitizeChat(parsed.chat);
+        if(!chat) throw new Error("Chat is ongeldig");
+        chat.id = id();
         data.chats.unshift(chat);
-        currentChatId=chat.id;
-        save();renderChats();renderMessages();updateHeader();
+        currentChatId = chat.id;
+        save(); renderChats(); renderMessages(); updateHeader();
         toast("Chat geïmporteerd");
         return;
       }
 
       throw new Error("Dit is geen geldig Nexi-backupbestand");
     }catch(e){
-      alert("Importeren mislukt:\n"+e.message);
+      alert("Importeren mislukt:\n" + e.message);
     }
   };
   reader.readAsText(file);
 }
 
-/* ---------- SETTINGS ---------- */
+/* ======================================================
+   SETTINGS
+====================================================== */
 
 function settings(){
-  $("modalRoot").innerHTML=`
+  $("modalRoot").innerHTML = `
     <div class="backdrop">
       <div class="modal">
         <h3>Nexi instellingen</h3>
-        <p>Beheer je chats en centrale backupbestand.</p>
+        <p>Beheer je chats, kennis en backups.</p>
         <div class="settings-buttons">
-          <button class="btn" id="backupExport">↓ &nbsp; Alles exporteren als nexi.txt</button>
-          <button class="btn" id="backupImport">↑ &nbsp; Backupbestand importeren</button>
+          <button class="btn" id="backupExport">↓ &nbsp; Alles exporteren (nexi.txt)</button>
+          <button class="btn" id="backupImport">↑ &nbsp; Backup importeren</button>
           <button class="btn" id="learnExport">↓ &nbsp; Alleen kennis exporteren</button>
+          <button class="btn" id="learnView">👁 &nbsp; Geleerde kennis bekijken</button>
           <button class="btn danger" id="clearLearned">⌫ &nbsp; Geleerde kennis wissen</button>
           <button class="btn danger" id="clearChats">⌫ &nbsp; Alle chats verwijderen</button>
         </div>
@@ -942,48 +1318,72 @@ function settings(){
       </div>
     </div>`;
 
-  $("closeSettings").onclick=()=> $("modalRoot").innerHTML="";
-  $("backupExport").onclick=()=>{exportAll();$("modalRoot").innerHTML="";};
-  $("backupImport").onclick=()=>{
-    $("modalRoot").innerHTML="";
-    $("backupInput").click();
-  };
-  $("learnExport").onclick=()=>{exportKnowledge();$("modalRoot").innerHTML="";};
-  $("clearLearned").onclick=()=>{
+  $("closeSettings").onclick = () => $("modalRoot").innerHTML = "";
+  $("backupExport").onclick = () => { exportAll(); $("modalRoot").innerHTML = ""; };
+  $("backupImport").onclick = () => { $("modalRoot").innerHTML = ""; $("backupInput").click(); };
+  $("learnExport").onclick = () => { exportKnowledge(); $("modalRoot").innerHTML = ""; };
+  $("learnView").onclick = showKnowledge;
+  $("clearLearned").onclick = () => {
     if(confirm("Alle geleerde kennis verwijderen?")){
-      data.learned=[];save();toast("Kennis verwijderd");
+      data.learned = []; save(); toast("Kennis verwijderd");
+      $("modalRoot").innerHTML = "";
     }
   };
-  $("clearChats").onclick=()=>{
+  $("clearChats").onclick = () => {
     if(confirm("Alle chats verwijderen?")){
-      data.chats=[];currentChatId=null;
+      data.chats = []; currentChatId = null; pendingLearn = null;
       createChat("Nieuwe chat");
+      $("modalRoot").innerHTML = "";
       toast("Chats verwijderd");
     }
   };
 }
 
-function exportKnowledge(){
-  const text="NEXI KNOWLEDGE ONLY\n\n"+JSON.stringify(data.learned,null,2);
-  download("nexi-kennis.txt",text);
+function showKnowledge(){
+  const items = data.learned.slice().reverse();
+  const body = items.length
+    ? items.map((x, i) => `
+        <div class="kb-item">
+          <div class="kb-q">${escapeHTML(x.vraag)}</div>
+          <div class="kb-a">${escapeHTML(x.antwoord)}</div>
+          <button class="btn" data-kb-del="${i}" style="margin-top:8px">⌫ Verwijder</button>
+        </div>`).join("")
+    : "<p>Geen geleerde kennis opgeslagen.</p>";
+
+  $("modalRoot").innerHTML = `
+    <div class="backdrop">
+      <div class="modal" style="max-width:560px">
+        <h3>Geleerde kennis (${items.length})</h3>
+        <div class="kb-list">${body}</div>
+        <div class="actions"><button class="btn primary" id="closeKb">Sluiten</button></div>
+      </div>
+    </div>`;
+
+  $("closeKb").onclick = () => $("modalRoot").innerHTML = "";
+  $("modalRoot").querySelectorAll("[data-kb-del]").forEach(b => {
+    b.onclick = () => {
+      const idx = Number(b.dataset.kbDel);
+      const item = items[idx];
+      if(item) forget(item.vraag);
+      showKnowledge();
+    };
+  });
 }
 
-/* ---------- THEME ---------- */
+/* ======================================================
+   THEME / SIDEBAR / TEXTAREA
+====================================================== */
 
 function toggleTheme(){
-  const current=document.documentElement.getAttribute("data-theme")||"light";
-  const next=current==="dark"?"light":"dark";
-  document.documentElement.setAttribute("data-theme",next);
-  localStorage.setItem(THEME_KEY,next);
+  const cur = document.documentElement.getAttribute("data-theme") || "light";
+  const next = cur === "dark" ? "light" : "dark";
+  document.documentElement.setAttribute("data-theme", next);
+  localStorage.setItem(THEME_KEY, next);
 }
-
 function loadTheme(){
-  const saved=localStorage.getItem(THEME_KEY);
-  if(saved)document.documentElement.setAttribute("data-theme",saved);
+  const saved = localStorage.getItem(THEME_KEY);
+  if(saved) document.documentElement.setAttribute("data-theme", saved);
 }
-
-/* ---------- MOBILE SIDEBAR ---------- */
-
 function openSidebar(){
   $("sidebar").classList.add("open");
   $("overlay").classList.remove("hidden");
@@ -992,72 +1392,74 @@ function closeSidebar(){
   $("sidebar").classList.remove("open");
   $("overlay").classList.add("hidden");
 }
-
-/* ---------- TEXTAREA ---------- */
-
 function resizeInput(){
-  input.style.height="auto";
-  input.style.height=Math.min(input.scrollHeight,150)+"px";
+  input.style.height = "auto";
+  input.style.height = Math.min(input.scrollHeight, 150) + "px";
 }
 
-/* ---------- EXPORT CURRENT CHAT ---------- */
+/* ======================================================
+   EVENTS
+====================================================== */
 
-function exportCurrent(){
-  if(currentChatId)exportChat(currentChatId);
-}
-
-/* ---------- EVENTS ---------- */
-
-$("newChat").onclick=()=>createChat();
-$("renameCurrent").onclick=()=>currentChatId&&renameChat(currentChatId);
-$("theme").onclick=toggleTheme;
-$("settings").onclick=settings;
-$("mobileMenu").onclick=openSidebar;
-$("overlay").onclick=closeSidebar;
-$("exportChat").onclick=exportCurrent;
-$("analysisToggle").onclick=()=>{
-  analysisMode=!analysisMode;
-  $("analysisToggle").textContent=analysisMode?"✓ Analyse":"⌘ Analyse";
+$("newChat").onclick = () => createChat();
+$("renameCurrent").onclick = () => currentChatId && renameChat(currentChatId);
+$("theme").onclick = toggleTheme;
+$("settings").onclick = settings;
+$("mobileMenu").onclick = openSidebar;
+$("overlay").onclick = closeSidebar;
+$("exportChat").onclick = () => currentChatId && exportChat(currentChatId);
+$("analysisToggle").onclick = () => {
+  analysisMode = !analysisMode;
+  $("analysisToggle").textContent = analysisMode ? "✓ Analyse" : "⌘ Analyse";
   renderMessages();
-  toast(analysisMode?"Analyse ingeschakeld":"Analyse uitgeschakeld");
+  toast(analysisMode ? "Analyse aan" : "Analyse uit");
 };
 
-$("search").oninput=renderChats;
-send.onclick=sendMessage;
-input.oninput=resizeInput;
-input.onkeydown=e=>{
-  if(e.key==="Enter"&&!e.shiftKey){
-    e.preventDefault();
-    sendMessage();
-  }
+$("search").oninput = renderChats;
+send.onclick = sendMessage;
+input.oninput = resizeInput;
+input.onkeydown = e => {
+  if(e.key === "Enter" && !e.shiftKey){ e.preventDefault(); sendMessage(); }
 };
 
-$("backupInput").onchange=e=>{
+$("backupInput").onchange = e => {
   importBackupFile(e.target.files[0]);
-  e.target.value="";
+  e.target.value = "";
 };
 
-/* ---------- INITIALIZE ---------- */
+messages.addEventListener("scroll", () => {
+  const nearBottom =
+    messages.scrollTop + messages.clientHeight >
+    messages.scrollHeight - 200;
+  jumpBottom.classList.toggle("visible", !nearBottom);
+});
+jumpBottom.onclick = () => scrollBottom(true);
+
+/* ---------- INIT ---------- */
 
 async function init(){
   loadTheme();
 
   try{
-    const stored=JSON.parse(localStorage.getItem(STORAGE)||"null");
+    const stored = JSON.parse(localStorage.getItem(STORAGE) || "null");
     if(stored && Array.isArray(stored.chats) && Array.isArray(stored.learned)){
-      data=stored;
+      data = {
+        version: 1,
+        chats: stored.chats.map(sanitizeChat).filter(Boolean),
+        learned: stored.learned
+      };
     }
   }catch(e){
-    console.warn("Lokale data kon niet gelezen worden",e);
+    console.warn("Lokale data kon niet gelezen worden", e);
   }
 
   await loadResponses();
 
   if(!data.chats.length){
     createChat("Nieuwe chat");
-  }else{
-    currentChatId=data.chats[0].id;
-    renderChats();renderMessages();updateHeader();
+  } else {
+    currentChatId = data.chats[0].id;
+    renderChats(); renderMessages(); updateHeader();
   }
   resizeInput();
 }
