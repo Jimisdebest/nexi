@@ -1,1952 +1,538 @@
+
 <!DOCTYPE html>
 <html lang="nl">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Nexi Chat</title>
-<link rel="icon" href="logo.png">
-
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Nexi</title>
 <style>
-:root {
-    --bg: #f4f5f8;
-    --panel: #ffffff;
-    --panel2: #f7f8fa;
-    --text: #20232c;
-    --muted: #858b98;
-    --border: #e7e9ee;
-    --accent: #5878f6;
-    --accent-soft: #edf1ff;
-    --user: #5878f6;
-    --user-text: #ffffff;
-    --bot: #f1f2f5;
-    --danger: #e45656;
-    --shadow: 0 8px 30px rgba(30,40,70,.05);
-}
-
-[data-theme="dark"] {
-    --bg: #15171c;
-    --panel: #1d2026;
-    --panel2: #252830;
-    --text: #f0f1f4;
-    --muted: #959ba8;
-    --border: #30343d;
-    --accent: #8199ff;
-    --accent-soft: #2c3450;
-    --user: #657ff0;
-    --user-text: white;
-    --bot: #2a2e36;
-    --danger: #f16c6c;
-    --shadow: 0 8px 30px rgba(0,0,0,.12);
-}
-
-* {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-}
-
-body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    height: 100dvh;
-    overflow: hidden;
-}
-
-button, input, textarea {
-    font: inherit;
-}
-
-button {
-    cursor: pointer;
-}
-
-.app {
-    display: flex;
-    height: 100dvh;
-    width: 100%;
-    overflow: hidden;
-}
-
-/* SIDEBAR */
-
-.sidebar {
-    width: 280px;
-    min-width: 240px;
-    background: var(--panel);
-    border-right: 1px solid var(--border);
-    display: flex;
-    flex-direction: column;
-    padding: 18px 14px;
-    transition: transform .25s ease, width .25s ease;
-    z-index: 5;
-}
-
-.brand {
-    display: flex;
-    align-items: center;
-    gap: 11px;
-    padding: 4px 7px 22px;
-}
-
-.brand-logo {
-    width: 39px;
-    height: 39px;
-    border-radius: 13px;
-    object-fit: cover;
-    background: var(--panel2);
-}
-
-.brand-name {
-    font-size: 20px;
-    font-weight: 750;
-    letter-spacing: -.7px;
-}
-
-.brand-sub {
-    font-size: 11px;
-    color: var(--muted);
-    margin-top: 2px;
-}
-
-.new-chat-btn {
-    width: 100%;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    border: 1px solid var(--border);
-    background: var(--panel);
-    color: var(--text);
-    border-radius: 12px;
-    padding: 12px;
-    transition: .2s;
-}
-
-.new-chat-btn:hover {
-    background: var(--accent-soft);
-    border-color: var(--accent);
-}
-
-.new-chat-btn .plus {
-    font-size: 20px;
-    color: var(--accent);
-}
-
-.search-box {
-    margin: 17px 0 18px;
-    position: relative;
-}
-
-.search-box input {
-    width: 100%;
-    background: var(--panel2);
-    border: 1px solid transparent;
-    border-radius: 10px;
-    padding: 10px 12px 10px 35px;
-    outline: none;
-    color: var(--text);
-    font-size: 13px;
-}
-
-.search-box input:focus {
-    border-color: var(--accent);
-}
-
-.search-icon {
-    position: absolute;
-    left: 12px;
-    top: 10px;
-    color: var(--muted);
-    font-size: 14px;
-}
-
-.section-label {
-    padding: 0 8px 9px;
-    font-size: 11px;
-    font-weight: 700;
-    color: var(--muted);
-    letter-spacing: .7px;
-    text-transform: uppercase;
-}
-
-.chat-list {
-    flex: 1;
-    overflow-y: auto;
-    min-height: 0;
-}
-
-.chat-item {
-    position: relative;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 11px 10px;
-    border-radius: 11px;
-    cursor: pointer;
-    margin-bottom: 3px;
-    transition: background .15s;
-}
-
-.chat-item:hover {
-    background: var(--panel2);
-}
-
-.chat-item.active {
-    background: var(--accent-soft);
-}
-
-.chat-item-icon {
-    width: 33px;
-    height: 33px;
-    border-radius: 10px;
-    background: var(--panel2);
-    display: grid;
-    place-items: center;
-    flex-shrink: 0;
-    font-size: 15px;
-}
-
-.chat-item.active .chat-item-icon {
-    background: var(--accent);
-    color: white;
-}
-
-.chat-item-content {
-    min-width: 0;
-    flex: 1;
-}
-
-.chat-item-title {
-    font-size: 13px;
-    font-weight: 600;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.chat-item-preview {
-    font-size: 11px;
-    color: var(--muted);
-    margin-top: 3px;
-    overflow: hidden;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-}
-
-.chat-more {
-    opacity: 0;
-    border: 0;
-    background: transparent;
-    color: var(--muted);
-    font-size: 19px;
-    padding: 3px 6px;
-    border-radius: 7px;
-}
-
-.chat-item:hover .chat-more,
-.chat-item.active .chat-more {
-    opacity: 1;
-}
-
-.chat-more:hover {
-    background: var(--border);
-}
-
-.sidebar-bottom {
-    padding-top: 12px;
-    border-top: 1px solid var(--border);
-    margin-top: 10px;
-}
-
-.profile {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 10px 8px;
-}
-
-.profile-avatar {
-    width: 34px;
-    height: 34px;
-    border-radius: 50%;
-    background: var(--accent-soft);
-    color: var(--accent);
-    display: grid;
-    place-items: center;
-    font-weight: 700;
-}
-
-.profile-text {
-    flex: 1;
-}
-
-.profile-name {
-    font-size: 13px;
-    font-weight: 600;
-}
-
-.profile-status {
-    font-size: 11px;
-    color: var(--muted);
-    margin-top: 3px;
-}
-
-.icon-btn {
-    width: 37px;
-    height: 37px;
-    border: 0;
-    background: transparent;
-    border-radius: 10px;
-    color: var(--muted);
-    display: grid;
-    place-items: center;
-    font-size: 17px;
-    transition: .15s;
-}
-
-.icon-btn:hover {
-    background: var(--panel2);
-    color: var(--text);
-}
-
-/* MAIN */
-
-.main {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    min-width: 0;
-    height: 100%;
-}
-
-.topbar {
-    height: 68px;
-    min-height: 68px;
-    display: flex;
-    align-items: center;
-    padding: 0 24px;
-    border-bottom: 1px solid var(--border);
-    background: var(--panel);
-    gap: 12px;
-}
-
-.mobile-menu {
-    display: none;
-}
-
-.top-chat-title {
-    font-weight: 650;
-    font-size: 15px;
-}
-
-.top-chat-subtitle {
-    color: var(--muted);
-    font-size: 12px;
-    margin-top: 3px;
-}
-
-.topbar-spacer {
-    flex: 1;
-}
-
-.status-dot {
-    width: 8px;
-    height: 8px;
-    background: #49c58b;
-    border-radius: 50%;
-}
-
-.top-status {
-    display: flex;
-    align-items: center;
-    gap: 7px;
-    font-size: 12px;
-    color: var(--muted);
-}
-
-/* MESSAGES */
-
-.messages {
-    flex: 1;
-    overflow-y: auto;
-    scroll-behavior: smooth;
-    padding: 28px 20px;
-}
-
-.message-container {
-    max-width: 850px;
-    margin: 0 auto;
-    display: flex;
-    flex-direction: column;
-    gap: 22px;
-}
-
-.message {
-    display: flex;
-    align-items: flex-start;
-    gap: 11px;
-    animation: appear .2s ease;
-}
-
-.message.user {
-    flex-direction: row-reverse;
-}
-
-.avatar {
-    width: 34px;
-    height: 34px;
-    flex-shrink: 0;
-    border-radius: 11px;
-    background: var(--panel);
-    border: 1px solid var(--border);
-    display: grid;
-    place-items: center;
-    overflow: hidden;
-    font-size: 13px;
-}
-
-.avatar img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-
-.message-body {
-    max-width: min(75%, 650px);
-}
-
-.message.user .message-body {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-}
-
-.message-name {
-    font-size: 11px;
-    font-weight: 600;
-    color: var(--muted);
-    margin: 0 4px 6px;
-}
-
-.bubble {
-    border-radius: 17px;
-    padding: 12px 15px;
-    line-height: 1.6;
-    font-size: 14px;
-    white-space: pre-wrap;
-    overflow-wrap: anywhere;
-}
-
-.message.bot .bubble {
-    background: var(--bot);
-    border-top-left-radius: 5px;
-}
-
-.message.user .bubble {
-    background: var(--user);
-    color: var(--user-text);
-    border-top-right-radius: 5px;
-}
-
-.bubble img {
-    max-width: 100%;
-    max-height: 340px;
-    border-radius: 12px;
-    display: block;
-    margin-top: 8px;
-}
-
-.bubble a {
-    color: inherit;
-    text-decoration: underline;
-}
-
-.analysis {
-    background: var(--panel);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 11px 14px;
-    font-size: 12px;
-    color: var(--muted);
-    margin-top: 8px;
-}
-
-.analysis-title {
-    font-weight: 700;
-    margin-bottom: 8px;
-    color: var(--text);
-}
-
-.analysis-row {
-    display: flex;
-    gap: 8px;
-    margin-top: 5px;
-}
-
-.analysis-check {
-    color: #48bd86;
-}
-
-.thinking .bubble {
-    color: var(--muted);
-}
-
-.typing-dots {
-    display: inline-flex;
-    gap: 4px;
-    margin-left: 5px;
-}
-
-.typing-dots span {
-    width: 5px;
-    height: 5px;
-    border-radius: 50%;
-    background: var(--muted);
-    animation: pulse 1s infinite;
-}
-
-.typing-dots span:nth-child(2) { animation-delay: .15s; }
-.typing-dots span:nth-child(3) { animation-delay: .3s; }
-
-/* EMPTY STATE */
-
-.empty-state {
-    max-width: 640px;
-    margin: auto;
-    min-height: 100%;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    padding: 35px 15px;
-}
-
-.empty-logo {
-    width: 70px;
-    height: 70px;
-    border-radius: 23px;
-    background: var(--panel);
-    border: 1px solid var(--border);
-    box-shadow: var(--shadow);
-    object-fit: cover;
-    margin-bottom: 22px;
-}
-
-.empty-state h2 {
-    font-size: clamp(24px, 4vw, 34px);
-    letter-spacing: -1px;
-    font-weight: 750;
-}
-
-.empty-state p {
-    color: var(--muted);
-    margin-top: 9px;
-    font-size: 14px;
-}
-
-.suggestions {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 9px;
-    margin-top: 27px;
-}
-
-.suggestion {
-    border: 1px solid var(--border);
-    background: var(--panel);
-    color: var(--text);
-    padding: 10px 13px;
-    border-radius: 12px;
-    font-size: 12px;
-    transition: .15s;
-}
-
-.suggestion:hover {
-    background: var(--accent-soft);
-    border-color: var(--accent);
-}
-
-/* INPUT */
-
-.composer-wrap {
-    background: var(--bg);
-    padding: 12px 20px 18px;
-}
-
-.composer {
-    max-width: 850px;
-    margin: 0 auto;
-    background: var(--panel);
-    border: 1px solid var(--border);
-    border-radius: 17px;
-    box-shadow: var(--shadow);
-    transition: border .2s;
-}
-
-.composer:focus-within {
-    border-color: var(--accent);
-}
-
-.composer textarea {
-    width: 100%;
-    resize: none;
-    min-height: 52px;
-    max-height: 160px;
-    padding: 15px 16px 8px;
-    border: 0;
-    outline: none;
-    background: transparent;
-    color: var(--text);
-    font-size: 14px;
-    line-height: 1.5;
-}
-
-.composer textarea::placeholder {
-    color: var(--muted);
-}
-
-.composer-bottom {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 7px 10px 10px;
-}
-
-.composer-tools {
-    display: flex;
-    gap: 4px;
-}
-
-.tool-button {
-    border: 0;
-    background: transparent;
-    color: var(--muted);
-    padding: 7px 10px;
-    border-radius: 9px;
-    font-size: 12px;
-    transition: .15s;
-}
-
-.tool-button:hover {
-    background: var(--panel2);
-    color: var(--text);
-}
-
-.send-button {
-    border: 0;
-    background: var(--accent);
-    color: white;
-    width: 36px;
-    height: 36px;
-    border-radius: 11px;
-    display: grid;
-    place-items: center;
-    font-size: 17px;
-    transition: .15s;
-}
-
-.send-button:hover {
-    filter: brightness(.95);
-    transform: translateY(-1px);
-}
-
-.send-button:disabled {
-    opacity: .4;
-    cursor: default;
-    transform: none;
-}
-
-.disclaimer {
-    max-width: 850px;
-    margin: 9px auto 0;
-    text-align: center;
-    color: var(--muted);
-    font-size: 10px;
-}
-
-/* MODALS & MENUS */
-
-.modal-backdrop {
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,.35);
-    backdrop-filter: blur(4px);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
-    z-index: 50;
-}
-
-.modal {
-    width: 100%;
-    max-width: 400px;
-    border-radius: 20px;
-    padding: 22px;
-    background: var(--panel);
-    border: 1px solid var(--border);
-    box-shadow: 0 20px 60px rgba(0,0,0,.2);
-    animation: appear .15s ease;
-}
-
-.modal h3 {
-    font-size: 18px;
-    margin-bottom: 7px;
-}
-
-.modal p {
-    color: var(--muted);
-    font-size: 13px;
-    margin-bottom: 16px;
-    line-height: 1.5;
-}
-
-.modal input {
-    width: 100%;
-    background: var(--panel2);
-    border: 1px solid var(--border);
-    border-radius: 11px;
-    padding: 12px;
-    color: var(--text);
-    outline: none;
-    margin-bottom: 15px;
-}
-
-.modal input:focus {
-    border-color: var(--accent);
-}
-
-.modal-actions {
-    display: flex;
-    justify-content: flex-end;
-    gap: 8px;
-}
-
-.btn {
-    padding: 10px 14px;
-    border-radius: 10px;
-    border: 1px solid var(--border);
-    background: var(--panel2);
-    color: var(--text);
-    font-size: 13px;
-}
-
-.btn.primary {
-    background: var(--accent);
-    border-color: var(--accent);
-    color: white;
-}
-
-.btn.danger {
-    color: var(--danger);
-}
-
-.chat-context-menu {
-    position: fixed;
-    z-index: 40;
-    width: 170px;
-    background: var(--panel);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    box-shadow: var(--shadow);
-    padding: 5px;
-}
-
-.context-option {
-    width: 100%;
-    text-align: left;
-    padding: 10px;
-    border: 0;
-    background: transparent;
-    color: var(--text);
-    font-size: 12px;
-    border-radius: 8px;
-}
-
-.context-option:hover {
-    background: var(--panel2);
-}
-
-.context-option.delete {
-    color: var(--danger);
-}
-
-.toast {
-    position: fixed;
-    bottom: 25px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: var(--text);
-    color: var(--panel);
-    padding: 11px 17px;
-    border-radius: 11px;
-    font-size: 12px;
-    z-index: 100;
-    animation: appear .2s ease;
-    box-shadow: var(--shadow);
-}
-
-.hidden {
-    display: none !important;
-}
-
-/* SCROLLBARS */
-
-::-webkit-scrollbar {
-    width: 6px;
-}
-
-::-webkit-scrollbar-thumb {
-    background: var(--border);
-    border-radius: 10px;
-}
-
-/* MOBILE */
-
-@media (max-width: 720px) {
-    .sidebar {
-        position: fixed;
-        top: 0;
-        bottom: 0;
-        left: 0;
-        width: 285px;
-        transform: translateX(-100%);
-        box-shadow: none;
-    }
-
-    .sidebar.open {
-        transform: translateX(0);
-        box-shadow: 10px 0 40px rgba(0,0,0,.15);
-    }
-
-    .mobile-overlay {
-        position: fixed;
-        inset: 0;
-        background: rgba(0,0,0,.25);
-        z-index: 4;
-    }
-
-    .mobile-menu {
-        display: grid;
-    }
-
-    .topbar {
-        padding: 0 13px;
-        height: 60px;
-        min-height: 60px;
-    }
-
-    .messages {
-        padding: 20px 12px;
-    }
-
-    .message-body {
-        max-width: 85%;
-    }
-
-    .composer-wrap {
-        padding: 10px 10px 12px;
-    }
-
-    .disclaimer {
-        font-size: 9px;
-    }
-
-    .top-status {
-        font-size: 0;
-    }
-
-    .top-status span:not(.status-dot) {
-        display: none;
-    }
-}
-
-@keyframes appear {
-    from { opacity: 0; transform: translateY(5px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes pulse {
-    0%, 60%, 100% { opacity: .25; transform: translateY(0); }
-    30% { opacity: 1; transform: translateY(-3px); }
+:root{
+  --bg:#f4f5f7;--panel:#fff;--text:#202124;--muted:#858991;
+  --line:#e8e9ed;--accent:#6c78e8;--accent-soft:#eef0ff;
+  --user:#e9edff;--bot:#f2f3f5;--shadow:0 8px 30px #00000008;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;height:100dvh;overflow:hidden}
+body.dark{
+ --bg:#151619;--panel:#202225;--text:#f2f2f3;--muted:#a0a3aa;
+ --line:#34363a;--accent:#8792ff;--accent-soft:#30334c;
+ --user:#343750;--bot:#2a2c30;--shadow:0 8px 30px #0003;
+}
+button,input,textarea{font:inherit;color:inherit}
+button{border:0;background:none;cursor:pointer}
+button:hover{opacity:.8}
+.app{height:100dvh;display:flex;overflow:hidden}
+.sidebar{
+ width:270px;min-width:230px;background:var(--panel);border-right:1px solid var(--line);
+ display:flex;flex-direction:column;padding:16px;gap:12px
+}
+.brand{display:flex;align-items:center;gap:10px;padding:4px 2px 12px;font-weight:750;font-size:22px}
+.logo{width:34px;height:34px;background:var(--accent);border-radius:12px;color:white;display:grid;place-items:center;font-weight:800}
+.newchat{background:var(--accent);color:white;padding:12px;border-radius:12px;text-align:left;font-weight:600}
+.search{width:100%;border:1px solid var(--line);border-radius:10px;background:var(--bg);padding:10px 12px;outline:none}
+.chatlist{flex:1;overflow:auto;min-height:0}
+.chatitem{display:flex;align-items:center;gap:5px;margin:4px 0;border-radius:10px}
+.chatitem.active{background:var(--accent-soft)}
+.chatselect{flex:1;min-width:0;text-align:left;padding:11px;border-radius:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chattools{display:flex}
+.smallbtn{padding:7px;border-radius:8px;color:var(--muted)}
+.bottom{border-top:1px solid var(--line);padding-top:10px}
+.status{font-size:12px;color:var(--muted);padding:5px 2px;display:flex;gap:6px;align-items:center}
+.dot{width:7px;height:7px;border-radius:50%;background:#e5a44b}
+.dot.saved{background:#4bbd89}
+.main{flex:1;min-width:0;display:flex;flex-direction:column}
+.topbar{height:62px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 22px;background:var(--panel)}
+.top-title{font-weight:650}
+.top-actions{display:flex;gap:8px}
+.iconbtn{width:38px;height:38px;border-radius:11px;background:var(--bg);display:grid;place-items:center}
+.messages{flex:1;overflow:auto;padding:28px 18px;scroll-behavior:smooth}
+.messagewrap{max-width:850px;margin:0 auto 18px;display:flex}
+.messagewrap.user{justify-content:flex-end}
+.bubble{max-width:min(78%,650px);padding:13px 16px;border-radius:18px;line-height:1.55;white-space:pre-wrap;overflow-wrap:anywhere}
+.user .bubble{background:var(--user);border-bottom-right-radius:5px}
+.bot .bubble{background:var(--bot);border-bottom-left-radius:5px}
+.welcome{max-width:700px;margin:12vh auto 0;text-align:center}
+.welcome h1{font-size:32px;margin:0 0 10px}
+.welcome p{color:var(--muted);margin:0}
+.composerarea{padding:12px 20px 18px}
+.composer{max-width:850px;margin:auto;background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:10px;box-shadow:var(--shadow);display:flex;gap:10px;align-items:flex-end}
+.composer textarea{flex:1;border:0;background:transparent;outline:none;resize:none;max-height:160px;min-height:24px;padding:8px}
+.send{background:var(--accent);color:white;width:40px;height:40px;border-radius:12px;font-weight:bold}
+.hint{text-align:center;color:var(--muted);font-size:11px;margin-top:8px}
+.overlay{position:fixed;inset:0;background:#0006;display:none;align-items:center;justify-content:center;padding:18px;z-index:10}
+.overlay.show{display:flex}
+.modal{width:min(480px,100%);background:var(--panel);border:1px solid var(--line);border-radius:22px;padding:24px;box-shadow:var(--shadow)}
+.modal h2{margin:0 0 8px}
+.modal p{color:var(--muted);line-height:1.5}
+.modalbuttons{display:flex;flex-direction:column;gap:9px;margin-top:20px}
+.primary{background:var(--accent);color:white;padding:12px;border-radius:11px;font-weight:600}
+.secondary{background:var(--bg);border:1px solid var(--line);padding:12px;border-radius:11px}
+.danger{color:#e35b63}
+.settingrow{display:flex;align-items:center;justify-content:space-between;gap:12px;border-top:1px solid var(--line);padding:14px 0}
+.settingrow button{background:var(--bg);border:1px solid var(--line);padding:9px 12px;border-radius:9px}
+.close{float:right;background:var(--bg);padding:7px 10px;border-radius:9px}
+.empty{color:var(--muted);padding:15px;text-align:center;font-size:13px}
+@media(max-width:700px){
+ .sidebar{width:220px;min-width:190px;padding:10px}
+ .topbar{padding:0 12px}
+ .messages{padding:18px 12px}
+ .composerarea{padding:10px}
+ .bubble{max-width:90%}
+}
+@media(max-width:520px){
+ .sidebar{width:68px;min-width:68px;padding:9px}
+ .brand{justify-content:center}.brandname,.newchat span,.search,.chatselect,.bottom .settinglabel,.statuslabel{display:none}
+ .newchat{text-align:center;padding:12px 0}
+ .chattools{display:none}
+ .chatitem{justify-content:center}
+ .topbar{height:54px}
 }
 </style>
 </head>
-
 <body>
-
 <div class="app">
-
-    <!-- SIDEBAR -->
-    <aside class="sidebar" id="sidebar">
-
-        <div class="brand">
-            <img src="logo.png" class="brand-logo" alt="Nexi" onerror="this.style.display='none'">
-            <div>
-                <div class="brand-name">Nexi</div>
-                <div class="brand-sub">Jouw chatomgeving</div>
-            </div>
-        </div>
-
-        <button class="new-chat-btn" id="newChatButton">
-            <span class="plus">＋</span>
-            <span>Nieuwe chat</span>
-        </button>
-
-        <div class="search-box">
-            <span class="search-icon">⌕</span>
-            <input type="search" id="chatSearch" placeholder="Zoek chats...">
-        </div>
-
-        <div class="section-label">Gesprekken</div>
-        <div class="chat-list" id="chatList"></div>
-
-        <div class-list-empty id="chatListEmpty" class="hidden"></div>
-
-        <div class="sidebar-bottom">
-            <div class="profile">
-                <div class="profile-avatar">N</div>
-                <div class="profile-text">
-                    <div class="profile-name">Nexi</div>
-                    <div class="profile-status">Lokale chatopslag</div>
-                </div>
-                <button class="icon-btn" id="themeButton" title="Thema wisselen">◐</button>
-                <button class="icon-btn" id="settingsButton" title="Instellingen">⚙</button>
-            </div>
-        </div>
-
-    </aside>
-
-    <!-- MAIN -->
-    <main class="main">
-
-        <header class="topbar">
-            <button class="icon-btn mobile-menu" id="mobileMenuButton" title="Menu">☰</button>
-
-            <div>
-                <div class="top-chat-title" id="currentChatTitle">Nieuwe chat</div>
-                <div class="top-chat-subtitle">Gesprek met Nexi</div>
-            </div>
-
-            <div class="topbar-spacer"></div>
-
-            <div class="top-status">
-                <span class="status-dot"></span>
-                <span>Beschikbaar</span>
-            </div>
-
-            <button class="icon-btn" id="renameTopButton" title="Chat hernoemen">✎</button>
-        </header>
-
-        <section class="messages" id="messages">
-            <div class="message-container" id="messageContainer"></div>
-        </section>
-
-        <div class="composer-wrap">
-            <div class="composer">
-                <textarea id="messageInput" rows="1" placeholder="Typ een bericht aan Nexi..."></textarea>
-                <div class="composer-bottom">
-                    <div class="composer-tools">
-                        <button class="tool-button" id="analysisButton" title="Analyse aan/uit">⌘ Analyse</button>
-                        <button class="tool-button" id="exportButton" title="Chat downloaden">↓ Exporteren</button>
-                    </div>
-                    <button class="send-button" id="sendButton" title="Versturen">↑</button>
-                </div>
-            </div>
-            <div class="disclaimer">Nexi gebruikt opgeslagen antwoorden. Niet elk antwoord is automatisch gegenereerd.</div>
-        </div>
-
-    </main>
-
+ <aside class="sidebar">
+  <div class="brand"><div class="logo">N</div><span class="brandname">Nexi</span></div>
+  <button class="newchat" onclick="newChat()">＋ <span>Nieuwe chat</span></button>
+  <input class="search" id="search" placeholder="Zoek chats..." oninput="renderChats()">
+  <div class="chatlist" id="chatlist"></div>
+  <div class="bottom">
+   <div class="status" id="savestatus"><span class="dot"></span><span class="statuslabel">Bestand niet gekoppeld</span></div>
+   <button class="chatselect" onclick="openSettings()">⚙️ Instellingen</button>
+  </div>
+ </aside>
+ <main class="main">
+  <header class="topbar">
+   <div class="top-title" id="topTitle">Nexi</div>
+   <div class="top-actions">
+    <button class="iconbtn" title="Thema wisselen" onclick="toggleTheme()">◐</button>
+    <button class="iconbtn" title="Instellingen" onclick="openSettings()">⚙</button>
+   </div>
+  </header>
+  <div class="messages" id="messages"></div>
+  <div class="composerarea">
+   <div class="composer">
+    <textarea id="input" rows="1" placeholder="Bericht aan Nexi..." onkeydown="inputKey(event)" oninput="resizeInput(this)"></textarea>
+    <button class="send" onclick="sendMessage()">↑</button>
+   </div>
+   <div class="hint">Nexi kan fouten maken. Controleer belangrijke informatie.</div>
+  </div>
+ </main>
 </div>
 
-<div id="mobileOverlay" class="mobile-overlay hidden"></div>
-<div id="modalRoot"></div>
-<div id="contextMenu" class="chat-context-menu hidden"></div>
-<div id="toastRoot"></div>
+<!-- Opstartscherm -->
+<div class="overlay show" id="startOverlay">
+ <div class="modal">
+  <h2>Welkom bij Nexi 👋</h2>
+  <p>Koppel je Nexi-bestand om je chats en geleerde kennis te laden en automatisch op te slaan.</p>
+  <p>Je kunt een bestaand bestand openen of een nieuw Nexi-bestand aanmaken.</p>
+  <div class="modalbuttons">
+   <button class="primary" onclick="openExistingFile()">📂 Bestaand nexi.txt openen</button>
+   <button class="secondary" onclick="createNewFile()">＋ Nieuw Nexi-bestand aanmaken</button>
+   <button class="secondary" onclick="continueLocal()">Verder zonder bestand</button>
+  </div>
+  <p style="font-size:12px;margin-top:14px">Automatisch bijwerken van bestanden wordt ondersteund in Chrome en andere compatibele browsers.</p>
+ </div>
+</div>
 
+<!-- Instellingen -->
+<div class="overlay" id="settingsOverlay">
+ <div class="modal">
+  <button class="close" onclick="closeSettings()">✕</button>
+  <h2>Instellingen</h2>
+  <p>Je chats en geleerde kennis worden in je gekoppelde bestand bewaard.</p>
+  <div class="settingrow"><span>Bestand koppelen / wijzigen</span><button onclick="openExistingFile()">Open bestand</button></div>
+  <div class="settingrow"><span>Nieuw bestand maken</span><button onclick="createNewFile()">Nieuw</button></div>
+  <div class="settingrow"><span>Donker thema</span><button onclick="toggleTheme()">Wisselen</button></div>
+  <div class="settingrow"><span>Chats verwijderen</span><button class="danger" onclick="clearChats()">Verwijderen</button></div>
+  <div class="settingrow"><span>Geleerde kennis verwijderen</span><button class="danger" onclick="clearLearned()">Verwijderen</button></div>
+  <div class="settingrow"><span>Bekijk geleerde kennis</span><button onclick="showLearned()">Openen</button></div>
+ </div>
+</div>
+<div class="overlay" id="learnedOverlay">
+ <div class="modal">
+  <button class="close" onclick="closeLearned()">✕</button>
+  <h2>Geleerde kennis</h2>
+  <div id="learnedList" style="max-height:55vh;overflow:auto"></div>
+ </div>
+</div>
 <script>
-/* =========================================================
-   NEXI — CHAT SYSTEM
-========================================================= */
-
-const STORAGE_KEY = "nexi_chats_v2";
-const LEARNED_KEY = "nexi_learned_qa";
-const THEME_KEY = "nexi_theme";
-
-let chats = [];
-let currentChatId = null;
-let learnedQA = [];
-let qaDatabase = [];
-let analysisMode = false;
-let isThinking = false;
-let lastBotMessage = "";
-let contextChatId = null;
-let connectedFileHandle = null;
-
-/* ELEMENTS */
-
-const chatList = document.getElementById("chatList");
-const chatListEmpty = document.getElementById("chatListEmpty");
-const chatSearch = document.getElementById("chatSearch");
-const messageContainer = document.getElementById("messageContainer");
-const messages = document.getElementById("messages");
-const messageInput = document.getElementById("messageInput");
-const sendButton = document.getElementById("sendButton");
-const currentChatTitle = document.getElementById("currentChatTitle");
-const sidebar = document.getElementById("sidebar");
-const mobileOverlay = document.getElementById("mobileOverlay");
-const modalRoot = document.getElementById("modalRoot");
-const contextMenu = document.getElementById("contextMenu");
-
-/* UTILITIES */
-
-function uid() {
-    return "chat_" + Date.now().toString(36) + "_" + Math.random().toString(36).slice(2, 8);
-}
-
-function escapeHtml(value) {
-    return String(value ?? "")
-        .replaceAll("&", "&amp;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;")
-        .replaceAll('"', "&quot;")
-        .replaceAll("'", "&#039;");
-}
-
-function getCurrentChat() {
-    return chats.find(c => c.id === currentChatId) || null;
-}
-
-function saveChats() {
-    try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(chats));
-    } catch (error) {
-        toast("Opslaan mislukt. Mogelijk is je browseropslag vol.");
-        console.error(error);
-    }
-}
-
-function saveLearned() {
-    localStorage.setItem(LEARNED_KEY, JSON.stringify(learnedQA));
-}
-
-function toast(text) {
-    const root = document.getElementById("toastRoot");
-    root.innerHTML = "";
-    const element = document.createElement("div");
-    element.className = "toast";
-    element.textContent = text;
-    root.appendChild(element);
-    setTimeout(() => element.remove(), 2600);
-}
-
-function formatTime(timestamp) {
-    return new Date(timestamp).toLocaleTimeString("nl-NL", {
-        hour: "2-digit",
-        minute: "2-digit"
-    });
-}
-
-/* =========================================================
-   CHAT MANAGEMENT
-========================================================= */
-
-function createChat(name = "") {
-    const chat = {
-        id: uid(),
-        title: name.trim() || "Nieuwe chat",
-        created: Date.now(),
-        updated: Date.now(),
-        messages: []
-    };
-
-    chats.unshift(chat);
-    currentChatId = chat.id;
-    saveChats();
-    renderChatList();
-    renderMessages();
-    updateHeader();
-    closeSidebar();
-
-    if (!name.trim()) {
-        openNameModal("Geef je chat een naam", "Bijvoorbeeld: School, Ideeën of Project", "", (newName) => {
-            if (newName.trim()) {
-                chat.title = newName.trim();
-                saveChats();
-                renderChatList();
-                updateHeader();
-            }
-            messageInput.focus();
-        });
-    }
-
-    messageInput.focus();
-    return chat;
-}
-
-function switchChat(id) {
-    currentChatId = id;
-    lastBotMessage = "";
-    renderChatList();
-    renderMessages();
-    updateHeader();
-    closeSidebar();
-}
-
-function renameChat(id) {
-    const chat = chats.find(c => c.id === id);
-    if (!chat) return;
-
-    openNameModal("Chat hernoemen", "Kies een nieuwe naam voor dit gesprek", chat.title, (newName) => {
-        if (!newName.trim()) return;
-        chat.title = newName.trim();
-        chat.updated = Date.now();
-        saveChats();
-        renderChatList();
-        updateHeader();
-    });
-}
-
-function deleteChat(id) {
-    const chat = chats.find(c => c.id === id);
-    if (!chat) return;
-
-    openConfirmModal(
-        "Chat verwijderen?",
-        `Weet je zeker dat je "${chat.title}" wilt verwijderen? Dit kan niet ongedaan worden gemaakt.`,
-        () => {
-            chats = chats.filter(c => c.id !== id);
-
-            if (currentChatId === id) {
-                currentChatId = chats[0]?.id || null;
-                if (!currentChatId) {
-                    createChat("Nieuwe chat");
-                }
-            }
-
-            saveChats();
-            renderChatList();
-            renderMessages();
-            updateHeader();
-        }
-    );
-}
-
-function renderChatList() {
-    const query = chatSearch.value.toLowerCase().trim();
-    chatList.innerHTML = "";
-
-    const filtered = chats.filter(chat => {
-        const latest = chat.messages.at(-1)?.text || "";
-        return chat.title.toLowerCase().includes(query) || latest.toLowerCase().includes(query);
-    });
-
-    chatListEmpty.classList.toggle("hidden", filtered.length > 0 || chats.length === 0);
-
-    filtered.forEach(chat => {
-        const item = document.createElement("div");
-        item.className = "chat-item" + (chat.id === currentChatId ? " active" : "");
-
-        const icon = document.createElement("div");
-        icon.className = "chat-item-icon";
-        icon.textContent = "▤";
-
-        const content = document.createElement("div");
-        content.className = "chat-item-content";
-
-        const title = document.createElement("div");
-        title.className = "chat-item-title";
-        title.textContent = chat.title;
-
-        const preview = document.createElement("div");
-        preview.className = "chat-item-preview";
-        preview.textContent = chat.messages.at(-1)?.text || "Nog geen berichten";
-
-        content.append(title, preview);
-
-        const more = document.createElement("button");
-        more.className = "chat-more";
-        more.textContent = "⋯";
-        more.title = "Chatopties";
-        more.onclick = (e) => {
-            e.stopPropagation();
-            showChatMenu(chat.id, more);
-        };
-
-        item.append(icon, content, more);
-        item.onclick = () => switchChat(chat.id);
-
-        chatList.appendChild(item);
-    });
-}
-
-function updateHeader() {
-    const chat = getCurrentChat();
-    currentChatTitle.textContent = chat?.title || "Nexi";
-}
-
-/* =========================================================
-   CHAT OPTIONS
-========================================================= */
-
-function showChatMenu(id, button) {
-    contextChatId = id;
-    const rect = button.getBoundingClientRect();
-
-    contextMenu.innerHTML = `
-        <button class="context-option" data-action="rename">✎ &nbsp; Hernoemen</button>
-        <button class="context-option" data-action="export">↓ &nbsp; Exporteren</button>
-        <button class="context-option delete" data-action="delete">⌫ &nbsp; Verwijderen</button>
-    `;
-
-    contextMenu.classList.remove("hidden");
-
-    const left = Math.min(rect.left, window.innerWidth - 180);
-    const top = Math.min(rect.bottom + 5, window.innerHeight - 150);
-
-    contextMenu.style.left = left + "px";
-    contextMenu.style.top = top + "px";
-
-    contextMenu.querySelectorAll("[data-action]").forEach(option => {
-        option.onclick = () => {
-            const action = option.dataset.action;
-            contextMenu.classList.add("hidden");
-
-            if (action === "rename") renameChat(id);
-            if (action === "delete") deleteChat(id);
-            if (action === "export") exportChat(id);
-        };
-    });
-}
-
-document.addEventListener("click", e => {
-    if (!contextMenu.contains(e.target)) contextMenu.classList.add("hidden");
-});
-
-/* =========================================================
-   MODALS
-========================================================= */
-
-function openNameModal(title, subtitle, value, callback) {
-    modalRoot.innerHTML = `
-        <div class="modal-backdrop">
-            <div class="modal">
-                <h3>${escapeHtml(title)}</h3>
-                <p>${escapeHtml(subtitle)}</p>
-                <input id="modalNameInput" maxlength="60" placeholder="Chatnaam..." value="${escapeHtml(value)}">
-                <div class="modal-actions">
-                    <button class="btn" id="modalCancel">Annuleren</button>
-                    <button class="btn primary" id="modalSave">Opslaan</button>
-                </div>
-            </div>
-        </div>
-    `;
-
-    const input = document.getElementById("modalNameInput");
-    input.focus();
-    input.select();
-
-    const close = () => modalRoot.innerHTML = "";
-    const submit = () => {
-        callback(input.value);
-        close();
-    };
-
-    document.getElementById("modalCancel").onclick = close;
-    document.getElementById("modalSave").onclick = submit;
-    input.addEventListener("keydown", e => {
-        if (e.key === "Enter") submit();
-        if (e.key === "Escape") close();
-    });
-
-    modalRoot.querySelector(".modal-backdrop").onclick = e => {
-        if (e.target.classList.contains("modal-backdrop")) close();
-    };
-}
-
-function openConfirmModal(title, text, callback) {
-    modalRoot.innerHTML = `
-        <div class="modal-backdrop">
-            <div class="modal">
-                <h3>${escapeHtml(title)}</h3>
-                <p>${escapeHtml(text)}</p>
-                <div class="modal-actions">
-                    <button class="btn" id="confirmCancel">Annuleren</button>
-                    <button class="btn danger" id="confirmOk">Verwijderen</button>
-                </div>
-            </div>
-        </div>
-    `;
-
-    const close = () => modalRoot.innerHTML = "";
-    document.getElementById("confirmCancel").onclick = close;
-    document.getElementById("confirmOk").onclick = () => {
-        callback();
-        close();
-    };
-
-    modalRoot.querySelector(".modal-backdrop").onclick = e => {
-        if (e.target.classList.contains("modal-backdrop")) close();
-    };
-}
-
-/* =========================================================
-   MESSAGES
-========================================================= */
-
-function addMessage(role, text, options = {}) {
-    const chat = getCurrentChat();
-    if (!chat) return;
-
-    const msg = {
-        id: uid(),
-        role,
-        text: String(text),
-        time: Date.now(),
-        analysis: options.analysis || null
-    };
-
-    chat.messages.push(msg);
-    chat.updated = Date.now();
-    saveChats();
-    renderMessages();
-    renderChatList();
-    return msg;
-}
-
-function renderMessages() {
-    const chat = getCurrentChat();
-    messageContainer.innerHTML = "";
-
-    if (!chat || chat.messages.length === 0) {
-        renderEmptyState();
-        return;
-    }
-
-    chat.messages.forEach(msg => renderOneMessage(msg));
-    scrollToBottom();
-}
-
-function renderEmptyState() {
-    const empty = document.createElement("div");
-    empty.className = "empty-state";
-
-    const logo = document.createElement("img");
-    logo.className = "empty-logo";
-    logo.src = "logo.png";
-    logo.alt = "Nexi";
-    logo.onerror = () => logo.style.display = "none";
-
-    const heading = document.createElement("h2");
-    heading.textContent = "Waar zullen we het over hebben?";
-
-    const description = document.createElement("p");
-    description.textContent = "Begin een gesprek. Nexi zoekt in zijn opgeslagen kennis.";
-
-    const suggestions = document.createElement("div");
-    suggestions.className = "suggestions";
-
-    [
-        "Vertel me een leuke weetje",
-        "Help me met Frans",
-        "Wat kun je allemaal?",
-        "Leg iets ingewikkelds simpel uit"
-    ].forEach(text => {
-        const button = document.createElement("button");
-        button.className = "suggestion";
-        button.textContent = text;
-        button.onclick = () => {
-            messageInput.value = text;
-            handleSend();
-        };
-        suggestions.appendChild(button);
-    });
-
-    empty.append(logo, heading, description, suggestions);
-    messageContainer.appendChild(empty);
-}
-
-function renderOneMessage(msg) {
-    const wrapper = document.createElement("div");
-    wrapper.className = "message " + (msg.role === "user" ? "user" : "bot");
-
-    const avatar = document.createElement("div");
-    avatar.className = "avatar";
-
-    if (msg.role === "bot") {
-        const img = document.createElement("img");
-        img.src = "logo.png";
-        img.alt = "Nexi";
-        img.onerror = () => {
-            avatar.textContent = "N";
-        };
-        avatar.appendChild(img);
-    } else {
-        avatar.textContent = "J";
-    }
-
-    const body = document.createElement("div");
-    body.className = "message-body";
-
-    const name = document.createElement("div");
-    name.className = "message-name";
-    name.textContent = msg.role === "user" ? "Jij · " + formatTime(msg.time) : "Nexi · " + formatTime(msg.time);
-
-    const bubble = document.createElement("div");
-    bubble.className = "bubble";
-    renderSafeText(bubble, msg.text);
-
-    body.append(name, bubble);
-
-    if (msg.analysis && analysisMode) {
-        const analysis = document.createElement("div");
-        analysis.className = "analysis";
-
-        const title = document.createElement("div");
-        title.className = "analysis-title";
-        title.textContent = "Analyse";
-
-        analysis.appendChild(title);
-        msg.analysis.forEach(step => {
-            const row = document.createElement("div");
-            row.className = "analysis-row";
-
-            const check = document.createElement("span");
-            check.className = "analysis-check";
-            check.textContent = step.ok ? "✓" : "–";
-
-            const text = document.createElement("span");
-            text.textContent = step.text;
-
-            row.append(check, text);
-            analysis.appendChild(row);
-        });
-
-        body.appendChild(analysis);
-    }
-
-    wrapper.append(avatar, body);
-    messageContainer.appendChild(wrapper);
-}
-
-/* Safely renders text + URLs + image URLs */
-function renderSafeText(container, text) {
-    const imageRegex = /(https?:\/\/[^\s]+?\.(?:png|jpg|jpeg|gif|webp)(?:\?[^\s]*)?)/gi;
-    const parts = String(text).split(imageRegex);
-
-    parts.forEach(part => {
-        if (!part) return;
-
-        if (/^https?:\/\/.+\.(png|jpg|jpeg|gif|webp)(\?.*)?$/i.test(part)) {
-            const img = document.createElement("img");
-            img.src = part;
-            img.alt = "Afbeelding";
-            img.loading = "lazy";
-            img.onerror = () => img.remove();
-            container.appendChild(img);
-        } else {
-            container.appendChild(document.createTextNode(part));
-        }
-    });
-}
-
-function scrollToBottom() {
-    requestAnimationFrame(() => {
-        messages.scrollTop = messages.scrollHeight;
-    });
-}
-
-/* =========================================================
-   TYPING INDICATOR
-========================================================= */
-
-function showThinking() {
-    const wrapper = document.createElement("div");
-    wrapper.className = "message bot thinking";
-    wrapper.id = "thinking";
-
-    wrapper.innerHTML = `
-        <div class="avatar"><img src="logo.png" alt="Nexi" onerror="this.parentElement.textContent='N'"></div>
-        <div class="message-body">
-            <div class="message-name">Nexi</div>
-            <div class="bubble">
-                Nexi zoekt...
-                <span class="typing-dots"><span></span><span></span><span></span></span>
-            </div>
-        </div>
-    `;
-
-    messageContainer.appendChild(wrapper);
-    scrollToBottom();
-    return wrapper;
-}
-
-/* =========================================================
-   DATABASE
-========================================================= */
-
-async function loadReacties() {
-    try {
-        const response = await fetch("https://raw.githubusercontent.com/jimisdebest/nexi/main/reacties.txt");
-
-        if (!response.ok) throw new Error("Bestand niet beschikbaar");
-
-        const text = await response.text();
-
-        qaDatabase = text.split("\n").map(line => {
-            const index = line.indexOf("=");
-            if (index === -1) return null;
-
-            const vraag = line.slice(0, index).trim();
-            const antwoord = line.slice(index + 1).trim();
-
-            if (!vraag || !antwoord) return null;
-
-            return { vraag: vraag.toLowerCase(), antwoord };
-        }).filter(Boolean);
-
-        console.log("Reacties geladen:", qaDatabase.length);
-    } catch (error) {
-        console.warn("reacties.txt kon niet worden geladen", error);
-        qaDatabase = [];
-    }
-}
-
-function loadStorage() {
-    try {
-        chats = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
-        learnedQA = JSON.parse(localStorage.getItem(LEARNED_KEY) || "[]");
-
-        if (!Array.isArray(chats)) chats = [];
-        if (!Array.isArray(learnedQA)) learnedQA = [];
-    } catch {
-        chats = [];
-        learnedQA = [];
-    }
-}
-
-/* =========================================================
-   MATCHING ENGINE
-========================================================= */
-
-const stopWords = new Set([
-    "de","het","een","ik","je","jij","we","wij","ze","zij","mij","me",
-    "is","was","zijn","ben","heb","heeft","had","do","does","did",
-    "en","of","maar","dat","dit","wat","hoe","waar","wie","aan","in",
-    "op","voor","van","met","naar","the","a","an","and","or","is",
-    "are","you","i","it","to","of","in","on","please","can"
-]);
-
-function normalize(text) {
-    return String(text)
-        .toLowerCase()
-        .replace(/[^\p{L}\p{N}\s]/gu, " ")
-        .replace(/\s+/g, " ")
-        .trim();
-}
-
-function words(text) {
-    return normalize(text)
-        .split(" ")
-        .filter(w => w.length > 1 && !stopWords.has(w));
-}
-
-function relevance(userText, candidate) {
-    const a = normalize(userText);
-    const b = normalize(candidate);
-
-    if (!a || !b) return 0;
-    if (a === b) return 1;
-
-    const aw = words(a);
-    const bw = words(b);
-    if (!aw.length || !bw.length) return 0;
-
-    const bSet = new Set(bw);
-    const common = aw.filter(w => bSet.has(w)).length;
-
-    const overlap = common / Math.max(aw.length, bw.length);
-
-    // Extra score for matching phrases.
-    const contains = a.includes(b) || b.includes(a) ? 0.25 : 0;
-
-    // Small partial-word bonus.
-    let partial = 0;
-    aw.forEach(word => {
-        if (bw.some(other => other !== word && (other.includes(word) || word.includes(other)))) {
-            partial += 0.15;
-        }
-    });
-
-    return Math.min(1, overlap * .8 + contains + partial);
-}
-
-function bestMatch(database, message) {
-    let best = null;
-    let bestScore = 0;
-
-    for (const item of database) {
-        const score = relevance(message, item.vraag);
-        if (score > bestScore) {
-            best = item;
-            bestScore = score;
-        }
-    }
-
-    return { match: best, score: bestScore };
-}
-
-/* =========================================================
-   ANSWER ENGINE
-========================================================= */
-
-async function getResponse(message) {
-    const analysis = [];
-
-    analysis.push({ text: "Zoeken in geleerde antwoorden", ok: true });
-    const learnedResult = bestMatch(learnedQA, message);
-
-    analysis.push({ text: "Zoeken in reacties.txt", ok: qaDatabase.length > 0 });
-    const baseResult = bestMatch(qaDatabase, message);
-
-    let best = null;
-    let score = 0;
-    let source = "";
-
-    if (learnedResult.match && learnedResult.score > score) {
-        best = learnedResult.match;
-        score = learnedResult.score;
-        source = "geleerde antwoorden";
-    }
-
-    if (baseResult.match && baseResult.score > score) {
-        best = baseResult.match;
-        score = baseResult.score;
-        source = "reacties.txt";
-    }
-
-    // Only use reasonably relevant results.
-    if (best && score >= .38) {
-        analysis.push({
-            text: `Beste match gevonden (${Math.round(score * 100)}%)`,
-            ok: true
-        });
-
-        if (score < .55) {
-            return {
-                answer: "Ik heb iets gevonden dat mogelijk bij je vraag past:\n\n" +
-                    best.antwoord +
-                    "\n\nKlopt dit met wat je bedoelde?",
-                analysis,
-                source
-            };
-        }
-
-        return {
-            answer: best.antwoord,
-            analysis,
-            source
-        };
-    }
-
-    analysis.push({ text: "Geen goede match gevonden", ok: false });
-
-    return {
-        answer: "Ik weet nog niet precies hoe ik hierop moet antwoorden. Mijn opgeslagen antwoorden bevatten geen goede match.\n\nJe kunt je vraag anders formuleren of mijn kennis uitbreiden met een gekoppeld bestand.",
-        analysis,
-        source: "geen match"
-    };
-}
-
-/* =========================================================
-   LEARNING
-========================================================= */
-
-function learnFromConversation(botText, userText) {
-    if (!botText || !userText) return false;
-
-    const question = normalize(botText);
-    if (question.length < 4 || userText.length < 1) return false;
-
-    const exists = learnedQA.some(item => normalize(item.vraag) === question);
-    const existsBase = qaDatabase.some(item => normalize(item.vraag) === question);
-
-    if (exists || existsBase) return false;
-
-    learnedQA.push({
-        vraag: question,
-        antwoord: userText.trim(),
-        timestamp: Date.now(),
-        bron: "gesprek"
-    });
-
-    saveLearned();
-    return true;
-}
-
-/* =========================================================
-   SEND
-========================================================= */
-
-async function handleSend() {
-    if (isThinking) return;
-
-    const text = messageInput.value.trim();
-    if (!text) return;
-
-    if (!currentChatId) {
-        createChat("Nieuwe chat");
-    }
-
-    const chat = getCurrentChat();
-    if (!chat) return;
-
-    const previousBot = [...chat.messages].reverse().find(m => m.role === "bot");
-
-    addMessage("user", text);
-
-    messageInput.value = "";
-    resizeInput();
-    sendButton.disabled = true;
-    isThinking = true;
-
-    const thinking = showThinking();
-
-    // Give UI a moment to render.
-    await new Promise(resolve => setTimeout(resolve, 350));
-
-    try {
-        const response = await getResponse(text);
-
-        thinking.remove();
-
-        const learned = previousBot
-            ? learnFromConversation(previousBot.text, text)
-            : false;
-
-        if (learned) {
-            response.answer += "\n\n(Deze zin is toegevoegd aan mijn lokale kennis.)";
-        }
-
-        addMessage("bot", response.answer, {
-            analysis: response.analysis
-        });
-
-    } catch (error) {
-        thinking.remove();
-        addMessage("bot", "Er ging iets mis bij het verwerken van je bericht. Probeer het opnieuw.");
-        console.error(error);
-    } finally {
-        isThinking = false;
-        sendButton.disabled = false;
-        messageInput.focus();
-    }
-}
-
-/* =========================================================
-   EXPORT
-========================================================= */
-
-function exportChat(id = currentChatId) {
-    const chat = chats.find(c => c.id === id);
-    if (!chat) return;
-
-    let output = `Nexi - ${chat.title}\n`;
-    output += `Export: ${new Date().toLocaleString("nl-NL")}\n`;
-    output += "=".repeat(45) + "\n\n";
-
-    chat.messages.forEach(msg => {
-        output += (msg.role === "user" ? "Jij" : "Nexi");
-        output += ` (${formatTime(msg.time)})\n`;
-        output += msg.text + "\n\n";
-    });
-
-    downloadFile(safeFilename(chat.title) + ".txt", output);
-    toast("Chat geëxporteerd");
-}
-
-function exportLearned() {
-    let output = "# Nexi geleerde antwoorden\n";
-    output += `# Exportdatum: ${new Date().toLocaleString("nl-NL")}\n`;
-    output += `# Aantal: ${learnedQA.length}\n\n`;
-
-    learnedQA.forEach((item, index) => {
-        output += `## ${index + 1}\n`;
-        output += `Vraag: ${item.vraag}\n`;
-        output += `Antwoord: ${item.antwoord}\n\n`;
-    });
-
-    downloadFile("Nexi-Geleerde-Zinnen.txt", output);
-}
-
-function downloadFile(filename, content) {
-    const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-
-    a.href = url;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
-}
-
-function safeFilename(text) {
-    return text.replace(/[\\/:*?"<>|]/g, "_").slice(0, 80);
-}
-
-/* =========================================================
-   SETTINGS
-========================================================= */
-
-function showSettings() {
-    modalRoot.innerHTML = `
-        <div class="modal-backdrop">
-            <div class="modal">
-                <h3>Nexi instellingen</h3>
-                <p>Beheer je chats en lokale kennis.</p>
-
-                <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:18px">
-                    <button class="btn" id="settingsTheme" style="text-align:left">◐ &nbsp; Thema wisselen</button>
-                    <button class="btn" id="settingsExport" style="text-align:left">↓ &nbsp; Geleerde antwoorden exporteren</button>
-                    <button class="btn" id="settingsClearLearned" style="text-align:left">⌫ &nbsp; Geleerde antwoorden wissen</button>
-                    <button class="btn" id="settingsClearChats" style="text-align:left">⌫ &nbsp; Alle chats wissen</button>
-                </div>
-
-                <div class="modal-actions">
-                    <button class="btn primary" id="settingsClose">Sluiten</button>
-                </div>
-            </div>
-        </div>
-    `;
-
-    document.getElementById("settingsClose").onclick = () => modalRoot.innerHTML = "";
-    document.getElementById("settingsTheme").onclick = () => {
-        toggleTheme();
-        showSettings();
-    };
-    document.getElementById("settingsExport").onclick = () => {
-        exportLearned();
-        modalRoot.innerHTML = "";
-    };
-    document.getElementById("settingsClearLearned").onclick = () => {
-        openConfirmModal("Kennis wissen?", "Alle geleerde antwoorden verwijderen?", () => {
-            learnedQA = [];
-            saveLearned();
-            toast("Geleerde antwoorden verwijderd");
-        });
-    };
-    document.getElementById("settingsClearChats").onclick = () => {
-        openConfirmModal("Alle chats wissen?", "Alle gesprekken worden permanent verwijderd.", () => {
-            chats = [];
-            currentChatId = null;
-            saveChats();
-            createChat("Nieuwe chat");
-            toast("Chats verwijderd");
-        });
-    };
-}
-
-/* =========================================================
-   THEME
-========================================================= */
-
-function toggleTheme() {
-    const current = document.documentElement.getAttribute("data-theme") || "light";
-    const next = current === "dark" ? "light" : "dark";
-    document.documentElement.setAttribute("data-theme", next);
-    localStorage.setItem(THEME_KEY, next);
-}
-
-function loadTheme() {
-    const saved = localStorage.getItem(THEME_KEY);
-    if (saved) {
-        document.documentElement.setAttribute("data-theme", saved);
-    }
-}
-
-/* =========================================================
-   MOBILE SIDEBAR
-========================================================= */
-
-function openSidebar() {
-    sidebar.classList.add("open");
-    mobileOverlay.classList.remove("hidden");
-}
-
-function closeSidebar() {
-    sidebar.classList.remove("open");
-    mobileOverlay.classList.add("hidden");
-}
-
-/* =========================================================
-   INPUT SIZE
-========================================================= */
-
-function resizeInput() {
-    messageInput.style.height = "auto";
-    messageInput.style.height = Math.min(messageInput.scrollHeight, 160) + "px";
-}
-
-/* =========================================================
-   EVENTS
-========================================================= */
-
-document.getElementById("newChatButton").onclick = () => createChat();
-document.getElementById("renameTopButton").onclick = () => {
-    if (currentChatId) renameChat(currentChatId);
+/* ---------------------------------------------------------
+   NEXI - single file autosave
+   Data is stored as JSON inside the user's nexi.txt file.
+--------------------------------------------------------- */
+const STORAGE_KEY="nexi_local_recovery_v3";
+const DB_NAME="NexiFileHandles";
+const DB_STORE="handles";
+
+let data={
+ chats:[],
+ learned:[],
+ currentChat:null,
+ theme:"light"
 };
-document.getElementById("themeButton").onclick = toggleTheme;
-document.getElementById("settingsButton").onclick = showSettings;
-document.getElementById("mobileMenuButton").onclick = openSidebar;
-mobileOverlay.onclick = closeSidebar;
-document.getElementById("exportButton").onclick = () => exportChat();
-document.getElementById("analysisButton").onclick = () => {
-    analysisMode = !analysisMode;
-    document.getElementById("analysisButton").textContent = analysisMode ? "✓ Analyse" : "⌘ Analyse";
-    renderMessages();
-    toast(analysisMode ? "Analyse ingeschakeld" : "Analyse uitgeschakeld");
-};
+let fileHandle=null;
+let saveTimer=null;
+let fileLinked=false;
+let saveBusy=false;
+let savePending=false;
 
-chatSearch.addEventListener("input", renderChatList);
+const $=id=>document.getElementById(id);
 
-sendButton.onclick = handleSend;
-
-messageInput.addEventListener("input", resizeInput);
-
-messageInput.addEventListener("keydown", e => {
-    if (e.key === "Enter" && !e.shiftKey) {
-        e.preventDefault();
-        handleSend();
-    }
-});
-
-/* =========================================================
-   INIT
-========================================================= */
-
-async function init() {
-    loadTheme();
-    loadStorage();
-    await loadReacties();
-
-    if (chats.length === 0) {
-        createChat("Nieuwe chat");
-    } else {
-        currentChatId = chats[0].id;
-        renderChatList();
-        renderMessages();
-        updateHeader();
-    }
-
-    resizeInput();
+function makeChat(){
+ return {id:crypto.randomUUID(),title:"Nieuwe chat",messages:[],created:Date.now(),updated:Date.now()};
 }
-
+function current(){
+ return data.chats.find(c=>c.id===data.currentChat)||null;
+}
+function ensureChat(){
+ if(!data.chats.length){const c=makeChat();data.chats.push(c);data.currentChat=c.id;}
+ if(!current())data.currentChat=data.chats[0].id;
+}
+function localSave(){
+ try{localStorage.setItem(STORAGE_KEY,JSON.stringify(data));}catch(e){}
+}
+function localLoad(){
+ try{
+  const raw=localStorage.getItem(STORAGE_KEY);
+  if(raw){const parsed=JSON.parse(raw);if(parsed.chats&&parsed.learned)data=parsed;}
+ }catch(e){}
+ ensureChat();
+}
+function status(text,saved=false){
+ $("savestatus").innerHTML=`<span class="dot ${saved?"saved":""}"></span><span class="statuslabel">${text}</span>`;
+}
+function serialize(){
+ return JSON.stringify({
+  format:"NEXI_DATA",
+  version:3,
+  updatedAt:new Date().toISOString(),
+  chats:data.chats,
+  learned:data.learned,
+  currentChat:data.currentChat,
+  theme:data.theme
+ },null,2);
+}
+function queueSave(){
+ localSave();
+ if(fileLinked){
+  status("Opslaan…");
+  clearTimeout(saveTimer);
+  saveTimer=setTimeout(writeFile,350);
+ }else{
+  status("Alleen lokaal opgeslagen");
+ }
+}
+async function writeFile(){
+ if(!fileHandle||!fileLinked)return;
+ if(saveBusy){savePending=true;return;}
+ saveBusy=true;
+ try{
+  const permission=await fileHandle.queryPermission({mode:"readwrite"});
+  if(permission!=="granted"){
+   const asked=await fileHandle.requestPermission({mode:"readwrite"});
+   if(asked!=="granted"){
+    fileLinked=false;status("Bestandstoegang verlopen");saveBusy=false;return;
+   }
+  }
+  const writable=await fileHandle.createWritable();
+  await writable.write(serialize());
+  await writable.close();
+  status("Opgeslagen",true);
+ }catch(err){
+  console.error("Nexi autosave error:",err);
+  status("Opslaan mislukt");
+ }finally{
+  saveBusy=false;
+  if(savePending){savePending=false;writeFile();}
+ }
+}
+function openDB(){
+ return new Promise((resolve,reject)=>{
+  const req=indexedDB.open(DB_NAME,1);
+  req.onupgradeneeded=()=>req.result.createObjectStore(DB_STORE);
+  req.onsuccess=()=>resolve(req.result);
+  req.onerror=()=>reject(req.error);
+ });
+}
+async function rememberHandle(handle){
+ try{
+  const db=await openDB();
+  await new Promise((resolve,reject)=>{
+   const tx=db.transaction(DB_STORE,"readwrite");
+   tx.objectStore(DB_STORE).put(handle,"file");
+   tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error);
+  });
+  db.close();
+ }catch(e){console.warn("Handle kon niet bewaard worden",e);}
+}
+async function getRememberedHandle(){
+ try{
+  const db=await openDB();
+  const handle=await new Promise((resolve,reject)=>{
+   const tx=db.transaction(DB_STORE,"readonly");
+   const req=tx.objectStore(DB_STORE).get("file");
+   req.onsuccess=()=>resolve(req.result);
+   req.onerror=()=>reject(req.error);
+  });
+  db.close();return handle||null;
+ }catch(e){return null;}
+}
+async function restoreFileHandle(){
+ const handle=await getRememberedHandle();
+ if(!handle)return false;
+ try{
+  const permission=await handle.queryPermission({mode:"readwrite"});
+  if(permission==="granted"){
+   fileHandle=handle;fileLinked=true;
+   await loadFromHandle(handle);
+   $("startOverlay").classList.remove("show");
+   status("Bestand gekoppeld",true);
+   return true;
+  }
+ }catch(e){}
+ return false;
+}
+async function openExistingFile(){
+ if(!window.showOpenFilePicker){
+  alert("Deze browser ondersteunt het koppelen van bestanden niet. Open Nexi in Chrome.");
+  return;
+ }
+ try{
+  const [handle]=await window.showOpenFilePicker({
+   multiple:false,
+   types:[{description:"Nexi tekstbestand",accept:{"text/plain":[".txt"]}}],
+   excludeAcceptAllOption:false
+  });
+  const permission=await handle.requestPermission({mode:"readwrite"});
+  if(permission!=="granted"){alert("Nexi heeft geen toestemming om dit bestand te bewerken.");return;}
+  fileHandle=handle;fileLinked=true;
+  await rememberHandle(handle);
+  await loadFromHandle(handle);
+  $("startOverlay").classList.remove("show");
+  status("Bestand gekoppeld",true);
+ }catch(e){if(e.name!=="AbortError")alert("Bestand openen ging niet: "+e.message);}
+}
+async function createNewFile(){
+ if(!window.showSaveFilePicker){
+  alert("Bestandskoppeling wordt niet ondersteund in deze browser. Gebruik Chrome.");
+  return;
+ }
+ try{
+  const handle=await window.showSaveFilePicker({
+   suggestedName:"nexi.txt",
+   types:[{description:"Nexi tekstbestand",accept:{"text/plain":[".txt"]}}]
+  });
+  const permission=await handle.requestPermission({mode:"readwrite"});
+  if(permission!=="granted"){alert("Geen toestemming om bestand te schrijven.");return;}
+  fileHandle=handle;fileLinked=true;
+  await rememberHandle(handle);
+  data={chats:[],learned:[],currentChat:null,theme:data.theme||"light"};
+  ensureChat();
+  localSave();
+  await writeFile();
+  $("startOverlay").classList.remove("show");
+  status("Nieuw bestand gekoppeld",true);
+  render();
+ }catch(e){if(e.name!=="AbortError")alert("Bestand aanmaken ging niet: "+e.message);}
+}
+async function loadFromHandle(handle){
+ const file=await handle.getFile();
+ const txt=await file.text();
+ if(!txt.trim()){
+  data={chats:[],learned:[],currentChat:null,theme:data.theme||"light"};
+  ensureChat();await writeFile();render();return;
+ }
+ try{
+  const parsed=JSON.parse(txt);
+  if(parsed.format==="NEXI_DATA"||parsed.chats){
+   data.chats=Array.isArray(parsed.chats)?parsed.chats:[];
+   data.learned=Array.isArray(parsed.learned)?parsed.learned:[];
+   data.currentChat=parsed.currentChat||null;
+   data.theme=parsed.theme||data.theme||"light";
+   ensureChat();localSave();applyTheme();render();
+  }else{
+   alert("Dit bestand bevat geen herkenbare Nexi-data. Het bestand is niet aangepast.");
+  }
+ }catch(e){
+  alert("Nexi kon dit bestand niet lezen. Het moet een geldig Nexi-backupbestand zijn.");
+ }
+}
+function continueLocal(){
+ fileLinked=false;
+ $("startOverlay").classList.remove("show");
+ status("Alleen lokaal opgeslagen");
+ render();
+}
+function applyTheme(){
+ document.body.classList.toggle("dark",data.theme==="dark");
+}
+function toggleTheme(){
+ data.theme=data.theme==="dark"?"light":"dark";
+ applyTheme();queueSave();
+}
+function newChat(){
+ const c=makeChat();
+ data.chats.unshift(c);data.currentChat=c.id;
+ queueSave();render();
+ $("input").focus();
+}
+function switchChat(id){
+ data.currentChat=id;queueSave();render();
+}
+function deleteChat(id){
+ const c=data.chats.find(x=>x.id===id);
+ if(!c)return;
+ if(!confirm(`Chat "${c.title}" verwijderen?`))return;
+ data.chats=data.chats.filter(x=>x.id!==id);
+ if(data.currentChat===id)data.currentChat=data.chats[0]?.id||null;
+ ensureChat();queueSave();render();
+}
+function renameChat(id){
+ const c=data.chats.find(x=>x.id===id);if(!c)return;
+ const name=prompt("Nieuwe naam voor deze chat:",c.title);
+ if(name&&name.trim()){c.title=name.trim();queueSave();renderChats();}
+}
+function renderChats(){
+ const q=$("search").value.toLowerCase().trim();
+ const list=$("chatlist");
+ list.innerHTML="";
+ const filtered=data.chats.filter(c=>
+  c.title.toLowerCase().includes(q)||
+  c.messages.some(m=>(m.text||"").toLowerCase().includes(q))
+ );
+ if(!filtered.length){list.innerHTML='<div class="empty">Geen chats gevonden</div>';return;}
+ filtered.forEach(c=>{
+  const item=document.createElement("div");
+  item.className="chatitem"+(c.id===data.currentChat?" active":"");
+  const select=document.createElement("button");
+  select.className="chatselect";
+  select.textContent=c.title;
+  select.onclick=()=>switchChat(c.id);
+  const tools=document.createElement("div");tools.className="chattools";
+  const ren=document.createElement("button");ren.className="smallbtn";ren.title="Hernoemen";ren.textContent="✎";ren.onclick=()=>renameChat(c.id);
+  const del=document.createElement("button");del.className="smallbtn";del.title="Verwijderen";del.textContent="×";del.onclick=()=>deleteChat(c.id);
+  tools.append(ren,del);item.append(select,tools);list.append(item);
+ });
+}
+function renderMessages(){
+ const container=$("messages");
+ container.innerHTML="";
+ const c=current();
+ $("topTitle").textContent=c?.title||"Nexi";
+ if(!c||!c.messages.length){
+  container.innerHTML='<div class="welcome"><h1>Hallo! 👋</h1><p>Waar kan ik je mee helpen?</p></div>';
+  return;
+ }
+ c.messages.forEach(m=>{
+  const wrap=document.createElement("div");wrap.className="messagewrap "+(m.role==="user"?"user":"bot");
+  const bubble=document.createElement("div");bubble.className="bubble";bubble.textContent=m.text;
+  wrap.appendChild(bubble);container.appendChild(wrap);
+ });
+ container.scrollTop=container.scrollHeight;
+}
+function render(){renderChats();renderMessages();applyTheme();}
+function resizeInput(el){el.style.height="auto";el.style.height=Math.min(el.scrollHeight,160)+"px";}
+function inputKey(e){if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();sendMessage();}}
+function sendMessage(){
+ const box=$("input");const text=box.value.trim();if(!text)return;
+ ensureChat();
+ const c=current();
+ c.messages.push({role:"user",text,time:Date.now()});
+ if(c.messages.length===1)c.title=text.slice(0,36)+(text.length>36?"…":"");
+ box.value="";box.style.height="auto";
+ renderMessages();renderChats();queueSave();
+ setTimeout(()=>{
+  const reply=respond(text,c);
+  c.messages.push({role:"assistant",text:reply,time:Date.now()});
+  c.updated=Date.now();
+  renderMessages();renderChats();queueSave();
+ },220);
+}
+function respond(text,chat){
+ const normalized=text.toLowerCase().trim().replace(/[?!.,]/g,"");
+ const learned=data.learned.find(x=>x.question.toLowerCase().trim().replace(/[?!.,]/g,"")===normalized);
+ if(learned)return learned.answer;
+ const history=chat.messages;
+ const prior=history.slice(0,-1).filter(m=>m.role==="user").length;
+ if(/\b(hoi|hallo|hey|heyy|goedemorgen)\b/.test(normalized)){
+  return "Hoi! 😄 Waar zullen we het vandaag over hebben?";
+ }
+ if(normalized.includes("hoe gaat het")){
+  return "Goed, dank je! Ik ben klaar om je te helpen. En hoe gaat het met jou?";
+ }
+ if(normalized.includes("wie ben jij")||normalized.includes("wat ben jij")){
+  return "Ik ben Nexi, jouw chat-assistent. Je kunt met me praten en me nieuwe kennis leren.";
+ }
+ if(normalized.includes("help")){
+  return "Natuurlijk! Je kunt me vragen stellen, met me brainstormen of me kennis leren. Je kunt iets aan mijn kennis toevoegen door te typen: onthoud: vraag = antwoord.";
+ }
+ if(normalized.startsWith("onthoud:")){
+  const pair=text.slice(8).trim();
+  const idx=pair.indexOf("=");
+  if(idx>0){
+   const question=pair.slice(0,idx).trim();
+   const answer=pair.slice(idx+1).trim();
+   if(question&&answer){
+    data.learned.unshift({question,answer,added:Date.now()});
+    queueSave();
+    return "Ik heb dit opgeslagen in mijn kennis en zal dit voortaan gebruiken.";
+   }
+  }
+  return "Gebruik dit formaat: onthoud: vraag = antwoord";
+ }
+ if(normalized.startsWith("vergeet:")){
+  const q=text.slice(7).trim().toLowerCase();
+  const before=data.learned.length;
+  data.learned=data.learned.filter(x=>x.question.toLowerCase()!==q);
+  if(before!==data.learned.length){queueSave();return "Ik heb die kennis verwijderd.";}
+  return "Ik kon die kennis niet vinden.";
+ }
+ if(normalized.includes("bedankt")||normalized.includes("dankjewel"))return "Graag gedaan! 😊";
+ if(normalized.endsWith("?"))return "Interessante vraag! Ik heb daar nog niet genoeg specifieke kennis over. Je kunt me het antwoord leren met `onthoud: vraag = antwoord`.";
+ return "Ik luister! Vertel me gerust wat meer. Je kunt me ook iets leren met `onthoud: vraag = antwoord`.";
+}
+function openSettings(){$("settingsOverlay").classList.add("show");}
+function closeSettings(){$("settingsOverlay").classList.remove("show");}
+function clearChats(){
+ if(!confirm("Weet je zeker dat je alle chats wilt verwijderen?"))return;
+ data.chats=[];data.currentChat=null;ensureChat();queueSave();render();closeSettings();
+}
+function clearLearned(){
+ if(!confirm("Alle geleerde kennis verwijderen?"))return;
+ data.learned=[];queueSave();closeSettings();
+}
+function showLearned(){
+ closeSettings();const list=$("learnedList");list.innerHTML="";
+ if(!data.learned.length){list.innerHTML='<div class="empty">Nog geen kennis opgeslagen.</div>';}
+ data.learned.forEach((item,i)=>{
+  const div=document.createElement("div");
+  div.style.cssText="padding:12px 0;border-bottom:1px solid var(--line)";
+  const q=document.createElement("strong");q.textContent=item.question;
+  const a=document.createElement("div");a.style.cssText="margin-top:5px;color:var(--muted);white-space:pre-wrap";a.textContent=item.answer;
+  const remove=document.createElement("button");remove.textContent="Verwijderen";remove.style.cssText="margin-top:8px;color:#e35b63";
+  remove.onclick=()=>{data.learned.splice(i,1);queueSave();showLearned();};
+  div.append(q,a,remove);list.append(div);
+ });
+ $("learnedOverlay").classList.add("show");
+}
+function closeLearned(){$("learnedOverlay").classList.remove("show");}
+function exportKnowledge(){
+ const text=JSON.stringify({format:"NEXI_DATA",version:3,chats:data.chats,learned:data.learned,currentChat:data.currentChat,theme:data.theme},null,2);
+ return text;
+}
+document.addEventListener("keydown",e=>{
+ if(e.key==="Escape"){closeSettings();closeLearned();}
+ if((e.metaKey||e.ctrlKey)&&e.key==="k"){e.preventDefault();$("search").focus();}
+});
+window.addEventListener("beforeunload",()=>{localSave();});
+async function init(){
+ localLoad();render();status("Alleen lokaal opgeslagen");
+ const restored=await restoreFileHandle();
+ if(!restored){
+  // Het startscherm blijft open zodat je een bestand kunt koppelen.
+ }
+}
 init();
 </script>
 </body>
