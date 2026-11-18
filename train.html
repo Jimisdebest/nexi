@@ -325,16 +325,15 @@ textarea::placeholder{color:var(--muted)}
 
 <script>
 /* ======================================================
-   NEXI — agressief lerende versie
+   NEXI — vloeiende lerende versie
 ====================================================== */
 
 const STORAGE = "nexi_data_v3";
 const THEME_KEY = "nexi_theme";
 const BACKUP_MARKER = "NEXI BACKUP FILE";
 
-/* Drempels */
-const UNKNOWN_BELOW = 0.35;      // < 35% => "weet ik niet"
-const CONFIDENT_FROM = 0.55;     // >= 55% => zelfverzekerd antwoord
+/* Alles onder deze drempel = "weet ik niet" */
+const UNKNOWN_BELOW = 0.35;
 
 let data = { version:1, chats:[], learned:[] };
 let currentChatId = null;
@@ -344,7 +343,7 @@ let thinking = false;
 let menuChatId = null;
 
 /* Onthoudt de laatste onbeantwoorde vraag → volgende bericht wordt geleerd */
-let pendingLearn = null; // { question: string, time: number }
+let pendingLearn = null;
 
 const $ = id => document.getElementById(id);
 const chatList = $("chatList");
@@ -371,7 +370,7 @@ function toast(message){
   const t = document.createElement("div");
   t.className = "toast"; t.textContent = message;
   $("toastRoot").appendChild(t);
-  setTimeout(()=>t.remove(), 2600);
+  setTimeout(()=>t.remove(), 2400);
 }
 function time(t){ return new Date(t).toLocaleTimeString("nl-NL",{hour:"2-digit",minute:"2-digit"}); }
 function safeFilename(s){ return String(s).replace(/[\\/:*?"<>|]/g,"_").slice(0,80) || "chat"; }
@@ -387,12 +386,8 @@ function truncate(s, n){
 function formatAnswer(text){
   let t = String(text ?? "").trim();
   if(!t) return "";
-  // Hoofdletter eerste teken
   t = t.charAt(0).toUpperCase() + t.slice(1);
-  // Eindpunt toevoegen als er nog geen leesteken staat
-  if(!/[.!?…]$/.test(t)){
-    t += ".";
-  }
+  if(!/[.!?…]$/.test(t)) t += ".";
   return t;
 }
 
@@ -502,20 +497,20 @@ const metaAnswers = [
   {
     patterns: [/\b(hoe|wat)\b.*\b(leer|leren|train)/i, /leer.*(je|jij|ik|nex)/i],
     answer:
-      "Ik leer automatisch! Als ik iets niet weet, typ je gewoon het antwoord in je volgende bericht — dan onthoud ik het.\n\n" +
+      "Ik leer terwijl we praten. Als ik iets niet weet, typ je gewoon het antwoord in je volgende bericht — dan onthoud ik het meteen.\n\n" +
       "Handmatig kan ook:\n" +
       "• /leer vraag = antwoord\n" +
-      "• Klik op 📌 onder een antwoord van mij\n\n" +
-      "Bekijk wat ik weet met /lijst. Vergeten doe je met /verwijder vraag."
+      "• 📌 onder een antwoord van mij\n\n" +
+      "Zien wat ik weet: /lijst. Vergeten: /verwijder vraag."
   },
   {
     patterns: [/wat kun je( allemaal)?/i, /wat kan je( allemaal)?/i, /^help$/i],
     answer:
       "Ik ben Nexi — een lokale chatassistent die constant bijleert.\n\n" +
       "Zo werk ik:\n" +
-      "• Als ik iets niet weet, onthoud ik jouw volgende bericht als antwoord\n" +
+      "• Weet ik iets niet, dan onthoud ik jouw volgende bericht als antwoord\n" +
       "• Ik leer ook via /leer of de 📌-knop\n" +
-      "• Alles wordt lokaal opgeslagen (exporteerbaar als .txt)\n\n" +
+      "• Alles staat lokaal opgeslagen\n\n" +
       "Commando's:\n" +
       "/leer vraag = antwoord  — iets nieuws leren\n" +
       "/verwijder vraag         — iets vergeten\n" +
@@ -535,7 +530,6 @@ function looksLikeQuestion(text){
   return /^(wat|hoe|waar|wanneer|waarom|wie|welke|wiens|is|kan|kun|kun\s+je|kan\s+je|heb|heeft|heb\s+je|doet|denk|vind|wil|mag|moet)\b/i.test(t);
 }
 
-/* Korte bevestigingen niet leren */
 const SKIP_LEARN = new Set([
   "ja","nee","ok","oke","oké","okee","dank","thanks","thank you","bedankt",
   "yes","no","tuurlijk","zeker","goed","prima","top","nice","cool","leuk",
@@ -772,7 +766,7 @@ function renderMessage(msg){
     body.appendChild(panel);
   }
 
-  // Actieknoppen (alleen symbolen)
+  /* Actieknoppen (alleen symbolen) */
   const actions = document.createElement("div");
   actions.className = "msg-actions";
 
@@ -888,12 +882,13 @@ async function loadResponses(){
 ====================================================== */
 
 async function getAnswer(text){
+  /* Meta-antwoorden */
   for(const meta of metaAnswers){
     if(meta.patterns.some(p => p.test(text))){
       return {
         answer: meta.answer,
         analysis: [{ text:"Meta-vraag herkend", ok:true }],
-        confidence: 1
+        matched: true
       };
     }
   }
@@ -920,28 +915,14 @@ async function getAnswer(text){
       text:`Match (${Math.round(best * 100)}%) uit ${source}`,
       ok:true
     });
-
-    if(best < CONFIDENT_FROM){
-      return {
-        answer:
-          "Ik heb iets gevonden dat misschien bij je vraag past:\n\n" +
-          match.antwoord +
-          "\n\nIs dit wat je bedoelde?",
-        analysis,
-        confidence: best
-      };
-    }
-    return { answer: match.antwoord, analysis, confidence: best };
+    return { answer: match.antwoord, analysis, matched: true };
   }
 
   analysis.push({ text:"Geen passende match gevonden", ok:false });
   return {
-    answer:
-      "Dat weet ik nog niet.\n\n" +
-      "Typ in je volgende bericht gewoon het antwoord — dan onthoud ik het meteen. " +
-      "Of gebruik /leer vraag = antwoord.",
+    answer: "Dat weet ik nog niet — typ het antwoord maar, dan onthoud ik het.",
     analysis,
-    confidence: 0
+    matched: false
   };
 }
 
@@ -960,7 +941,6 @@ function learnFromPair(vraag, antwoord){
   const formattedQ = formatAnswer(vraag);
   const formattedA = formatAnswer(antwoord);
 
-  // Overschrijf bestaand item met zelfde genormaliseerde vraag
   data.learned = data.learned.filter(x => normalize(x.vraag) !== nq);
   data.learned.push({ vraag: formattedQ, antwoord: formattedA, time: Date.now() });
   save();
@@ -989,8 +969,7 @@ function learnFromBotMessage(botMsg){
   if(!prevUser){ toast("Geen voorafgaande vraag gevonden"); return; }
 
   if(learnFromPair(prevUser.text, botMsg.text)){
-    addSystem(`📌 Geleerd: "${truncate(prevUser.text, 60)}" → "${truncate(formatAnswer(botMsg.text), 80)}"`);
-    toast("Kennis opgeslagen");
+    toast("📌 Geleerd");
   } else {
     toast("Kon niet leren");
   }
@@ -1027,7 +1006,7 @@ function handleCommand(cmd){
 
   if(cmd.type === "learn"){
     if(learnFromPair(cmd.vraag, cmd.antwoord)){
-      addSystem(`📌 Geleerd: "${truncate(cmd.vraag, 60)}" → "${truncate(formatAnswer(cmd.antwoord), 80)}"`);
+      addSystem(`📌 Geleerd: "${truncate(cmd.vraag, 60)}"`);
       toast("Kennis opgeslagen");
     } else {
       toast("Kon niet leren — vraag en antwoord mogen niet leeg zijn");
@@ -1089,7 +1068,7 @@ async function sendMessage(){
     return;
   }
 
-  // ---- AUTO-LEREN: vorige onbeantwoorde vraag + dit bericht = kennis ----
+  /* ---- AUTO-LEREN: vorige onbeantwoorde vraag + dit bericht = kennis ---- */
   if(pendingLearn && !looksLikeQuestion(text)){
     const lower = text.toLowerCase().trim();
     const tooShort = text.length < 3;
@@ -1099,7 +1078,7 @@ async function sendMessage(){
       const question = pendingLearn.question;
       if(learnFromPair(question, text)){
         addMessage("user", text);
-        addSystem(`📌 Geleerd: "${truncate(question, 60)}" → "${truncate(formatAnswer(text), 80)}"`);
+        toast("📌 Geleerd");
         input.value = "";
         resizeInput();
         pendingLearn = null;
@@ -1108,7 +1087,6 @@ async function sendMessage(){
     }
   }
 
-  // Nieuwe vraag → oude pendingLearn laten vallen
   if(pendingLearn) pendingLearn = null;
 
   addMessage("user", text);
@@ -1121,15 +1099,15 @@ async function runAnswer(userText){
   thinking = true;
   send.disabled = true;
   const typing = showThinking();
-  await new Promise(r => setTimeout(r, 300));
+  await new Promise(r => setTimeout(r, 250));
 
   try{
     const response = await getAnswer(userText);
     typing.remove();
     addMessage("bot", response.answer, response.analysis);
 
-    // Onthoud de vraag als het antwoord onzeker is
-    if(response.confidence < CONFIDENT_FROM){
+    /* Onthoud de vraag als het antwoord onzeker is */
+    if(!response.matched){
       pendingLearn = { question: userText, time: Date.now() };
     } else {
       pendingLearn = null;
