@@ -1,1448 +1,261 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="nl">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Nexi</title>
-<link rel="icon" href="logo.png">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101a2d">
+  <title>Even op adem</title>
+  <style>
+    :root { color-scheme: dark; --ink:#f7f5f0; --muted:#aab3c3; }
+    * { box-sizing: border-box; }
+    body {
+      margin:0; min-height:100vh; display:grid; place-items:center; padding:0;
+      color:var(--ink); font-family:ui-sans-serif, system-ui, -apple-system,
+      BlinkMacSystemFont, "Segoe UI", sans-serif; background:#000;
+    }
+    main {
+      width:100%; min-height:100vh; position:relative; overflow:hidden;
+      display:flex; flex-direction:column; align-items:center; justify-content:center;
+      padding:clamp(36px,8vw,76px); text-align:center;
+      border:1px solid rgba(255,255,255,.14); border-radius:clamp(18px,2.5vw,32px);
+      background:radial-gradient(ellipse at 18% 18%,#294361 0,transparent 42%),
+                 radial-gradient(ellipse at 82% 82%,#49374f 0,transparent 40%),#101a2d;
+      box-shadow:0 32px 90px rgba(0,0,0,.28), inset 0 1px rgba(255,255,255,.1);
+      backdrop-filter:blur(18px);
+    }
+    main::before, main::after {
+      content:""; position:absolute; width:190px; height:190px; border-radius:50%;
+      filter:blur(1px); opacity:.5; pointer-events:none;
+    }
+    main::before { top:-120px; right:-42px; background:#91c4cd; }
+    main::after  { bottom:-145px; left:-40px; background:#c398a5; }
 
-<style>
-:root {
-  --bg:#f3f4f7;--panel:#fff;--soft:#f7f8fa;--text:#20232b;
-  --muted:#9298a4;--border:#e7e9ee;--accent:#647ff2;
-  --accentSoft:#edf0ff;--bot:#f0f1f4;--danger:#e05b5b;
-}
-[data-theme="dark"]{
-  --bg:#16181d;--panel:#20232a;--soft:#282c34;--text:#f2f3f5;
-  --muted:#999fac;--border:#343841;--accent:#8398ff;
-  --accentSoft:#303750;--bot:#2b2f37;--danger:#ff7777;
-}
-*{box-sizing:border-box;margin:0;padding:0}
-body{
-  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
-  color:var(--text);background:var(--bg);height:100dvh;overflow:hidden
-}
-button,input,textarea{font:inherit}
-button{cursor:pointer}
-.app{display:flex;width:100%;height:100dvh;overflow:hidden}
+    #clock {
+      font-size:clamp(76px,18vw,148px); font-weight:300;
+      letter-spacing:-.075em; line-height:.95; font-variant-numeric:tabular-nums;
+    }
+    #date { margin:24px 0 0; color:var(--muted); font-size:clamp(15px,2.5vw,19px); font-weight:450; }
 
-/* SIDEBAR */
-.sidebar{
-  width:275px;flex-shrink:0;background:var(--panel);
-  border-right:1px solid var(--border);display:flex;flex-direction:column;
-  padding:17px 13px;z-index:5
-}
-.brand{display:flex;align-items:center;gap:11px;padding:4px 8px 22px}
-.brand img{width:40px;height:40px;object-fit:cover;border-radius:13px}
-.brand-name{font-size:20px;font-weight:750;letter-spacing:-.6px}
-.brand-sub{font-size:11px;color:var(--muted);margin-top:3px}
-.new-chat{
-  border:1px solid var(--border);background:var(--panel);color:var(--text);
-  padding:12px;border-radius:12px;display:flex;gap:10px;align-items:center
-}
-.new-chat:hover{background:var(--accentSoft);border-color:var(--accent)}
-.new-chat span{font-size:20px;color:var(--accent)}
-.search{position:relative;margin:16px 0}
-.search input{
-  width:100%;border:1px solid transparent;border-radius:10px;
-  background:var(--soft);padding:10px 12px 10px 34px;
-  outline:none;color:var(--text);font-size:13px
-}
-.search input:focus{border-color:var(--accent)}
-.search span{position:absolute;left:12px;top:10px;color:var(--muted)}
-.label{font-size:11px;color:var(--muted);font-weight:700;letter-spacing:.7px;padding:0 8px 9px}
-.chat-list{flex:1;overflow-y:auto;min-height:0}
-.chat-item{display:flex;align-items:center;gap:9px;padding:10px;border-radius:11px;cursor:pointer;margin-bottom:3px}
-.chat-item:hover{background:var(--soft)}
-.chat-item.active{background:var(--accentSoft)}
-.chat-icon{width:33px;height:33px;border-radius:10px;background:var(--soft);display:grid;place-items:center;flex-shrink:0}
-.chat-info{flex:1;min-width:0}
-.chat-title{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.chat-preview{font-size:11px;color:var(--muted);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.more{border:0;background:transparent;color:var(--muted);padding:5px;border-radius:7px;opacity:0}
-.chat-item:hover .more,.chat-item.active .more{opacity:1}
-.more:hover{background:var(--border)}
-.sidebar-bottom{border-top:1px solid var(--border);margin-top:10px;padding-top:10px}
-.bottom-row{display:flex;align-items:center;gap:6px;padding:5px}
-.profile{display:flex;align-items:center;gap:9px;flex:1;min-width:0}
-.profile-avatar{width:34px;height:34px;border-radius:50%;background:var(--accentSoft);color:var(--accent);display:grid;place-items:center;font-weight:700}
-.profile-name{font-size:13px;font-weight:600}
-.profile-sub{font-size:11px;color:var(--muted);margin-top:2px}
-.icon-btn{border:0;background:transparent;color:var(--muted);border-radius:9px;width:36px;height:36px}
-.icon-btn:hover{background:var(--soft);color:var(--text)}
+    /* ---------- Zoeken ---------- */
+    .search { width:min(100%,430px); margin-top:34px; position:relative; z-index:1; }
+    .search input {
+      width:100%; height:56px; padding:0 22px 0 52px; border-radius:999px;
+      border:1px solid rgba(255,255,255,.2); outline:none; color:var(--ink);
+      background:rgba(7,14,27,.32); font:inherit; font-size:15px;
+      box-shadow:inset 0 1px rgba(255,255,255,.08);
+      transition:background .2s, border-color .2s, box-shadow .2s;
+    }
+    .search input::placeholder { color:#aab3c3; }
+    .search input:focus {
+      background:rgba(7,14,27,.52); border-color:rgba(210,231,243,.65);
+      box-shadow:0 0 0 4px rgba(210,231,243,.1);
+    }
+    .search svg { position:absolute; left:20px; top:17px; color:#aab3c3; pointer-events:none; }
 
-/* MAIN */
-.main{flex:1;display:flex;flex-direction:column;min-width:0;position:relative}
-.topbar{
-  height:65px;min-height:65px;display:flex;align-items:center;
-  padding:0 22px;gap:12px;background:var(--panel);
-  border-bottom:1px solid var(--border)
-}
-.mobile-menu{display:none}
-.header-title{font-size:15px;font-weight:650}
-.header-sub{font-size:11px;color:var(--muted);margin-top:3px}
-.spacer{flex:1}
-.status{display:flex;align-items:center;gap:7px;color:var(--muted);font-size:12px}
-.dot{width:8px;height:8px;border-radius:50%;background:#48c58b}
+    /* ---------- Nexi-knop (alleen logo, geen animatie) ---------- */
+    .nexi-fab {
+      position:fixed;
+      right:clamp(16px,3vw,28px);
+      bottom:calc(clamp(16px,3vw,28px) + env(safe-area-inset-bottom, 0px));
+      z-index:40;
+      width:60px; height:60px;
+      display:grid; place-items:center;
+      padding:0; cursor:pointer;
+      border-radius:50%;
+      background:radial-gradient(circle at 30% 25%, #1e2f4b, #0b1626 72%);
+      border:1px solid rgba(210,231,243,.28);
+      box-shadow:0 18px 40px rgba(0,0,0,.5), inset 0 1px rgba(255,255,255,.14);
+      transition:transform .18s ease, border-color .18s ease, filter .18s ease;
+      -webkit-tap-highlight-color:transparent;
+    }
+    .nexi-fab img {
+      width:34px; height:34px; object-fit:contain; display:block;
+      filter:drop-shadow(0 2px 6px rgba(0,0,0,.45));
+      pointer-events:none;
+    }
+    .nexi-fab:hover { transform:translateY(-2px); border-color:rgba(210,231,243,.55); filter:brightness(1.08); }
+    .nexi-fab:active { transform:translateY(0); }
+    .nexi-fab:focus-visible { outline:2px solid #d2e7f3; outline-offset:3px; }
 
-/* CHAT */
-.messages{flex:1;overflow-y:auto;padding:26px 18px;scroll-behavior:smooth}
-.message-container{max-width:850px;margin:auto;display:flex;flex-direction:column;gap:20px}
-.message{display:flex;align-items:flex-start;gap:11px;animation:fade .15s ease}
-.message.user{flex-direction:row-reverse}
-.avatar{
-  width:34px;height:34px;flex-shrink:0;border-radius:11px;
-  background:var(--panel);border:1px solid var(--border);
-  display:grid;place-items:center;overflow:hidden;font-size:13px
-}
-.avatar img{width:100%;height:100%;object-fit:cover}
-.body{max-width:min(78%,650px)}
-.message.user .body{display:flex;flex-direction:column;align-items:flex-end}
-.name{font-size:11px;font-weight:600;color:var(--muted);margin:0 4px 6px}
-.bubble{
-  border-radius:17px;padding:12px 15px;line-height:1.6;font-size:14px;
-  white-space:pre-wrap;overflow-wrap:anywhere
-}
-.bot .bubble{background:var(--bot);border-top-left-radius:5px}
-.user .bubble{background:var(--accent);color:white;border-top-right-radius:5px}
-.bubble img{max-width:100%;max-height:350px;border-radius:12px;margin-top:8px;display:block}
-.analysis{
-  margin-top:8px;background:var(--panel);border:1px solid var(--border);
-  border-radius:12px;padding:11px 13px;font-size:12px;color:var(--muted)
-}
-.analysis strong{display:block;color:var(--text);margin-bottom:7px}
-.analysis div{margin-top:5px}
-.thinking .bubble{color:var(--muted)}
-.dots{display:inline-flex;gap:4px;margin-left:6px}
-.dots i{width:5px;height:5px;border-radius:50%;background:var(--muted);animation:pulse 1s infinite}
-.dots i:nth-child(2){animation-delay:.15s}
-.dots i:nth-child(3){animation-delay:.3s}
+    /* ---------- Nexi-venster ---------- */
+    .nexi-panel {
+      position:fixed;
+      right:clamp(16px,3vw,28px);
+      bottom:calc(clamp(16px,3vw,28px) + 60px + 14px + env(safe-area-inset-bottom, 0px));
+      z-index:39;
+      width:min(380px, calc(100vw - 32px));
+      height:min(560px, calc(100vh - 140px));
+      display:none;
+      flex-direction:column;
+      overflow:hidden;
+      border-radius:20px;
+      border:1px solid rgba(255,255,255,.16);
+      background:#0c1626;
+      box-shadow:0 28px 70px rgba(0,0,0,.6), inset 0 1px rgba(255,255,255,.08);
+    }
+    .nexi-panel[data-open="true"] {
+      display:flex;
+      animation:nexiIn .18s ease-out both;
+    }
+    @keyframes nexiIn {
+      from { opacity:0; transform:translateY(10px) scale(.985); }
+      to   { opacity:1; transform:translateY(0) scale(1); }
+    }
 
-/* MESSAGE ACTIONS */
-.msg-actions{display:flex;gap:2px;margin-top:6px;opacity:0;transition:opacity .15s}
-.message:hover .msg-actions,.message:focus-within .msg-actions{opacity:1}
-.msg-actions button{
-  border:0;background:transparent;color:var(--muted);
-  padding:5px 9px;border-radius:7px;font-size:14px;line-height:1;
-}
-.msg-actions button:hover{background:var(--soft);color:var(--text)}
+    .nexi-panel__bar {
+      flex:0 0 auto;
+      display:flex; align-items:center; gap:10px;
+      padding:10px 10px 10px 14px;
+      background:linear-gradient(180deg, rgba(41,67,97,.55), rgba(16,26,45,.2));
+      border-bottom:1px solid rgba(255,255,255,.1);
+    }
+    .nexi-panel__bar img { width:20px; height:20px; object-fit:contain; display:block; }
+    .nexi-panel__title {
+      flex:1 1 auto; min-width:0;
+      font-size:14px; font-weight:600; letter-spacing:.01em;
+      white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+    }
+    .nexi-panel__close {
+      flex:0 0 auto;
+      width:34px; height:34px; padding:0;
+      display:grid; place-items:center;
+      border:0; border-radius:10px; cursor:pointer;
+      color:var(--ink); background:transparent;
+      transition:background .15s ease;
+    }
+    .nexi-panel__close:hover { background:rgba(255,255,255,.12); }
+    .nexi-panel__close:focus-visible { outline:2px solid #d2e7f3; outline-offset:1px; }
 
-/* SYSTEM MESSAGE */
-.system-msg{
-  align-self:center;text-align:center;font-size:11px;color:var(--muted);
-  padding:4px 12px;white-space:pre-wrap;line-height:1.6;max-width:600px;
-  font-style:italic
-}
+    .nexi-panel iframe {
+      flex:1 1 auto; width:100%; height:100%;
+      border:0; display:block; background:#0c1626;
+    }
 
-/* JUMP TO BOTTOM */
-.jump-bottom{
-  position:absolute;right:22px;bottom:130px;width:38px;height:38px;
-  border-radius:50%;border:1px solid var(--border);background:var(--panel);
-  color:var(--muted);display:grid;place-items:center;
-  box-shadow:0 4px 15px rgba(0,0,0,.12);z-index:10;
-  opacity:0;pointer-events:none;transition:opacity .2s,transform .2s
-}
-.jump-bottom.visible{opacity:1;pointer-events:auto}
-.jump-bottom:hover{color:var(--text);background:var(--soft)}
-@media(max-width:720px){.jump-bottom{right:14px;bottom:150px}}
-
-/* EMPTY CHAT */
-.empty{
-  min-height:100%;display:flex;flex-direction:column;align-items:center;
-  justify-content:center;text-align:center;padding:30px
-}
-.empty img{width:70px;height:70px;object-fit:cover;border-radius:23px;margin-bottom:22px}
-.empty h2{font-size:clamp(23px,4vw,34px);letter-spacing:-1px}
-.empty p{color:var(--muted);font-size:14px;margin-top:9px}
-.suggestions{display:flex;flex-wrap:wrap;justify-content:center;gap:9px;margin-top:26px}
-.suggestion{
-  background:var(--panel);border:1px solid var(--border);color:var(--text);
-  padding:10px 13px;border-radius:12px;font-size:12px
-}
-.suggestion:hover{background:var(--accentSoft);border-color:var(--accent)}
-
-/* INPUT */
-.composer-wrap{padding:12px 20px 17px;background:var(--bg)}
-.composer{
-  max-width:850px;margin:auto;background:var(--panel);border:1px solid var(--border);
-  border-radius:17px;box-shadow:0 8px 30px rgba(30,40,70,.04)
-}
-.composer:focus-within{border-color:var(--accent)}
-textarea{
-  display:block;width:100%;resize:none;max-height:150px;min-height:52px;
-  padding:14px 16px 8px;border:0;outline:0;background:transparent;
-  color:var(--text);font-size:14px;line-height:1.5
-}
-textarea::placeholder{color:var(--muted)}
-.composer-bottom{display:flex;justify-content:space-between;align-items:center;padding:7px 10px 10px}
-.tools{display:flex;gap:3px}
-.tool{
-  border:0;background:transparent;color:var(--muted);padding:7px 9px;
-  border-radius:9px;font-size:12px
-}
-.tool:hover{background:var(--soft);color:var(--text)}
-.send{
-  width:36px;height:36px;border:0;border-radius:11px;
-  background:var(--accent);color:white;font-size:18px
-}
-.send:disabled{opacity:.4}
-.disclaimer{max-width:850px;margin:8px auto 0;text-align:center;color:var(--muted);font-size:10px}
-
-/* MENU / TOAST */
-.menu{
-  position:fixed;z-index:20;width:170px;background:var(--panel);
-  border:1px solid var(--border);border-radius:12px;padding:5px;
-  box-shadow:0 8px 30px rgba(0,0,0,.1)
-}
-.menu button{
-  display:block;width:100%;text-align:left;padding:10px;border:0;
-  background:transparent;color:var(--text);border-radius:8px;font-size:12px
-}
-.menu button:hover{background:var(--soft)}
-.menu .delete{color:var(--danger)}
-.toast{
-  position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
-  background:var(--text);color:var(--panel);padding:11px 16px;
-  border-radius:11px;font-size:12px;z-index:40;animation:fade .15s
-}
-.hidden{display:none!important}
-.overlay{position:fixed;inset:0;background:#0004;z-index:4}
-
-/* MODAL */
-.backdrop{position:fixed;inset:0;z-index:30;background:#0005;display:grid;place-items:center;padding:20px}
-.modal{width:100%;max-width:400px;background:var(--panel);border:1px solid var(--border);border-radius:18px;padding:22px}
-.modal h3{font-size:18px;margin-bottom:8px}
-.modal p{font-size:13px;color:var(--muted);line-height:1.5;margin-bottom:15px}
-.modal input{width:100%;background:var(--soft);border:1px solid var(--border);border-radius:10px;padding:12px;color:var(--text);outline:0;margin-bottom:14px}
-.modal input:focus{border-color:var(--accent)}
-.actions{display:flex;justify-content:flex-end;gap:8px}
-.btn{padding:10px 13px;border-radius:10px;border:1px solid var(--border);background:var(--soft);color:var(--text);font-size:13px}
-.btn.primary{background:var(--accent);border-color:var(--accent);color:white}
-.btn.danger{color:var(--danger)}
-.settings-buttons{display:flex;flex-direction:column;gap:9px;margin-bottom:17px}
-.settings-buttons .btn{text-align:left}
-.kb-list{max-height:50vh;overflow-y:auto;display:flex;flex-direction:column;gap:8px;margin-bottom:14px}
-.kb-item{border:1px solid var(--border);border-radius:10px;padding:10px}
-.kb-q{font-size:12px;font-weight:600;color:var(--accent);margin-bottom:4px}
-.kb-a{font-size:12px;color:var(--text);line-height:1.5;white-space:pre-wrap}
-
-/* SCROLLBARS */
-::-webkit-scrollbar{width:6px}
-::-webkit-scrollbar-thumb{background:var(--border);border-radius:10px}
-
-@keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
-@keyframes pulse{0%,60%,100%{opacity:.25;transform:translateY(0)}30%{opacity:1;transform:translateY(-3px)}}
-
-@media(max-width:720px){
-  .sidebar{position:fixed;inset:0 auto 0 0;width:285px;transform:translateX(-100%);transition:transform .2s;box-shadow:none}
-  .sidebar.open{transform:translateX(0);box-shadow:10px 0 40px #0002}
-  .mobile-menu{display:block}
-  .topbar{height:59px;min-height:59px;padding:0 12px}
-  .messages{padding:19px 11px}
-  .body{max-width:86%}
-  .composer-wrap{padding:9px 10px 12px}
-  .status{font-size:0}
-}
-</style>
+    @media (max-width:480px){
+      main { min-height:100vh; border-radius:22px; padding:32px 24px 100px; }
+      .nexi-fab { width:56px; height:56px; }
+      .nexi-fab img { width:32px; height:32px; }
+      .nexi-panel {
+        right:8px; left:8px; width:auto;
+        bottom:calc(8px + 56px + 12px + env(safe-area-inset-bottom, 0px));
+        height:min(70vh, calc(100vh - 130px));
+      }
+    }
+    @media (prefers-reduced-motion: reduce){
+      * { transition:none !important; animation:none !important; }
+      .nexi-fab:hover { transform:none; }
+    }
+  </style>
 </head>
-
 <body>
-<div class="app">
 
-  <aside class="sidebar" id="sidebar">
-    <div class="brand">
-      <img src="logo.png" alt="Nexi" onerror="this.style.display='none'">
-      <div>
-        <div class="brand-name">Nexi</div>
-        <div class="brand-sub">Jouw chatomgeving</div>
-      </div>
-    </div>
+<main aria-label="Klok en datum">
+  <time id="clock" aria-label="Lokale tijd"></time>
+  <time id="date"></time>
 
-    <button class="new-chat" id="newChat"><span>＋</span> Nieuwe chat</button>
+  <form class="search" action="https://www.bing.com/search" method="get" role="search">
+    <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none">
+      <circle cx="10.8" cy="10.8" r="6.8" stroke="currentColor" stroke-width="1.7"/>
+      <path d="m16 16 4.2 4.2" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+    </svg>
+    <input type="search" name="q"
+           placeholder="Waar ben je naar op zoek?"
+           aria-label="Zoeken op Bing" autocomplete="off">
+  </form>
+</main>
 
-    <div class="search">
-      <span>⌕</span>
-      <input id="search" placeholder="Zoek chats..." type="search">
-    </div>
+<!-- Nexi-venster (verschijnt pas bij klik) -->
+<section class="nexi-panel" id="nexiPanel" data-open="false"
+         role="dialog" aria-modal="false" aria-label="Chat met Nexi" hidden>
+  <div class="nexi-panel__bar">
+    <img src="https://jimisdebest.github.io/nexi/logo.png" alt="" width="20" height="20">
+    <span class="nexi-panel__title">Nexi</span>
+    <button type="button" class="nexi-panel__close" id="nexiClose" aria-label="Sluit chatvenster">
+      <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none">
+        <path d="m6 6 12 12M18 6 6 18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+      </svg>
+    </button>
+  </div>
+  <iframe id="nexiFrame"
+          title="Chat met Nexi"
+          data-src="https://jimisdebest.github.io/nexi/train"
+          referrerpolicy="no-referrer"
+          allow="clipboard-write; microphone; autoplay"></iframe>
+</section>
 
-    <div class="label">Gesprekken</div>
-    <div class="chat-list" id="chatList"></div>
-
-    <div class="sidebar-bottom">
-      <div class="bottom-row">
-        <div class="profile">
-          <div class="profile-avatar">N</div>
-          <div>
-            <div class="profile-name">Nexi</div>
-            <div class="profile-sub">Lokale opslag</div>
-          </div>
-        </div>
-        <button class="icon-btn" id="theme" title="Thema">◐</button>
-        <button class="icon-btn" id="settings" title="Instellingen">⚙</button>
-      </div>
-    </div>
-  </aside>
-
-  <main class="main">
-    <header class="topbar">
-      <button class="icon-btn mobile-menu" id="mobileMenu">☰</button>
-      <div>
-        <div class="header-title" id="headerTitle">Nexi</div>
-        <div class="header-sub">Gesprek met Nexi</div>
-      </div>
-      <div class="spacer"></div>
-      <div class="status"><span class="dot"></span> Beschikbaar</div>
-      <button class="icon-btn" id="renameCurrent" title="Chat hernoemen">✎</button>
-    </header>
-
-    <section class="messages" id="messages">
-      <div class="message-container" id="messageContainer"></div>
-    </section>
-
-    <button class="jump-bottom" id="jumpBottom" title="Naar beneden">↓</button>
-
-    <div class="composer-wrap">
-      <div class="composer">
-        <textarea id="input" rows="1" placeholder="Typ een bericht aan Nexi..."></textarea>
-        <div class="composer-bottom">
-          <div class="tools">
-            <button class="tool" id="analysisToggle">⌘ Analyse</button>
-            <button class="tool" id="exportChat">↓ Chat exporteren</button>
-          </div>
-          <button class="send" id="send" title="Versturen">↑</button>
-        </div>
-      </div>
-      <div class="disclaimer">Nexi leert van elk antwoord dat jij geeft. Typ <b>/help</b> voor commando's.</div>
-    </div>
-  </main>
-</div>
-
-<div id="overlay" class="overlay hidden"></div>
-<div id="modalRoot"></div>
-<div id="menu" class="menu hidden"></div>
-<div id="toastRoot"></div>
-<input type="file" id="backupInput" accept=".txt,text/plain" hidden>
+<!-- Nexi-knop (alleen logo) -->
+<button type="button" class="nexi-fab" id="nexiFab"
+        aria-label="Chat met Nexi" aria-controls="nexiPanel" aria-expanded="false">
+  <img src="https://jimisdebest.github.io/nexi/logo.png" alt="" width="34" height="34">
+</button>
 
 <script>
-/* ======================================================
-   NEXI — vloeiende lerende versie
-====================================================== */
+(() => {
+  'use strict';
 
-const STORAGE = "nexi_data_v3";
-const THEME_KEY = "nexi_theme";
-const BACKUP_MARKER = "NEXI BACKUP FILE";
+  /* ---------- Klok ---------- */
+  const clockEl = document.getElementById('clock');
+  const dateEl  = document.getElementById('date');
+  const tF = new Intl.DateTimeFormat('nl-NL', { hour:'2-digit', minute:'2-digit', hour12:false });
+  const dF = new Intl.DateTimeFormat('nl-NL', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
 
-/* Alles onder deze drempel = "weet ik niet" */
-const UNKNOWN_BELOW = 0.35;
+  function tick(){
+    const n = new Date();
+    clockEl.textContent = tF.format(n);
+    clockEl.dateTime = n.toISOString();
+    dateEl.textContent = dF.format(n);
+    dateEl.dateTime = n.toISOString().slice(0,10);
+  }
+  tick();
+  setInterval(tick, 1000);
 
-let data = { version:1, chats:[], learned:[] };
-let currentChatId = null;
-let qaDatabase = [];
-let analysisMode = false;
-let thinking = false;
-let menuChatId = null;
+  /* ---------- Nexi-paneel ---------- */
+  const fab    = document.getElementById('nexiFab');
+  const panel  = document.getElementById('nexiPanel');
+  const closeB = document.getElementById('nexiClose');
+  const frame  = document.getElementById('nexiFrame');
 
-/* Onthoudt de laatste onbeantwoorde vraag → volgende bericht wordt geleerd */
-let pendingLearn = null;
+  let loaded = false;
 
-const $ = id => document.getElementById(id);
-const chatList = $("chatList");
-const messageContainer = $("messageContainer");
-const messages = $("messages");
-const input = $("input");
-const send = $("send");
-const jumpBottom = $("jumpBottom");
+  function isOpen(){
+    return panel.dataset.open === 'true';
+  }
 
-/* ---------- HELPERS ---------- */
-
-function id(){ return "c_" + Date.now().toString(36) + "_" + Math.random().toString(36).slice(2,7); }
-function currentChat(){ return data.chats.find(c => c.id === currentChatId) || null; }
-function escapeHTML(s){
-  return String(s ?? "").replaceAll("&","&amp;").replaceAll("<","&lt;")
-    .replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;");
-}
-function save(){
-  try{ localStorage.setItem(STORAGE, JSON.stringify(data)); }
-  catch(e){ toast("Opslaan mislukt — opslag mogelijk vol."); }
-}
-function toast(message){
-  $("toastRoot").innerHTML = "";
-  const t = document.createElement("div");
-  t.className = "toast"; t.textContent = message;
-  $("toastRoot").appendChild(t);
-  setTimeout(()=>t.remove(), 2400);
-}
-function time(t){ return new Date(t).toLocaleTimeString("nl-NL",{hour:"2-digit",minute:"2-digit"}); }
-function safeFilename(s){ return String(s).replace(/[\\/:*?"<>|]/g,"_").slice(0,80) || "chat"; }
-function truncate(s, n){
-  s = String(s);
-  return s.length > n ? s.slice(0, n - 1) + "…" : s;
-}
-
-/* ======================================================
-   TEKST-FORMATTERING (hoofdletter + eindpunt)
-====================================================== */
-
-function formatAnswer(text){
-  let t = String(text ?? "").trim();
-  if(!t) return "";
-  t = t.charAt(0).toUpperCase() + t.slice(1);
-  if(!/[.!?…]$/.test(t)) t += ".";
-  return t;
-}
-
-/* ======================================================
-   NORMALISATIE + MATCHING
-====================================================== */
-
-function normalize(s){
-  return String(s ?? "")
-    .toLowerCase()
-    .normalize("NFD").replace(/[\u0300-\u036f]/g,"")
-    .replace(/[^\p{L}\p{N}\s]/gu," ")
-    .replace(/\s+/g," ")
-    .trim();
-}
-
-const STOPWORDS = new Set([
-  "de","het","een","ik","je","jij","we","wij","ze","zij","mij","me",
-  "is","was","zijn","ben","heb","heeft","had","do","does","did","en","of",
-  "maar","dat","dit","wat","hoe","waar","wie","aan","in","op","voor","van",
-  "met","naar","the","a","an","and","or","are","you","i","it","to","please",
-  "can","could","would","should","will","shall","my","your","our","their"
-]);
-
-function tokenize(s){
-  return normalize(s).split(" ").filter(w => w.length>1 && !STOPWORDS.has(w));
-}
-
-function levenshtein(a,b){
-  if(a===b) return 0;
-  const m=a.length, n=b.length;
-  if(!m) return n; if(!n) return m;
-  const dp=new Array(n+1);
-  for(let j=0;j<=n;j++) dp[j]=j;
-  for(let i=1;i<=m;i++){
-    let prev=dp[0];
-    dp[0]=i;
-    for(let j=1;j<=n;j++){
-      const tmp=dp[j];
-      dp[j]=Math.min(dp[j]+1, dp[j-1]+1, prev+(a[i-1]===b[j-1]?0:1));
-      prev=tmp;
+  function openPanel(){
+    if (!loaded){
+      frame.src = frame.dataset.src;   // pas laden bij eerste keer openen
+      loaded = true;
     }
-  }
-  return dp[n];
-}
-function similarity(a,b){
-  if(!a||!b) return 0;
-  if(a===b) return 1;
-  return 1 - levenshtein(a,b)/Math.max(a.length,b.length);
-}
-function diceBigrams(a,b){
-  if(a.length<2||b.length<2) return a===b?1:0;
-  const A=new Set(), B=new Set();
-  for(let i=0;i<a.length-1;i++) A.add(a.slice(i,i+2));
-  for(let i=0;i<b.length-1;i++) B.add(b.slice(i,i+2));
-  let inter=0;
-  for(const g of A) if(B.has(g)) inter++;
-  return 2*inter/(A.size+B.size);
-}
-
-function score(query, target){
-  const q = normalize(query);
-  const t = normalize(target);
-  if(!q||!t) return 0;
-  if(q===t) return 1;
-
-  const qw = tokenize(q);
-  const tw = tokenize(t);
-  if(!qw.length || !tw.length) return 0;
-
-  const tSet = new Set(tw);
-  let exact = 0, fuzzy = 0;
-  for(const w of qw){
-    if(tSet.has(w)){ exact++; continue; }
-    let best = 0;
-    for(const tw2 of tw){
-      const s = similarity(w, tw2);
-      if(s>best) best = s;
-    }
-    if(best >= 0.82) fuzzy += best;
+    panel.hidden = false;
+    panel.dataset.open = 'true';
+    fab.setAttribute('aria-expanded', 'true');
+    closeB.focus({ preventScroll:true });
   }
 
-  const tokenScore = (exact + fuzzy * 0.85) / Math.max(qw.length, tw.length);
-  const bg = diceBigrams(q, t);
-
-  let s = 0.60 * tokenScore + 0.35 * bg;
-  if(exact === qw.length && qw.length >= 2) s += 0.10;
-  if(t.includes(q) || q.includes(t)) s += 0.12;
-
-  return Math.min(1, s);
-}
-
-function bestMatch(db, text){
-  let best=null, highest=0;
-  for(const item of db){
-    const s = score(text, item.vraag);
-    if(s > highest){ highest = s; best = item; }
+  function closePanel(){
+    panel.dataset.open = 'false';
+    panel.hidden = true;
+    fab.setAttribute('aria-expanded', 'false');
+    fab.focus({ preventScroll:true });
   }
-  return { match:best, score:highest };
-}
 
-/* ======================================================
-   META-ANTWOORDEN
-====================================================== */
-
-const metaAnswers = [
-  {
-    patterns: [/\b(hoe|wat)\b.*\b(leer|leren|train)/i, /leer.*(je|jij|ik|nex)/i],
-    answer:
-      "Ik leer terwijl we praten. Als ik iets niet weet, typ je gewoon het antwoord in je volgende bericht — dan onthoud ik het meteen.\n\n" +
-      "Handmatig kan ook:\n" +
-      "• /leer vraag = antwoord\n" +
-      "• 📌 onder een antwoord van mij\n\n" +
-      "Zien wat ik weet: /lijst. Vergeten: /verwijder vraag."
-  },
-  {
-    patterns: [/wat kun je( allemaal)?/i, /wat kan je( allemaal)?/i, /^help$/i],
-    answer:
-      "Ik ben Nexi — een lokale chatassistent die constant bijleert.\n\n" +
-      "Zo werk ik:\n" +
-      "• Weet ik iets niet, dan onthoud ik jouw volgende bericht als antwoord\n" +
-      "• Ik leer ook via /leer of de 📌-knop\n" +
-      "• Alles staat lokaal opgeslagen\n\n" +
-      "Commando's:\n" +
-      "/leer vraag = antwoord  — iets nieuws leren\n" +
-      "/verwijder vraag         — iets vergeten\n" +
-      "/lijst                   — geleerde kennis tonen\n" +
-      "/help                    — deze uitleg"
-  }
-];
-
-/* ======================================================
-   HULP: lijkt dit op een nieuwe vraag?
-====================================================== */
-
-function looksLikeQuestion(text){
-  const t = String(text).trim().toLowerCase();
-  if(!t) return false;
-  if(t.endsWith("?")) return true;
-  return /^(wat|hoe|waar|wanneer|waarom|wie|welke|wiens|is|kan|kun|kun\s+je|kan\s+je|heb|heeft|heb\s+je|doet|denk|vind|wil|mag|moet)\b/i.test(t);
-}
-
-const SKIP_LEARN = new Set([
-  "ja","nee","ok","oke","oké","okee","dank","thanks","thank you","bedankt",
-  "yes","no","tuurlijk","zeker","goed","prima","top","nice","cool","leuk",
-  "haha","lol","hm","hmm","mhm","uh","uhu","ah","oh","oké dan","prima hoor"
-]);
-
-/* ======================================================
-   CHAT MANAGEMENT
-====================================================== */
-
-function createChat(name){
-  const chat = {
-    id: id(),
-    title: name || "Nieuwe chat",
-    created: Date.now(),
-    updated: Date.now(),
-    messages: []
-  };
-  data.chats.unshift(chat);
-  currentChatId = chat.id;
-  pendingLearn = null;
-  save(); renderChats(); renderMessages(); updateHeader(); closeSidebar();
-  input.focus();
-  return chat;
-}
-
-function switchChat(chatId){
-  currentChatId = chatId;
-  pendingLearn = null;
-  renderChats(); renderMessages(); updateHeader(); closeSidebar();
-}
-
-function renameChat(chatId){
-  const chat = data.chats.find(c => c.id === chatId);
-  if(!chat) return;
-  const name = prompt("Naam van de chat:", chat.title);
-  if(name === null) return;
-  chat.title = name.trim() || "Nieuwe chat";
-  chat.updated = Date.now();
-  save(); renderChats(); updateHeader();
-}
-
-function deleteChat(chatId){
-  const chat = data.chats.find(c => c.id === chatId);
-  if(!chat) return;
-  if(!confirm(`Chat "${chat.title}" verwijderen?`)) return;
-
-  data.chats = data.chats.filter(c => c.id !== chatId);
-  if(currentChatId === chatId) currentChatId = data.chats[0]?.id || null;
-  save();
-
-  if(!currentChatId) createChat("Nieuwe chat");
-  else { renderChats(); renderMessages(); updateHeader(); }
-}
-
-function renderChats(){
-  const query = $("search").value.toLowerCase().trim();
-  chatList.innerHTML = "";
-
-  data.chats.filter(c => {
-    const last = c.messages?.at(-1)?.text || "";
-    return c.title.toLowerCase().includes(query) || last.toLowerCase().includes(query);
-  }).forEach(chat => {
-    const item = document.createElement("div");
-    item.className = "chat-item" + (chat.id === currentChatId ? " active" : "");
-
-    const icon = document.createElement("div");
-    icon.className = "chat-icon"; icon.textContent = "▤";
-
-    const info = document.createElement("div");
-    info.className = "chat-info";
-
-    const title = document.createElement("div");
-    title.className = "chat-title"; title.textContent = chat.title;
-
-    const preview = document.createElement("div");
-    preview.className = "chat-preview";
-    preview.textContent = chat.messages?.at(-1)?.text || "Nog geen berichten";
-
-    info.append(title, preview);
-
-    const more = document.createElement("button");
-    more.className = "more"; more.textContent = "⋯";
-    more.onclick = e => { e.stopPropagation(); showMenu(chat.id, more); };
-
-    item.append(icon, info, more);
-    item.onclick = () => switchChat(chat.id);
-    chatList.appendChild(item);
-  });
-}
-
-function updateHeader(){
-  $("headerTitle").textContent = currentChat()?.title || "Nexi";
-}
-
-/* ---------- CHAT MENU ---------- */
-
-function showMenu(chatId, button){
-  menuChatId = chatId;
-  const r = button.getBoundingClientRect();
-  $("menu").innerHTML = `
-    <button data-action="rename">✎ &nbsp; Hernoemen</button>
-    <button data-action="export">↓ &nbsp; Exporteren</button>
-    <button class="delete" data-action="delete">⌫ &nbsp; Verwijderen</button>
-  `;
-  $("menu").classList.remove("hidden");
-  $("menu").style.left = Math.min(r.left, innerWidth - 180) + "px";
-  $("menu").style.top = Math.min(r.bottom + 4, innerHeight - 150) + "px";
-
-  $("menu").querySelectorAll("[data-action]").forEach(b => {
-    b.onclick = () => {
-      $("menu").classList.add("hidden");
-      const a = b.dataset.action;
-      if(a === "rename") renameChat(chatId);
-      if(a === "delete") deleteChat(chatId);
-      if(a === "export") exportChat(chatId);
-    };
-  });
-}
-document.addEventListener("click", e => {
-  if(!$("menu").contains(e.target)) $("menu").classList.add("hidden");
-});
-
-/* ======================================================
-   MESSAGES
-====================================================== */
-
-function addMessage(role, text, analysis = null){
-  const chat = currentChat();
-  if(!chat) return null;
-  const msg = { id:id(), role, text:String(text), time:Date.now(), analysis };
-  chat.messages.push(msg);
-  chat.updated = Date.now();
-  save(); renderMessages(); renderChats();
-  return msg;
-}
-
-function addSystem(text){
-  const chat = currentChat();
-  if(!chat) return;
-  chat.messages.push({ id:id(), role:"system", text:String(text), time:Date.now() });
-  chat.updated = Date.now();
-  save(); renderMessages(); renderChats();
-}
-
-function renderMessages(){
-  messageContainer.innerHTML = "";
-  const chat = currentChat();
-  if(!chat || !chat.messages.length){ showEmpty(); return; }
-  chat.messages.forEach(renderMessage);
-  scrollBottom();
-}
-
-function showEmpty(){
-  const empty = document.createElement("div");
-  empty.className = "empty";
-
-  const logo = document.createElement("img");
-  logo.src = "logo.png"; logo.alt = "Nexi";
-  logo.onerror = () => logo.remove();
-
-  const heading = document.createElement("h2");
-  heading.textContent = "Waar zullen we het over hebben?";
-
-  const desc = document.createElement("p");
-  desc.textContent = "Nexi leert van elk antwoord dat jij geeft.";
-
-  const suggestions = document.createElement("div");
-  suggestions.className = "suggestions";
-
-  [
-    "Vertel me een leuk weetje",
-    "Wat kun je allemaal?",
-    "Hoe leer jij eigenlijk?",
-    "Leg iets simpel uit"
-  ].forEach(s => {
-    const b = document.createElement("button");
-    b.className = "suggestion"; b.textContent = s;
-    b.onclick = () => { input.value = s; sendMessage(); };
-    suggestions.appendChild(b);
+  fab.addEventListener('click', () => {
+    isOpen() ? closePanel() : openPanel();
   });
 
-  empty.append(logo, heading, desc, suggestions);
-  messageContainer.appendChild(empty);
-}
+  closeB.addEventListener('click', closePanel);
 
-function renderMessage(msg){
-  if(msg.role === "system"){
-    const el = document.createElement("div");
-    el.className = "system-msg";
-    el.textContent = msg.text;
-    messageContainer.appendChild(el);
-    return;
-  }
-
-  const wrapper = document.createElement("div");
-  wrapper.className = "message " + (msg.role === "user" ? "user" : "bot");
-
-  const avatar = document.createElement("div");
-  avatar.className = "avatar";
-  if(msg.role === "bot"){
-    const img = document.createElement("img");
-    img.src = "logo.png"; img.alt = "Nexi";
-    img.onerror = () => { avatar.textContent = "N"; };
-    avatar.appendChild(img);
-  } else {
-    avatar.textContent = "J";
-  }
-
-  const body = document.createElement("div");
-  body.className = "body";
-
-  const name = document.createElement("div");
-  name.className = "name";
-  name.textContent = (msg.role === "user" ? "Jij" : "Nexi") + " · " + time(msg.time);
-
-  const bubble = document.createElement("div");
-  bubble.className = "bubble";
-  renderTextSafely(bubble, msg.text);
-
-  body.append(name, bubble);
-
-  if(analysisMode && msg.analysis?.length){
-    const panel = document.createElement("div");
-    panel.className = "analysis";
-    const strong = document.createElement("strong");
-    strong.textContent = "Analyse";
-    panel.appendChild(strong);
-    msg.analysis.forEach(step => {
-      const row = document.createElement("div");
-      row.textContent = (step.ok ? "✓ " : "– ") + step.text;
-      panel.appendChild(row);
-    });
-    body.appendChild(panel);
-  }
-
-  /* Actieknoppen (alleen symbolen) */
-  const actions = document.createElement("div");
-  actions.className = "msg-actions";
-
-  const copyBtn = document.createElement("button");
-  copyBtn.textContent = "📋";
-  copyBtn.title = "Kopiëren";
-  copyBtn.setAttribute("aria-label","Kopiëren");
-  copyBtn.onclick = () => copyText(msg.text);
-  actions.appendChild(copyBtn);
-
-  if(msg.role === "bot"){
-    const learnBtn = document.createElement("button");
-    learnBtn.textContent = "📌";
-    learnBtn.title = "Leer dit als antwoord op de vorige vraag";
-    learnBtn.setAttribute("aria-label","Leer dit");
-    learnBtn.onclick = () => learnFromBotMessage(msg);
-    actions.appendChild(learnBtn);
-
-    const chat = currentChat();
-    const lastBot = chat && [...chat.messages].reverse().find(m => m.role === "bot");
-    if(lastBot && lastBot.id === msg.id){
-      const regenBtn = document.createElement("button");
-      regenBtn.textContent = "↻";
-      regenBtn.title = "Opnieuw antwoorden";
-      regenBtn.setAttribute("aria-label","Opnieuw");
-      regenBtn.onclick = () => regenerateLast();
-      actions.appendChild(regenBtn);
-    }
-  }
-
-  body.appendChild(actions);
-
-  wrapper.append(avatar, body);
-  messageContainer.appendChild(wrapper);
-}
-
-function renderTextSafely(container, text){
-  const regex = /(https?:\/\/[^\s<]+?\.(?:png|jpe?g|gif|webp|svg)(?:\?[^\s<]*)?)/gi;
-  const parts = String(text).split(regex);
-  parts.forEach(part => {
-    if(!part) return;
-    if(/^https?:\/\/.+\.(png|jpe?g|gif|webp|svg)(\?.*)?$/i.test(part)){
-      const img = document.createElement("img");
-      img.src = part; img.alt = "Afbeelding"; img.loading = "lazy";
-      img.onerror = () => img.remove();
-      container.appendChild(img);
-    } else {
-      container.appendChild(document.createTextNode(part));
-    }
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && isOpen()) closePanel();
   });
-}
 
-function scrollBottom(smooth){
-  if(smooth) messages.scrollTo({ top: messages.scrollHeight, behavior:"smooth" });
-  else requestAnimationFrame(() => messages.scrollTop = messages.scrollHeight);
-}
-
-function showThinking(){
-  const el = document.createElement("div");
-  el.className = "message bot thinking";
-  el.id = "thinking";
-  el.innerHTML = `
-    <div class="avatar"><img src="logo.png" onerror="this.parentElement.textContent='N'"></div>
-    <div class="body">
-      <div class="name">Nexi</div>
-      <div class="bubble">Nexi zoekt... <span class="dots"><i></i><i></i><i></i></span></div>
-    </div>`;
-  messageContainer.appendChild(el);
-  scrollBottom();
-  return el;
-}
-
-/* ---------- KOPIËREN ---------- */
-
-async function copyText(text){
-  try{
-    await navigator.clipboard.writeText(text);
-    toast("Gekopieerd");
-  }catch{
-    const ta = document.createElement("textarea");
-    ta.value = text; document.body.appendChild(ta);
-    ta.select(); document.execCommand("copy"); ta.remove();
-    toast("Gekopieerd");
-  }
-}
-
-/* ======================================================
-   REACTIES.TXT
-====================================================== */
-
-async function loadResponses(){
-  try{
-    const res = await fetch("https://raw.githubusercontent.com/jimisdebest/nexi/main/reacties.txt");
-    if(!res.ok) throw new Error("Geen reacties");
-    const text = await res.text();
-
-    qaDatabase = text.split(/\r?\n/).map(line => {
-      const i = line.indexOf("=");
-      if(i < 0) return null;
-      const vraag = line.slice(0, i).trim();
-      const antwoord = line.slice(i + 1).trim();
-      if(!vraag || !antwoord) return null;
-      return { vraag, antwoord };
-    }).filter(Boolean);
-  }catch(e){
-    console.warn("reacties.txt niet geladen:", e);
-    qaDatabase = [];
-  }
-}
-
-/* ======================================================
-   ANSWER ENGINE
-====================================================== */
-
-async function getAnswer(text){
-  /* Meta-antwoorden */
-  for(const meta of metaAnswers){
-    if(meta.patterns.some(p => p.test(text))){
-      return {
-        answer: meta.answer,
-        analysis: [{ text:"Meta-vraag herkend", ok:true }],
-        matched: true
-      };
-    }
-  }
-
-  const analysis = [
-    { text:`Geleerde kennis (${data.learned.length} items)`, ok:true },
-    { text:`reacties.txt (${qaDatabase.length} items)`, ok:qaDatabase.length > 0 }
-  ];
-
-  const learned = bestMatch(data.learned, text);
-  const base    = bestMatch(qaDatabase, text);
-
-  let match = null, best = 0, source = "";
-
-  if(learned.match && learned.score > best){
-    match = learned.match; best = learned.score; source = "geleerde kennis";
-  }
-  if(base.match && base.score > best){
-    match = base.match; best = base.score; source = "reacties.txt";
-  }
-
-  if(match && best >= UNKNOWN_BELOW){
-    analysis.push({
-      text:`Match (${Math.round(best * 100)}%) uit ${source}`,
-      ok:true
-    });
-    return { answer: match.antwoord, analysis, matched: true };
-  }
-
-  analysis.push({ text:"Geen passende match gevonden", ok:false });
-  return {
-    answer: "Dat weet ik nog niet — typ het antwoord maar, dan onthoud ik het.",
-    analysis,
-    matched: false
-  };
-}
-
-/* ======================================================
-   LEREN / VERGETEN
-====================================================== */
-
-function learnFromPair(vraag, antwoord){
-  vraag = String(vraag || "").trim();
-  antwoord = String(antwoord || "").trim();
-  if(!vraag || !antwoord) return false;
-
-  const nq = normalize(vraag);
-  if(nq.length < 3) return false;
-
-  const formattedQ = formatAnswer(vraag);
-  const formattedA = formatAnswer(antwoord);
-
-  data.learned = data.learned.filter(x => normalize(x.vraag) !== nq);
-  data.learned.push({ vraag: formattedQ, antwoord: formattedA, time: Date.now() });
-  save();
-  return true;
-}
-
-function forget(vraag){
-  const nq = normalize(vraag);
-  const before = data.learned.length;
-  data.learned = data.learned.filter(x => normalize(x.vraag) !== nq);
-  const changed = data.learned.length !== before;
-  if(changed) save();
-  return changed;
-}
-
-function learnFromBotMessage(botMsg){
-  const chat = currentChat();
-  if(!chat) return;
-  const idx = chat.messages.findIndex(m => m.id === botMsg.id);
-  if(idx < 0) return;
-
-  let prevUser = null;
-  for(let i = idx - 1; i >= 0; i--){
-    if(chat.messages[i].role === "user"){ prevUser = chat.messages[i]; break; }
-  }
-  if(!prevUser){ toast("Geen voorafgaande vraag gevonden"); return; }
-
-  if(learnFromPair(prevUser.text, botMsg.text)){
-    toast("📌 Geleerd");
-  } else {
-    toast("Kon niet leren");
-  }
-}
-
-/* ======================================================
-   COMMANDO'S
-====================================================== */
-
-function parseCommand(text){
-  const t = text.trim();
-  if(!t.startsWith("/")) return null;
-
-  if(t.startsWith("/leer ")){
-    const rest = t.slice(6);
-    const m = rest.match(/^(.*?)\s*(?:=>|=|:|\|)\s*([\s\S]+)$/);
-    if(!m) return { type:"unknown", hint:"Gebruik: /leer vraag = antwoord" };
-    return { type:"learn", vraag:m[1].trim(), antwoord:m[2].trim() };
-  }
-  if(t.startsWith("/verwijder ")){
-    return { type:"forget", vraag:t.slice(11).trim() };
-  }
-  if(t === "/lijst" || t === "/kennis"){
-    return { type:"list" };
-  }
-  if(t === "/help" || t === "/?"){
-    return { type:"help" };
-  }
-  return { type:"unknown", hint:"Onbekend commando. Typ /help." };
-}
-
-function handleCommand(cmd){
-  pendingLearn = null;
-
-  if(cmd.type === "learn"){
-    if(learnFromPair(cmd.vraag, cmd.antwoord)){
-      addSystem(`📌 Geleerd: "${truncate(cmd.vraag, 60)}"`);
-      toast("Kennis opgeslagen");
-    } else {
-      toast("Kon niet leren — vraag en antwoord mogen niet leeg zijn");
-    }
-    return;
-  }
-  if(cmd.type === "forget"){
-    if(forget(cmd.vraag)){
-      addSystem(`🗑️ Vergeten: "${truncate(cmd.vraag, 60)}"`);
-      toast("Kennis verwijderd");
-    } else {
-      toast("Niets gevonden om te vergeten");
-    }
-    return;
-  }
-  if(cmd.type === "list"){
-    if(!data.learned.length){
-      addSystem("📚 Geen geleerde kennis opgeslagen.");
-    } else {
-      const recent = data.learned.slice(-10).reverse();
-      const lines = recent.map((x, i) =>
-        `${i + 1}. ${truncate(x.vraag, 60)} → ${truncate(x.antwoord, 80)}`
-      );
-      addSystem(`📚 Laatste ${recent.length} geleerde items:\n${lines.join("\n")}`);
-    }
-    return;
-  }
-  if(cmd.type === "help"){
-    addSystem(
-      "Nexi commando's:\n" +
-      "/leer vraag = antwoord  — iets nieuws leren\n" +
-      "/verwijder vraag         — iets vergeten\n" +
-      "/lijst                   — geleerde kennis tonen\n" +
-      "/help                    — deze uitleg\n\n" +
-      "Automatisch leren: als ik iets niet weet, typ je gewoon het antwoord in je volgende bericht."
-    );
-    return;
-  }
-  if(cmd.type === "unknown"){
-    toast(cmd.hint || "Onbekend commando");
-  }
-}
-
-/* ======================================================
-   SEND / AUTO-LEARN / REGENERATE
-====================================================== */
-
-async function sendMessage(){
-  if(thinking) return;
-  const text = input.value.trim();
-  if(!text) return;
-
-  if(!currentChatId) createChat("Nieuwe chat");
-
-  const cmd = parseCommand(text);
-  if(cmd){
-    input.value = ""; resizeInput();
-    handleCommand(cmd);
-    return;
-  }
-
-  /* ---- AUTO-LEREN: vorige onbeantwoorde vraag + dit bericht = kennis ---- */
-  if(pendingLearn && !looksLikeQuestion(text)){
-    const lower = text.toLowerCase().trim();
-    const tooShort = text.length < 3;
-    const trivial = SKIP_LEARN.has(lower);
-
-    if(!tooShort && !trivial){
-      const question = pendingLearn.question;
-      if(learnFromPair(question, text)){
-        addMessage("user", text);
-        toast("📌 Geleerd");
-        input.value = "";
-        resizeInput();
-        pendingLearn = null;
-        return;
-      }
-    }
-  }
-
-  if(pendingLearn) pendingLearn = null;
-
-  addMessage("user", text);
-  input.value = "";
-  resizeInput();
-  await runAnswer(text);
-}
-
-async function runAnswer(userText){
-  thinking = true;
-  send.disabled = true;
-  const typing = showThinking();
-  await new Promise(r => setTimeout(r, 250));
-
-  try{
-    const response = await getAnswer(userText);
-    typing.remove();
-    addMessage("bot", response.answer, response.analysis);
-
-    /* Onthoud de vraag als het antwoord onzeker is */
-    if(!response.matched){
-      pendingLearn = { question: userText, time: Date.now() };
-    } else {
-      pendingLearn = null;
-    }
-  }catch(e){
-    typing.remove();
-    addMessage("bot", "Er ging iets mis. Probeer het opnieuw.");
-    console.error(e);
-  }finally{
-    thinking = false;
-    send.disabled = false;
-    input.focus();
-  }
-}
-
-async function regenerateLast(){
-  if(thinking) return;
-  const chat = currentChat();
-  if(!chat) return;
-
-  let lastBotIdx = -1;
-  for(let i = chat.messages.length - 1; i >= 0; i--){
-    if(chat.messages[i].role === "bot"){ lastBotIdx = i; break; }
-  }
-  if(lastBotIdx < 0) return;
-
-  let lastUserIdx = -1;
-  for(let i = lastBotIdx - 1; i >= 0; i--){
-    if(chat.messages[i].role === "user"){ lastUserIdx = i; break; }
-  }
-  if(lastUserIdx < 0) return;
-
-  const userText = chat.messages[lastUserIdx].text;
-  chat.messages.splice(lastBotIdx, 1);
-  save(); renderMessages();
-
-  await runAnswer(userText);
-}
-
-/* ======================================================
-   EXPORT / IMPORT
-====================================================== */
-
-function exportAll(){
-  const backup = {
-    marker: BACKUP_MARKER,
-    version: 1,
-    exportedAt: new Date().toISOString(),
-    chats: data.chats,
-    learned: data.learned
-  };
-  const contents =
-    "NEXI BACKUP FILE\n" +
-    "Dit bestand bevat chats en geleerde kennis van Nexi.\n" +
-    "Verander de gegevens hieronder bij voorkeur niet handmatig.\n\n" +
-    JSON.stringify(backup, null, 2);
-  download("nexi.txt", contents);
-  toast("nexi.txt geëxporteerd");
-}
-
-function exportChat(chatId){
-  const chat = data.chats.find(c => c.id === chatId);
-  if(!chat) return;
-  const backup = { marker:"NEXI SINGLE CHAT", version:1, chat };
-  download(
-    safeFilename(chat.title) + ".txt",
-    "NEXI SINGLE CHAT\n\n" + JSON.stringify(backup, null, 2)
-  );
-  toast("Chat geëxporteerd");
-}
-
-function exportKnowledge(){
-  const text = "NEXI KNOWLEDGE ONLY\n\n" + JSON.stringify(data.learned, null, 2);
-  download("nexi-kennis.txt", text);
-  toast("Kennis geëxporteerd");
-}
-
-function download(filename, text){
-  const blob = new Blob([text], { type:"text/plain;charset=utf-8" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url; a.download = filename;
-  document.body.appendChild(a); a.click(); a.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
-}
-
-function sanitizeChat(chat){
-  if(!chat || typeof chat !== "object") return null;
-  return {
-    id: String(chat.id || id()),
-    title: String(chat.title || "Naamloos").slice(0, 100),
-    created: Number(chat.created) || Date.now(),
-    updated: Number(chat.updated) || Date.now(),
-    messages: (Array.isArray(chat.messages) ? chat.messages : [])
-      .map(sanitizeMessage).filter(Boolean)
-  };
-}
-
-function sanitizeMessage(m){
-  if(!m || typeof m !== "object") return null;
-  const role = ["user","bot","system"].includes(m.role) ? m.role : "bot";
-  return {
-    id: String(m.id || id()),
-    role,
-    text: String(m.text ?? ""),
-    time: Number(m.time) || Date.now(),
-    analysis: Array.isArray(m.analysis)
-      ? m.analysis.map(s => ({ text:String(s?.text ?? ""), ok:!!s?.ok }))
-      : null
-  };
-}
-
-function importBackupFile(file){
-  if(!file) return;
-  const reader = new FileReader();
-  reader.onload = () => {
-    try{
-      const raw = String(reader.result);
-      const start = raw.indexOf("{");
-      if(start < 0) throw new Error("Geen JSON gevonden");
-      const parsed = JSON.parse(raw.slice(start));
-
-      if(parsed.marker === BACKUP_MARKER){
-        const chats = (Array.isArray(parsed.chats) ? parsed.chats : [])
-          .map(sanitizeChat).filter(Boolean);
-        const learned = (Array.isArray(parsed.learned) ? parsed.learned : [])
-          .filter(x => x && x.vraag && x.antwoord)
-          .map(x => ({
-            vraag: String(x.vraag),
-            antwoord: String(x.antwoord),
-            time: Number(x.time) || Date.now()
-          }));
-
-        if(!confirm(
-          "Deze import vervangt je huidige chats en geleerde kennis.\n\n" +
-          `Het bestand bevat ${chats.length} chats en ${learned.length} kennis-items.\n\nDoorgaan?`
-        )) return;
-
-        data = { version:1, chats, learned };
-        save();
-        currentChatId = data.chats[0]?.id || null;
-        if(!currentChatId) createChat("Nieuwe chat");
-        else { renderChats(); renderMessages(); updateHeader(); }
-        toast("Backup volledig geladen");
-        return;
-      }
-
-      if(parsed.marker === "NEXI SINGLE CHAT" && parsed.chat){
-        const chat = sanitizeChat(parsed.chat);
-        if(!chat) throw new Error("Chat is ongeldig");
-        chat.id = id();
-        data.chats.unshift(chat);
-        currentChatId = chat.id;
-        save(); renderChats(); renderMessages(); updateHeader();
-        toast("Chat geïmporteerd");
-        return;
-      }
-
-      throw new Error("Dit is geen geldig Nexi-backupbestand");
-    }catch(e){
-      alert("Importeren mislukt:\n" + e.message);
-    }
-  };
-  reader.readAsText(file);
-}
-
-/* ======================================================
-   SETTINGS
-====================================================== */
-
-function settings(){
-  $("modalRoot").innerHTML = `
-    <div class="backdrop">
-      <div class="modal">
-        <h3>Nexi instellingen</h3>
-        <p>Beheer je chats, kennis en backups.</p>
-        <div class="settings-buttons">
-          <button class="btn" id="backupExport">↓ &nbsp; Alles exporteren (nexi.txt)</button>
-          <button class="btn" id="backupImport">↑ &nbsp; Backup importeren</button>
-          <button class="btn" id="learnExport">↓ &nbsp; Alleen kennis exporteren</button>
-          <button class="btn" id="learnView">👁 &nbsp; Geleerde kennis bekijken</button>
-          <button class="btn danger" id="clearLearned">⌫ &nbsp; Geleerde kennis wissen</button>
-          <button class="btn danger" id="clearChats">⌫ &nbsp; Alle chats verwijderen</button>
-        </div>
-        <div class="actions"><button class="btn primary" id="closeSettings">Sluiten</button></div>
-      </div>
-    </div>`;
-
-  $("closeSettings").onclick = () => $("modalRoot").innerHTML = "";
-  $("backupExport").onclick = () => { exportAll(); $("modalRoot").innerHTML = ""; };
-  $("backupImport").onclick = () => { $("modalRoot").innerHTML = ""; $("backupInput").click(); };
-  $("learnExport").onclick = () => { exportKnowledge(); $("modalRoot").innerHTML = ""; };
-  $("learnView").onclick = showKnowledge;
-  $("clearLearned").onclick = () => {
-    if(confirm("Alle geleerde kennis verwijderen?")){
-      data.learned = []; save(); toast("Kennis verwijderd");
-      $("modalRoot").innerHTML = "";
-    }
-  };
-  $("clearChats").onclick = () => {
-    if(confirm("Alle chats verwijderen?")){
-      data.chats = []; currentChatId = null; pendingLearn = null;
-      createChat("Nieuwe chat");
-      $("modalRoot").innerHTML = "";
-      toast("Chats verwijderd");
-    }
-  };
-}
-
-function showKnowledge(){
-  const items = data.learned.slice().reverse();
-  const body = items.length
-    ? items.map((x, i) => `
-        <div class="kb-item">
-          <div class="kb-q">${escapeHTML(x.vraag)}</div>
-          <div class="kb-a">${escapeHTML(x.antwoord)}</div>
-          <button class="btn" data-kb-del="${i}" style="margin-top:8px">⌫ Verwijder</button>
-        </div>`).join("")
-    : "<p>Geen geleerde kennis opgeslagen.</p>";
-
-  $("modalRoot").innerHTML = `
-    <div class="backdrop">
-      <div class="modal" style="max-width:560px">
-        <h3>Geleerde kennis (${items.length})</h3>
-        <div class="kb-list">${body}</div>
-        <div class="actions"><button class="btn primary" id="closeKb">Sluiten</button></div>
-      </div>
-    </div>`;
-
-  $("closeKb").onclick = () => $("modalRoot").innerHTML = "";
-  $("modalRoot").querySelectorAll("[data-kb-del]").forEach(b => {
-    b.onclick = () => {
-      const idx = Number(b.dataset.kbDel);
-      const item = items[idx];
-      if(item) forget(item.vraag);
-      showKnowledge();
-    };
+  /* Klik buiten het paneel sluit het (behalve op de knop zelf) */
+  document.addEventListener('pointerdown', (e) => {
+    if (!isOpen()) return;
+    if (panel.contains(e.target) || fab.contains(e.target)) return;
+    closePanel();
   });
-}
-
-/* ======================================================
-   THEME / SIDEBAR / TEXTAREA
-====================================================== */
-
-function toggleTheme(){
-  const cur = document.documentElement.getAttribute("data-theme") || "light";
-  const next = cur === "dark" ? "light" : "dark";
-  document.documentElement.setAttribute("data-theme", next);
-  localStorage.setItem(THEME_KEY, next);
-}
-function loadTheme(){
-  const saved = localStorage.getItem(THEME_KEY);
-  if(saved) document.documentElement.setAttribute("data-theme", saved);
-}
-function openSidebar(){
-  $("sidebar").classList.add("open");
-  $("overlay").classList.remove("hidden");
-}
-function closeSidebar(){
-  $("sidebar").classList.remove("open");
-  $("overlay").classList.add("hidden");
-}
-function resizeInput(){
-  input.style.height = "auto";
-  input.style.height = Math.min(input.scrollHeight, 150) + "px";
-}
-
-/* ======================================================
-   EVENTS
-====================================================== */
-
-$("newChat").onclick = () => createChat();
-$("renameCurrent").onclick = () => currentChatId && renameChat(currentChatId);
-$("theme").onclick = toggleTheme;
-$("settings").onclick = settings;
-$("mobileMenu").onclick = openSidebar;
-$("overlay").onclick = closeSidebar;
-$("exportChat").onclick = () => currentChatId && exportChat(currentChatId);
-$("analysisToggle").onclick = () => {
-  analysisMode = !analysisMode;
-  $("analysisToggle").textContent = analysisMode ? "✓ Analyse" : "⌘ Analyse";
-  renderMessages();
-  toast(analysisMode ? "Analyse aan" : "Analyse uit");
-};
-
-$("search").oninput = renderChats;
-send.onclick = sendMessage;
-input.oninput = resizeInput;
-input.onkeydown = e => {
-  if(e.key === "Enter" && !e.shiftKey){ e.preventDefault(); sendMessage(); }
-};
-
-$("backupInput").onchange = e => {
-  importBackupFile(e.target.files[0]);
-  e.target.value = "";
-};
-
-messages.addEventListener("scroll", () => {
-  const nearBottom =
-    messages.scrollTop + messages.clientHeight >
-    messages.scrollHeight - 200;
-  jumpBottom.classList.toggle("visible", !nearBottom);
-});
-jumpBottom.onclick = () => scrollBottom(true);
-
-/* ---------- INIT ---------- */
-
-async function init(){
-  loadTheme();
-
-  try{
-    const stored = JSON.parse(localStorage.getItem(STORAGE) || "null");
-    if(stored && Array.isArray(stored.chats) && Array.isArray(stored.learned)){
-      data = {
-        version: 1,
-        chats: stored.chats.map(sanitizeChat).filter(Boolean),
-        learned: stored.learned
-      };
-    }
-  }catch(e){
-    console.warn("Lokale data kon niet gelezen worden", e);
-  }
-
-  await loadResponses();
-
-  if(!data.chats.length){
-    createChat("Nieuwe chat");
-  } else {
-    currentChatId = data.chats[0].id;
-    renderChats(); renderMessages(); updateHeader();
-  }
-  resizeInput();
-}
-
-init();
+})();
 </script>
 </body>
 </html>
