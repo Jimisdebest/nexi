@@ -5,140 +5,119 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Nexi</title>
 <link rel="icon" href="logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
 <style>
 :root {
-  --text:#1b1f27;--muted:#5d6675;--line:rgba(20,40,80,.12);
-  --panel:rgba(255,255,255,.86);--panelSolid:#fff;--soft:rgba(238,242,248,.9);
-  --accent:#0f6cbd;--accentSoft:rgba(15,108,189,.12);
-  --bot:rgba(255,255,255,.9);--danger:#d13c3c;
-  --pill:rgba(255,255,255,.96);--pillText:#1b1f27;
-  --scrim:linear-gradient(180deg,rgba(0,0,0,.38) 0,rgba(0,0,0,.06) 22%,rgba(0,0,0,.06) 70%,rgba(0,0,0,.45) 100%);
-  --fallback:linear-gradient(180deg,#5d9fe0 0%,#a9cdee 40%,#e6eff6 58%,#7aa58d 59%,#4a7966 78%,#2d5246 100%);
+  --bg:#f3f4f7;--panel:#ffffff;--soft:#f3f4f7;--text:#111827;
+  --muted:#6b7280;--border:#e5e7eb;--accent:#2457f5;
+  --accentSoft:#e8eeff;--bot:#ffffff;--danger:#e05b5b;
+  --glow:radial-gradient(ellipse 62% 340px at 50% 0, rgba(250,214,170,.85) 0, rgba(250,214,170,.35) 45%, rgba(250,214,170,0) 100%);
+  --shadow:0 10px 30px rgba(17,24,39,.08);
 }
 [data-theme="dark"]{
-  --text:#f2f5fa;--muted:#a3adc0;--line:rgba(255,255,255,.12);
-  --panel:rgba(24,30,44,.84);--panelSolid:#1a2233;--soft:rgba(42,50,70,.85);
-  --accent:#5aa8ff;--accentSoft:rgba(90,168,255,.2);
-  --bot:rgba(32,40,58,.9);--danger:#ff7b7b;
-  --pill:rgba(30,36,52,.94);--pillText:#f2f5fa;
-  --scrim:linear-gradient(180deg,rgba(0,0,0,.55) 0,rgba(0,0,0,.35) 30%,rgba(0,0,0,.4) 70%,rgba(0,0,0,.65) 100%);
-  --fallback:linear-gradient(180deg,#0a1230 0%,#1b2a55 40%,#2c3e6b 58%,#1c3a3a 59%,#12292b 80%,#0a1719 100%);
+  --bg:#12141a;--panel:#1b1e26;--soft:#252932;--text:#f3f4f6;
+  --muted:#9aa1ae;--border:#313541;--accent:#6b8bff;
+  --accentSoft:#252d4d;--bot:#1b1e26;--danger:#ff7777;
+  --glow:radial-gradient(ellipse 62% 340px at 50% 0, rgba(255,160,90,.26) 0, rgba(255,160,90,.1) 45%, rgba(255,160,90,0) 100%);
+  --shadow:0 10px 30px rgba(0,0,0,.35);
 }
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%}
 body{
-  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
-  color:var(--text);background:#223;height:100dvh;overflow:hidden
+  font-family:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  color:var(--text);background:var(--bg);height:100dvh;overflow:hidden
 }
 button,input,textarea{font:inherit}
 button{cursor:pointer}
+.app{display:flex;width:100%;height:100dvh;overflow:hidden}
 
-/* ACHTERGROND (zoals Bing: schermvullende foto) */
-.bg{position:fixed;inset:0;z-index:0;background:var(--fallback) center/cover no-repeat}
-.bg .photo{position:absolute;inset:0;background:center/cover no-repeat;opacity:0;transition:opacity .8s, filter .4s, transform .4s}
-.bg .photo.loaded{opacity:1}
-.bg::after{content:"";position:absolute;inset:0;background:var(--scrim);transition:background .3s}
-body.chatting .bg .photo{filter:blur(10px) brightness(.85);transform:scale(1.06)}
-[data-theme="dark"] .bg .photo{filter:brightness(.55)}
-[data-theme="dark"] body.chatting .bg .photo{filter:blur(10px) brightness(.45)}
-
-.app{position:relative;z-index:1;display:flex;width:100%;height:100dvh;overflow:hidden}
-
-/* SIDEBAR = uitschuifpaneel */
+/* SIDEBAR (vaste chatlijst op desktop, uitschuifpaneel op mobiel) */
 .sidebar{
-  position:fixed;inset:0 auto 0 0;width:300px;z-index:15;background:var(--panel);
-  backdrop-filter:blur(24px) saturate(1.3);-webkit-backdrop-filter:blur(24px) saturate(1.3);
-  border-right:1px solid var(--line);display:flex;flex-direction:column;
-  padding:17px 13px;transform:translateX(-100%);transition:transform .22s ease;
+  width:280px;flex-shrink:0;background:var(--panel);
+  border-right:1px solid var(--border);display:flex;flex-direction:column;
+  padding:17px 13px;z-index:15
 }
-.sidebar.open{transform:translateX(0);box-shadow:10px 0 40px #0003}
-.brand{display:flex;align-items:center;gap:11px;padding:4px 8px 22px}
+.brand{display:flex;align-items:center;gap:11px;padding:4px 8px 20px}
 .brand img{width:40px;height:40px;object-fit:cover;border-radius:50%}
-.brand-name{font-size:20px;font-weight:750;letter-spacing:-.6px}
-.brand-sub{font-size:11px;color:var(--muted);margin-top:3px}
+.brand-name{font-family:"Inter Tight","Inter",sans-serif;font-size:22px;font-weight:800;letter-spacing:-.04em}
+.brand-sub{font-size:11px;color:var(--muted);margin-top:2px}
 .new-chat{
-  border:1px solid var(--line);background:var(--panelSolid);color:var(--text);
-  padding:12px 14px;border-radius:999px;display:flex;gap:10px;align-items:center
+  border:1px solid var(--border);background:var(--panel);color:var(--text);
+  padding:12px 14px;border-radius:999px;display:flex;gap:10px;align-items:center;font-weight:600;font-size:14px
 }
 .new-chat:hover{background:var(--accentSoft);border-color:var(--accent)}
-.new-chat span{font-size:20px;color:var(--accent)}
-.search{position:relative;margin:16px 0}
+.new-chat span{font-size:20px;color:var(--accent);line-height:1}
+.search{position:relative;margin:14px 0}
 .search input{
   width:100%;border:1px solid transparent;border-radius:999px;
   background:var(--soft);padding:10px 14px 10px 36px;
   outline:none;color:var(--text);font-size:13px
 }
-.search input:focus{border-color:var(--accent)}
+.search input:focus{border-color:var(--accent);background:var(--panel)}
 .search span{position:absolute;left:14px;top:9px;color:var(--muted)}
 .label{font-size:11px;color:var(--muted);font-weight:700;letter-spacing:.7px;padding:0 8px 9px}
 .chat-list{flex:1;overflow-y:auto;min-height:0}
-.chat-item{display:flex;align-items:center;gap:9px;padding:10px;border-radius:14px;cursor:pointer;margin-bottom:3px}
+.chat-item{display:flex;align-items:center;gap:9px;padding:10px;border-radius:14px;cursor:pointer;margin-bottom:3px;border:1px solid transparent}
 .chat-item:hover{background:var(--soft)}
-.chat-item.active{background:var(--accentSoft)}
-.chat-icon{width:33px;height:33px;border-radius:50%;background:var(--soft);display:grid;place-items:center;flex-shrink:0}
+.chat-item.active{background:var(--accentSoft);border-color:rgba(36,87,245,.18)}
+.chat-icon{width:33px;height:33px;border-radius:50%;background:var(--soft);display:grid;place-items:center;flex-shrink:0;color:var(--muted)}
+.chat-item.active .chat-icon{background:var(--panel);color:var(--accent)}
 .chat-info{flex:1;min-width:0}
 .chat-title{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .chat-preview{font-size:11px;color:var(--muted);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .more{border:0;background:transparent;color:var(--muted);padding:5px;border-radius:7px;opacity:0}
 .chat-item:hover .more,.chat-item.active .more{opacity:1}
-.more:hover{background:var(--line)}
-.sidebar-bottom{border-top:1px solid var(--line);margin-top:10px;padding-top:10px}
+.more:hover{background:var(--border)}
+.sidebar-bottom{border-top:1px solid var(--border);margin-top:10px;padding-top:10px}
 .bottom-row{display:flex;align-items:center;gap:6px;padding:5px}
 .profile{display:flex;align-items:center;gap:9px;flex:1;min-width:0}
 .profile-avatar{width:34px;height:34px;border-radius:50%;background:var(--accentSoft);color:var(--accent);display:grid;place-items:center;font-weight:700}
 .profile-name{font-size:13px;font-weight:600}
 .profile-sub{font-size:11px;color:var(--muted);margin-top:2px}
-.icon-btn{border:0;background:transparent;color:var(--muted);border-radius:50%;width:36px;height:36px}
+.icon-btn{border:0;background:transparent;color:var(--muted);border-radius:50%;width:36px;height:36px;font-size:15px}
 .icon-btn:hover{background:var(--soft);color:var(--text)}
 
 /* MAIN */
-.main{flex:1;display:flex;flex-direction:column;min-width:0;position:relative}
-
-/* BOVENBALK zoals Bing: tabs links, acties rechts */
+.main{flex:1;display:flex;flex-direction:column;min-width:0;position:relative;overflow:hidden}
+.main::before{content:"";position:absolute;inset:0 0 auto 0;height:420px;background:var(--glow);pointer-events:none;z-index:0}
+.main > *{position:relative;z-index:1}
 .topbar{
-  height:60px;min-height:60px;display:flex;align-items:center;
-  padding:0 18px;gap:6px;color:#fff;text-shadow:0 1px 6px rgba(0,0,0,.55)
+  height:62px;min-height:62px;display:flex;align-items:center;
+  padding:0 20px;gap:6px
 }
-.topbar .tab{
-  border:0;background:transparent;color:#fff;font-size:14px;font-weight:600;
-  padding:8px 13px;border-radius:999px;text-shadow:inherit;white-space:nowrap
-}
-.topbar .tab:hover{background:rgba(255,255,255,.2)}
-.topbar .icon-btn{color:#fff;text-shadow:inherit}
-.topbar .icon-btn:hover{background:rgba(255,255,255,.2);color:#fff}
-.header-title{font-size:13px;font-weight:600;max-width:34vw;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
-  padding:0 12px;opacity:.95}
+.mobile-menu{display:none}
+.header-title{font-size:14px;font-weight:600;max-width:40vw;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .header-sub{display:none}
 .spacer{flex:1}
-.status{display:flex;align-items:center;gap:7px;font-size:12px;padding:6px 12px;border-radius:999px;background:rgba(255,255,255,.16);
-  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+.status{display:flex;align-items:center;gap:7px;color:var(--muted);font-size:12px;padding:6px 12px;border-radius:999px;background:var(--panel);border:1px solid var(--border);margin-right:4px}
 .dot{width:8px;height:8px;border-radius:50%;background:#48c58b}
 
 /* CHAT */
-.messages{flex:1;overflow-y:auto;padding:10px 18px 26px;scroll-behavior:smooth;min-height:0}
-.message-container{max-width:850px;margin:auto;display:flex;flex-direction:column;gap:20px}
+.messages{flex:1;overflow-y:auto;padding:10px 20px 26px;scroll-behavior:smooth;min-height:0}
+.message-container{max-width:820px;margin:auto;display:flex;flex-direction:column;gap:20px}
 .message{display:flex;align-items:flex-start;gap:11px;animation:fade .15s ease}
 .message.user{flex-direction:row-reverse}
 .avatar{
   width:34px;height:34px;flex-shrink:0;border-radius:50%;
-  background:var(--panelSolid);border:1px solid var(--line);
-  display:grid;place-items:center;overflow:hidden;font-size:13px;color:var(--text)
+  background:var(--panel);border:1px solid var(--border);
+  display:grid;place-items:center;overflow:hidden;font-size:13px;font-weight:600
 }
 .avatar img{width:100%;height:100%;object-fit:cover}
 .body{max-width:min(78%,650px)}
 .message.user .body{display:flex;flex-direction:column;align-items:flex-end}
-.name{font-size:11px;font-weight:600;color:#fff;text-shadow:0 1px 4px rgba(0,0,0,.6);margin:0 4px 6px}
+.name{font-size:11px;font-weight:600;color:var(--muted);margin:0 4px 6px}
 .bubble{
   border-radius:20px;padding:12px 16px;line-height:1.6;font-size:14px;
-  white-space:pre-wrap;overflow-wrap:anywhere;box-shadow:0 6px 22px rgba(0,0,0,.2);color:var(--text)
+  white-space:pre-wrap;overflow-wrap:anywhere
 }
-.bot .bubble{background:var(--bot);border-top-left-radius:6px;
-  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
-.user .bubble{background:linear-gradient(135deg,#1a7fd8,#0f6cbd);color:#fff;border-top-right-radius:6px}
+.bot .bubble{background:var(--bot);border:1px solid var(--border);border-top-left-radius:6px;box-shadow:0 2px 10px rgba(17,24,39,.04)}
+.user .bubble{background:var(--accent);color:#fff;border-top-right-radius:6px}
 .bubble img{max-width:100%;max-height:350px;border-radius:12px;margin-top:8px;display:block}
 .analysis{
-  margin-top:8px;background:var(--panel);border:1px solid var(--line);
+  margin-top:8px;background:var(--panel);border:1px solid var(--border);
   border-radius:14px;padding:11px 13px;font-size:12px;color:var(--muted)
 }
 .analysis strong{display:block;color:var(--text);margin-bottom:7px}
@@ -153,44 +132,41 @@ body.chatting .bg .photo{filter:blur(10px) brightness(.85);transform:scale(1.06)
 .msg-actions{display:flex;gap:2px;margin-top:6px;opacity:0;transition:opacity .15s}
 .message:hover .msg-actions,.message:focus-within .msg-actions{opacity:1}
 .msg-actions button{
-  border:0;background:rgba(255,255,255,.85);color:#445;
+  border:0;background:transparent;color:var(--muted);
   padding:5px 9px;border-radius:999px;font-size:14px;line-height:1;
 }
-[data-theme="dark"] .msg-actions button{background:rgba(40,48,68,.9);color:#ccd}
-.msg-actions button:hover{filter:brightness(.95)}
+.msg-actions button:hover{background:var(--panel);color:var(--text)}
 
 /* SYSTEM MESSAGE */
 .system-msg{
-  align-self:center;text-align:center;font-size:12px;color:var(--text);
+  align-self:center;text-align:center;font-size:12px;color:var(--muted);
   padding:8px 16px;white-space:pre-wrap;line-height:1.6;max-width:600px;
-  font-style:italic;background:var(--panel);border-radius:16px;
-  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)
+  font-style:italic;background:var(--panel);border:1px solid var(--border);border-radius:16px
 }
 
 /* JUMP TO BOTTOM */
 .jump-bottom{
   position:absolute;right:22px;bottom:130px;width:38px;height:38px;
-  border-radius:50%;border:1px solid var(--line);background:var(--panelSolid);
+  border-radius:50%;border:1px solid var(--border);background:var(--panel);
   color:var(--muted);display:grid;place-items:center;
-  box-shadow:0 4px 15px rgba(0,0,0,.2);z-index:10;
+  box-shadow:var(--shadow);z-index:10;
   opacity:0;pointer-events:none;transition:opacity .2s
 }
 .jump-bottom.visible{opacity:1;pointer-events:auto}
 .jump-bottom:hover{color:var(--text);background:var(--soft)}
 
-/* INPUT = Bing-zoekbalk */
-.composer-wrap{padding:8px 20px 14px;background:transparent;width:100%}
+/* INPUT */
+.composer-wrap{padding:8px 20px 16px;width:100%}
 .composer{
   display:flex;align-items:flex-end;gap:6px;
-  max-width:850px;margin:auto;background:var(--pill);color:var(--pillText);
-  border:2px solid transparent;border-radius:28px;padding:4px 6px 4px 18px;
-  box-shadow:0 8px 32px rgba(0,0,0,.28)
+  max-width:820px;margin:auto;background:var(--panel);border:1px solid var(--border);
+  border-radius:28px;padding:4px 6px 4px 20px;box-shadow:var(--shadow)
 }
 .composer:focus-within{border-color:var(--accent)}
 textarea{
   flex:1;display:block;min-width:0;resize:none;max-height:150px;min-height:44px;
   padding:12px 4px 10px;border:0;outline:0;background:transparent;
-  color:var(--pillText);font-size:16px;line-height:1.45
+  color:var(--text);font-size:15px;line-height:1.45
 }
 textarea::placeholder{color:var(--muted)}
 .send{
@@ -199,44 +175,50 @@ textarea::placeholder{color:var(--muted)}
 }
 .send:hover{filter:brightness(1.1)}
 .send:disabled{opacity:.4}
-.tools{display:flex;justify-content:center;flex-wrap:wrap;gap:6px;max-width:850px;margin:10px auto 0}
+.tools{display:flex;justify-content:center;flex-wrap:wrap;gap:6px;max-width:820px;margin:10px auto 0}
 .tool{
-  border:0;background:rgba(255,255,255,.18);color:#fff;padding:7px 14px;
-  border-radius:999px;font-size:12px;text-shadow:0 1px 4px rgba(0,0,0,.5);
-  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)
+  border:1px solid var(--border);background:var(--panel);color:var(--muted);padding:6px 13px;
+  border-radius:999px;font-size:12px;font-weight:500
 }
-.tool:hover{background:rgba(255,255,255,.3)}
-.disclaimer{max-width:850px;margin:10px auto 0;text-align:center;color:#fff;font-size:11px;
-  text-shadow:0 1px 5px rgba(0,0,0,.6);opacity:.92}
+.tool:hover{color:var(--text);border-color:var(--accent)}
+.disclaimer{max-width:820px;margin:10px auto 0;text-align:center;color:var(--muted);font-size:11px}
 
-/* LEGE STAAT = Bing-startpagina */
+/* LEGE STAAT = begroeting */
 .main.empty-state .messages{display:flex}
 .main.empty-state .message-container{max-width:none;width:100%;margin:0;flex:1}
-.empty{
-  flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
-  text-align:center;padding:0 20px 6vh;min-height:0
-}
-.empty img.logo{width:84px;height:84px;object-fit:cover;border-radius:50%;margin-bottom:10px;box-shadow:0 8px 30px rgba(0,0,0,.35)}
-.empty h1{font-size:clamp(44px,8vw,72px);font-weight:800;letter-spacing:-2px;color:#fff;text-shadow:0 3px 22px rgba(0,0,0,.5);line-height:1.05}
-.empty p.tag{color:#fff;font-size:14px;margin:6px 0 22px;text-shadow:0 1px 10px rgba(0,0,0,.6)}
-.empty .composer-wrap{padding:0}
-.empty .composer{max-width:640px;min-height:52px;box-shadow:0 12px 44px rgba(0,0,0,.4)}
-.empty .tools{max-width:640px}
-.empty .disclaimer{max-width:640px}
-.suggestions{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;margin-top:22px;max-width:700px}
-.suggestion{
-  background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.35);color:#fff;
-  padding:10px 16px;border-radius:999px;font-size:13px;text-shadow:0 1px 4px rgba(0,0,0,.5);
-  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)
-}
-.suggestion:hover{background:rgba(255,255,255,.34)}
 .main.empty-state .jump-bottom{display:none}
+.empty{
+  flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;
+  text-align:center;padding:9vh 20px 30px;min-height:0
+}
+.empty h1{
+  font-family:"Inter Tight","Inter",sans-serif;
+  font-size:clamp(38px,7.2vw,92px);font-weight:800;letter-spacing:-.05em;line-height:1.02;color:var(--text)
+}
+.empty h1 .name{color:var(--accent);cursor:pointer}
+.empty h1 .name:hover{opacity:.85}
+.when{display:flex;align-items:center;justify-content:center;gap:14px;margin-top:22px;flex-wrap:wrap}
+.when .date{font-size:clamp(15px,1.6vw,20px);color:var(--muted);font-weight:500}
+.when .clock{
+  background:var(--panel);border:1px solid var(--border);border-radius:999px;
+  padding:9px 22px;font-size:clamp(15px,1.5vw,19px);font-weight:800;letter-spacing:.1em;
+  font-variant-numeric:tabular-nums;color:var(--text)
+}
+.empty .composer-wrap{padding:0;margin-top:44px;max-width:700px}
+.empty .composer{max-width:700px;min-height:56px}
+.empty .tools,.empty .disclaimer{max-width:700px}
+.suggestions{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;margin-top:24px;max-width:720px}
+.suggestion{
+  background:var(--panel);border:1px solid var(--border);color:var(--text);
+  padding:10px 16px;border-radius:999px;font-size:13px;font-weight:500
+}
+.suggestion:hover{background:var(--accentSoft);border-color:var(--accent)}
 
 /* MENU / TOAST */
 .menu{
-  position:fixed;z-index:20;width:170px;background:var(--panelSolid);color:var(--text);
-  border:1px solid var(--line);border-radius:14px;padding:5px;
-  box-shadow:0 8px 30px rgba(0,0,0,.2)
+  position:fixed;z-index:20;width:170px;background:var(--panel);
+  border:1px solid var(--border);border-radius:14px;padding:5px;
+  box-shadow:0 8px 30px rgba(0,0,0,.14)
 }
 .menu button{
   display:block;width:100%;text-align:left;padding:10px;border:0;
@@ -246,54 +228,53 @@ textarea::placeholder{color:var(--muted)}
 .menu .delete{color:var(--danger)}
 .toast{
   position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
-  background:var(--text);color:var(--panelSolid);padding:11px 18px;
+  background:var(--text);color:var(--panel);padding:11px 18px;
   border-radius:999px;font-size:12px;z-index:40;animation:fade .15s
 }
 .hidden{display:none!important}
 .overlay{position:fixed;inset:0;background:#0005;z-index:14}
 
 /* MODAL */
-.backdrop{position:fixed;inset:0;z-index:30;background:#0006;display:grid;place-items:center;padding:20px;
-  backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}
-.modal{width:100%;max-width:400px;background:var(--panelSolid);color:var(--text);border:1px solid var(--line);border-radius:24px;padding:22px}
-.modal h3{font-size:18px;margin-bottom:8px}
+.backdrop{position:fixed;inset:0;z-index:30;background:#0005;display:grid;place-items:center;padding:20px}
+.modal{width:100%;max-width:400px;background:var(--panel);border:1px solid var(--border);border-radius:24px;padding:22px}
+.modal h3{font-size:18px;margin-bottom:8px;font-family:"Inter Tight","Inter",sans-serif;letter-spacing:-.02em}
 .modal p{font-size:13px;color:var(--muted);line-height:1.5;margin-bottom:15px}
-.modal input{width:100%;background:var(--soft);border:1px solid var(--line);border-radius:12px;padding:12px;color:var(--text);outline:0;margin-bottom:14px}
 .actions{display:flex;justify-content:flex-end;gap:8px}
-.btn{padding:10px 15px;border-radius:999px;border:1px solid var(--line);background:var(--soft);color:var(--text);font-size:13px}
+.btn{padding:10px 15px;border-radius:999px;border:1px solid var(--border);background:var(--soft);color:var(--text);font-size:13px}
 .btn.primary{background:var(--accent);border-color:var(--accent);color:white}
 .btn.danger{color:var(--danger)}
 .settings-buttons{display:flex;flex-direction:column;gap:9px;margin-bottom:17px}
 .settings-buttons .btn{text-align:left}
 .kb-list{max-height:50vh;overflow-y:auto;display:flex;flex-direction:column;gap:8px;margin-bottom:14px}
-.kb-item{border:1px solid var(--line);border-radius:14px;padding:10px}
+.kb-item{border:1px solid var(--border);border-radius:14px;padding:10px}
 .kb-q{font-size:12px;font-weight:600;color:var(--accent);margin-bottom:4px}
 .kb-a{font-size:12px;color:var(--text);line-height:1.5;white-space:pre-wrap}
 
 /* SCROLLBARS */
 ::-webkit-scrollbar{width:6px}
-::-webkit-scrollbar-thumb{background:rgba(255,255,255,.35);border-radius:10px}
-.sidebar ::-webkit-scrollbar-thumb,.modal ::-webkit-scrollbar-thumb{background:var(--line)}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:10px}
 
 @keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
 @keyframes pulse{0%,60%,100%{opacity:.25;transform:translateY(0)}30%{opacity:1;transform:translateY(-3px)}}
 
-@media(max-width:720px){
-  .topbar{height:54px;min-height:54px;padding:0 8px}
-  .topbar .tab .t{display:none}
-  .header-title{display:none}
-  .messages{padding:8px 11px 19px}
+@media(min-width:861px){ .overlay{display:none!important} }
+@media(max-width:860px){
+  .sidebar{position:fixed;inset:0 auto 0 0;width:290px;transform:translateX(-100%);transition:transform .22s ease}
+  .sidebar.open{transform:translateX(0);box-shadow:10px 0 40px #0003}
+  .mobile-menu{display:block}
+  .topbar{height:56px;min-height:56px;padding:0 10px}
+  .messages{padding:8px 12px 19px}
   .body{max-width:88%}
-  .composer-wrap{padding:6px 10px 10px}
+  .composer-wrap{padding:6px 10px 12px}
   .status{font-size:0;padding:7px}
+  .empty{padding-top:7vh}
+  .empty .composer-wrap{margin-top:30px}
   .jump-bottom{right:14px;bottom:150px}
 }
 </style>
 </head>
 
 <body>
-<div class="bg" id="bg"><div class="photo" id="photo"></div></div>
-
 <div class="app">
 
   <aside class="sidebar" id="sidebar">
@@ -312,15 +293,15 @@ textarea::placeholder{color:var(--muted)}
       <input id="search" placeholder="Zoek chats..." type="search">
     </div>
 
-    <div class="label">Gesprekken</div>
+    <div class="label">GESPREKKEN</div>
     <div class="chat-list" id="chatList"></div>
 
     <div class="sidebar-bottom">
       <div class="bottom-row">
         <div class="profile">
-          <div class="profile-avatar">N</div>
+          <div class="profile-avatar" id="profileAvatar">J</div>
           <div>
-            <div class="profile-name">Nexi</div>
+            <div class="profile-name" id="profileName">Jim</div>
             <div class="profile-sub">Lokale opslag</div>
           </div>
         </div>
@@ -332,16 +313,16 @@ textarea::placeholder{color:var(--muted)}
 
   <main class="main" id="mainEl">
     <header class="topbar">
-      <button class="tab" id="mobileMenu" title="Gesprekken">☰ <span class="t">Chats</span></button>
-      <button class="tab" id="tabNew" title="Nieuwe chat">＋ <span class="t">Nieuw</span></button>
-      <button class="tab" id="tabKnowledge" title="Geleerde kennis">📚 <span class="t">Kennis</span></button>
-      <div class="header-title" id="headerTitle">Nexi</div>
-      <div class="header-sub">Gesprek met Nexi</div>
+      <button class="icon-btn mobile-menu" id="mobileMenu" title="Gesprekken">☰</button>
+      <div>
+        <div class="header-title" id="headerTitle">Nexi</div>
+        <div class="header-sub">Gesprek met Nexi</div>
+      </div>
       <div class="spacer"></div>
       <div class="status"><span class="dot"></span> Beschikbaar</div>
-      <button class="icon-btn" id="tabTheme" title="Thema">◐</button>
+      <button class="icon-btn" id="tabNew" title="Nieuwe chat">＋</button>
+      <button class="icon-btn" id="tabKnowledge" title="Geleerde kennis">📚</button>
       <button class="icon-btn" id="renameCurrent" title="Chat hernoemen">✎</button>
-      <button class="icon-btn" id="tabSettings" title="Instellingen">⚙</button>
     </header>
 
     <section class="messages" id="messages">
@@ -377,6 +358,7 @@ textarea::placeholder{color:var(--muted)}
 
 const STORAGE = "nexi_data_v3";
 const THEME_KEY = "nexi_theme";
+const NAME_KEY = "nexi_username";
 const BACKUP_MARKER = "NEXI BACKUP FILE";
 
 /* Alles onder deze drempel = "weet ik niet" */
@@ -388,6 +370,7 @@ let qaDatabase = [];
 let analysisMode = false;
 let thinking = false;
 let menuChatId = null;
+let userName = "Jim";
 
 /* Onthoudt de laatste onbeantwoorde vraag → volgende bericht wordt geleerd */
 let pendingLearn = null;
@@ -429,28 +412,44 @@ function truncate(s, n){
 }
 
 /* ======================================================
-   ACHTERGRONDFOTO (dagelijkse Bing-foto, met kleurverloop als terugval)
+   BEGROETING + KLOK
 ====================================================== */
 
-function loadBackground(){
-  const sources = [
-    "https://bing.biturl.top/?resolution=1920&format=image&index=0&mkt=nl-NL",
-    "https://bing.biturl.top/?resolution=1920&format=image&index=0&mkt=en-US"
-  ];
-  const photo = $("photo");
-  let i = 0;
-  const tryNext = () => {
-    if(i >= sources.length) return;
-    const url = sources[i++];
-    const img = new Image();
-    img.onload = () => {
-      photo.style.backgroundImage = `url("${url}")`;
-      photo.classList.add("loaded");
-    };
-    img.onerror = tryNext;
-    img.src = url;
-  };
-  tryNext();
+function greeting(){
+  const h = new Date().getHours();
+  if(h < 6)  return "Goedenacht";
+  if(h < 12) return "Goedemorgen";
+  if(h < 18) return "Goedemiddag";
+  return "Goedenavond";
+}
+
+function updateClock(){
+  const now = new Date();
+  const dateEl = document.querySelector(".when .date");
+  const clockEl = document.querySelector(".when .clock");
+  const greetEl = document.querySelector(".empty h1 .greet");
+  if(dateEl){
+    const d = now.toLocaleDateString("nl-NL",{ weekday:"long", day:"numeric", month:"long" });
+    dateEl.textContent = d.charAt(0).toUpperCase() + d.slice(1);
+  }
+  if(clockEl) clockEl.textContent = now.toLocaleTimeString("nl-NL",{ hour:"2-digit", minute:"2-digit" });
+  if(greetEl) greetEl.textContent = greeting();
+}
+
+function applyUserName(){
+  const n = userName || "Jim";
+  $("profileName").textContent = n;
+  $("profileAvatar").textContent = n.charAt(0).toUpperCase();
+  document.querySelectorAll(".empty h1 .name").forEach(el => el.textContent = n);
+}
+
+function changeName(){
+  const n = prompt("Hoe moet ik je noemen?", userName);
+  if(n === null) return;
+  userName = n.trim().slice(0, 30) || "Jim";
+  try{ localStorage.setItem(NAME_KEY, userName); }catch{}
+  applyUserName();
+  toast("Naam opgeslagen");
 }
 
 /* ======================================================
@@ -634,6 +633,7 @@ function switchChat(chatId){
   currentChatId = chatId;
   pendingLearn = null;
   renderChats(); renderMessages(); updateHeader(); closeSidebar();
+  input.focus();
 }
 
 function renameChat(chatId){
@@ -696,7 +696,8 @@ function renderChats(){
 }
 
 function updateHeader(){
-  $("headerTitle").textContent = currentChat()?.title || "Nexi";
+  const chat = currentChat();
+  $("headerTitle").textContent = chat && chat.messages.length ? chat.title : "Nexi";
 }
 
 /* ---------- CHAT MENU ---------- */
@@ -737,7 +738,7 @@ function addMessage(role, text, analysis = null){
   const msg = { id:id(), role, text:String(text), time:Date.now(), analysis };
   chat.messages.push(msg);
   chat.updated = Date.now();
-  save(); renderMessages(); renderChats();
+  save(); renderMessages(); renderChats(); updateHeader();
   return msg;
 }
 
@@ -746,7 +747,7 @@ function addSystem(text){
   if(!chat) return;
   chat.messages.push({ id:id(), role:"system", text:String(text), time:Date.now() });
   chat.updated = Date.now();
-  save(); renderMessages(); renderChats();
+  save(); renderMessages(); renderChats(); updateHeader();
 }
 
 function renderMessages(){
@@ -759,12 +760,12 @@ function renderMessages(){
   const chat = currentChat();
   const isEmpty = !chat || !chat.messages.length;
   mainEl.classList.toggle("empty-state", isEmpty);
-  document.body.classList.toggle("chatting", !isEmpty);
   input.placeholder = isEmpty ? "Waar zullen we het over hebben?" : "Typ een bericht aan Nexi...";
 
   if(isEmpty){ showEmpty(); }
   else { chat.messages.forEach(renderMessage); scrollBottom(); }
 
+  updateHeader();
   if(hadFocus) input.focus();
 }
 
@@ -772,17 +773,24 @@ function showEmpty(){
   const empty = document.createElement("div");
   empty.className = "empty";
 
-  const logo = document.createElement("img");
-  logo.className = "logo";
-  logo.src = "logo.png"; logo.alt = "Nexi";
-  logo.onerror = () => logo.remove();
-
   const heading = document.createElement("h1");
-  heading.textContent = "Nexi";
+  const greet = document.createElement("span");
+  greet.className = "greet";
+  const comma = document.createTextNode(", ");
+  const name = document.createElement("span");
+  name.className = "name";
+  name.title = "Klik om je naam te wijzigen";
+  name.onclick = changeName;
+  const dot = document.createTextNode(".");
+  heading.append(greet, comma, name, dot);
 
-  const desc = document.createElement("p");
-  desc.className = "tag";
-  desc.textContent = "Nexi leert van elk antwoord dat jij geeft.";
+  const when = document.createElement("div");
+  when.className = "when";
+  const date = document.createElement("span");
+  date.className = "date";
+  const clock = document.createElement("span");
+  clock.className = "clock";
+  when.append(date, clock);
 
   const suggestions = document.createElement("div");
   suggestions.className = "suggestions";
@@ -799,9 +807,11 @@ function showEmpty(){
     suggestions.appendChild(b);
   });
 
-  /* de zoekbalk komt midden in de startpagina te staan */
-  empty.append(logo, heading, desc, composerWrap, suggestions);
+  /* de typebalk komt onder de begroeting te staan */
+  empty.append(heading, when, composerWrap, suggestions);
   messageContainer.appendChild(empty);
+  applyUserName();
+  updateClock();
 }
 
 function renderMessage(msg){
@@ -824,7 +834,7 @@ function renderMessage(msg){
     img.onerror = () => { avatar.textContent = "N"; };
     avatar.appendChild(img);
   } else {
-    avatar.textContent = "J";
+    avatar.textContent = (userName || "J").charAt(0).toUpperCase();
   }
 
   const body = document.createElement("div");
@@ -832,7 +842,7 @@ function renderMessage(msg){
 
   const name = document.createElement("div");
   name.className = "name";
-  name.textContent = (msg.role === "user" ? "Jij" : "Nexi") + " · " + time(msg.time);
+  name.textContent = (msg.role === "user" ? (userName || "Jij") : "Nexi") + " · " + time(msg.time);
 
   const bubble = document.createElement("div");
   bubble.className = "bubble";
@@ -1178,9 +1188,20 @@ async function sendMessage(){
   if(pendingLearn) pendingLearn = null;
 
   addMessage("user", text);
+  autoTitle(text);
   input.value = "";
   resizeInput();
   await runAnswer(text);
+}
+
+/* Geef een nieuwe chat automatisch een naam op basis van de eerste vraag */
+function autoTitle(text){
+  const chat = currentChat();
+  if(!chat || chat.title !== "Nieuwe chat") return;
+  const userMsgs = chat.messages.filter(m => m.role === "user");
+  if(userMsgs.length !== 1) return;
+  chat.title = truncate(text.replace(/\s+/g," ").trim(), 40);
+  save(); renderChats(); updateHeader();
 }
 
 async function runAnswer(userText){
@@ -1374,6 +1395,7 @@ function settings(){
         <h3>Nexi instellingen</h3>
         <p>Beheer je chats, kennis en backups.</p>
         <div class="settings-buttons">
+          <button class="btn" id="changeName">✎ &nbsp; Mijn naam wijzigen</button>
           <button class="btn" id="backupExport">↓ &nbsp; Alles exporteren (nexi.txt)</button>
           <button class="btn" id="backupImport">↑ &nbsp; Backup importeren</button>
           <button class="btn" id="learnExport">↓ &nbsp; Alleen kennis exporteren</button>
@@ -1386,6 +1408,7 @@ function settings(){
     </div>`;
 
   $("closeSettings").onclick = () => $("modalRoot").innerHTML = "";
+  $("changeName").onclick = () => { $("modalRoot").innerHTML = ""; changeName(); };
   $("backupExport").onclick = () => { exportAll(); $("modalRoot").innerHTML = ""; };
   $("backupImport").onclick = () => { $("modalRoot").innerHTML = ""; $("backupInput").click(); };
   $("learnExport").onclick = () => { exportKnowledge(); $("modalRoot").innerHTML = ""; };
@@ -1473,9 +1496,7 @@ $("newChat").onclick = () => createChat();
 $("tabNew").onclick = () => createChat();
 $("renameCurrent").onclick = () => currentChatId && renameChat(currentChatId);
 $("theme").onclick = toggleTheme;
-$("tabTheme").onclick = toggleTheme;
 $("settings").onclick = settings;
-$("tabSettings").onclick = settings;
 $("tabKnowledge").onclick = showKnowledge;
 $("mobileMenu").onclick = openSidebar;
 $("overlay").onclick = closeSidebar;
@@ -1511,7 +1532,8 @@ jumpBottom.onclick = () => scrollBottom(true);
 
 async function init(){
   loadTheme();
-  loadBackground();
+  try{ userName = localStorage.getItem(NAME_KEY) || "Jim"; }catch{}
+  applyUserName();
 
   try{
     const stored = JSON.parse(localStorage.getItem(STORAGE) || "null");
@@ -1535,6 +1557,9 @@ async function init(){
     renderChats(); renderMessages(); updateHeader();
   }
   resizeInput();
+
+  /* klok elke seconde bijwerken */
+  setInterval(updateClock, 1000);
 }
 
 init();
